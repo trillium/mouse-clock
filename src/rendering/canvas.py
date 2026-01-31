@@ -1,11 +1,18 @@
+"""
+Canvas drawing and rendering utilities for the mouse clock.
+
+This module handles all visual rendering of the mouse clock, including
+concentric rings, dots, clock letters, and edge-distance visualization.
+"""
+
 import math
 from talon.skia import Paint
 from talon import ui
 
-CLOCK_LETTERS = "abcdefghijkl"
+from ..core import config
 
 
-def get_screen_dimensions(center_x, center_y):
+def get_screen_dimensions(center_x: float, center_y: float) -> tuple[int, int]:
     """
     Get the screen dimensions for the screen containing the given point.
 
@@ -30,21 +37,24 @@ def get_screen_dimensions(center_x, center_y):
         return screens[0].rect.width, screens[0].rect.height
 
     # Ultimate fallback
-    return 1920, 1080
+    return config.DEFAULT_SCREEN_WIDTH, config.DEFAULT_SCREEN_HEIGHT
 
 
-def setup_paint(canvas, color, stroke_width=2):
+def setup_paint(canvas, color: str, stroke_width: int = None):
     """
     Configure canvas paint settings.
 
     Args:
         canvas: Talon canvas object
-        color: Color to set
-        stroke_width: Width of stroke lines
+        color: Color hex string to set
+        stroke_width: Width of stroke lines (defaults to DEFAULT_STROKE_WIDTH)
 
     Returns:
         Configured paint object
     """
+    if stroke_width is None:
+        stroke_width = config.DEFAULT_STROKE_WIDTH
+
     paint = canvas.paint
     paint.color = color
     paint.style = Paint.Style.STROKE
@@ -52,7 +62,7 @@ def setup_paint(canvas, color, stroke_width=2):
     return paint
 
 
-def calculate_ring_radius(ring_index, total_rings, outer_radius):
+def calculate_ring_radius(ring_index: int, total_rings: int, outer_radius: float) -> float:
     """
     Calculate the radius for a specific ring in the concentric circle pattern.
 
@@ -69,7 +79,7 @@ def calculate_ring_radius(ring_index, total_rings, outer_radius):
     return outer_radius * ring_index / (total_rings - 1)
 
 
-def calculate_clock_position(letter_index, radius, center_x, center_y):
+def calculate_clock_position(letter_index: int, radius: float, center_x: float, center_y: float) -> tuple[float, float]:
     """
     Calculate the (x, y) position for a clock letter.
 
@@ -89,7 +99,7 @@ def calculate_clock_position(letter_index, radius, center_x, center_y):
     return x, y
 
 
-def draw_concentric_rings(canvas, center_x, center_y, radius, COLOR_LIST):
+def draw_concentric_rings(canvas, center_x: float, center_y: float, radius: float, color_list: list[str]):
     """
     Draw the concentric colored rings of the mouse clock.
 
@@ -98,18 +108,25 @@ def draw_concentric_rings(canvas, center_x, center_y, radius, COLOR_LIST):
         center_x: X coordinate of clock center
         center_y: Y coordinate of clock center
         radius: Outer radius of the clock
-        COLOR_LIST: List of colors for the rings
+        color_list: List of color hex strings for the rings
     """
     paint = canvas.paint
-    num_rings = len(COLOR_LIST)
+    num_rings = len(color_list)
 
     for i in range(num_rings):
-        paint.color = COLOR_LIST[i]
+        paint.color = color_list[i]
         ring_radius = calculate_ring_radius(i, num_rings, radius)
         canvas.draw_circle(center_x, center_y, ring_radius)
 
 
-def draw_clock_position_dots(canvas, center_x, center_y, radius, COLOR_LIST, dot_radius=5):
+def draw_clock_position_dots(
+    canvas,
+    center_x: float,
+    center_y: float,
+    radius: float,
+    color_list: list[str],
+    dot_radius: float = None
+):
     """
     Draw colored dots at each of the 12 clock positions on different rings.
 
@@ -118,17 +135,20 @@ def draw_clock_position_dots(canvas, center_x, center_y, radius, COLOR_LIST, dot
         center_x: X coordinate of clock center
         center_y: Y coordinate of clock center
         radius: Outer radius of the clock
-        COLOR_LIST: List of colors for each ring of dots
-        dot_radius: Size of each dot (default: 5 pixels)
+        color_list: List of color hex strings for each ring of dots
+        dot_radius: Size of each dot (defaults to DEFAULT_DOT_RADIUS)
     """
+    if dot_radius is None:
+        dot_radius = config.DEFAULT_DOT_RADIUS
+
     paint = canvas.paint
     paint.style = Paint.Style.FILL  # Use FILL instead of STROKE for solid dots
 
-    num_rings = len(COLOR_LIST)
+    num_rings = len(color_list)
 
     # For each color ring
     for ring_index in range(num_rings):
-        paint.color = COLOR_LIST[ring_index]
+        paint.color = color_list[ring_index]
         ring_radius = calculate_ring_radius(ring_index, num_rings, radius)
 
         # Draw a dot at each of the 12 clock positions on this ring
@@ -137,7 +157,12 @@ def draw_clock_position_dots(canvas, center_x, center_y, radius, COLOR_LIST, dot
             canvas.draw_circle(x, y, dot_radius)
 
 
-def calculate_edge_distance(ring_index, total_rings, screen_dimension, current_position):
+def calculate_edge_distance(
+    ring_index: int,
+    total_rings: int,
+    screen_dimension: float,
+    current_position: float
+) -> float:
     """
     Calculate distance from edge for a specific ring.
 
@@ -160,7 +185,15 @@ def calculate_edge_distance(ring_index, total_rings, screen_dimension, current_p
     return (distance_to_edge / total_rings) * ring_index
 
 
-def draw_edge_distance_dots(canvas, center_x, center_y, screen_width, screen_height, COLOR_LIST, dot_radius=5):
+def draw_edge_distance_dots(
+    canvas,
+    center_x: float,
+    center_y: float,
+    screen_width: float,
+    screen_height: float,
+    color_list: list[str],
+    dot_radius: float = None
+):
     """
     Draw colored dots at clock positions, with colors representing distance from screen edge.
 
@@ -170,17 +203,20 @@ def draw_edge_distance_dots(canvas, center_x, center_y, screen_width, screen_hei
         center_y: Y coordinate of clock center (current mouse position)
         screen_width: Width of the screen
         screen_height: Height of the screen
-        COLOR_LIST: List of colors for each distance ring
-        dot_radius: Size of each dot (default: 5 pixels)
+        color_list: List of color hex strings for each distance ring
+        dot_radius: Size of each dot (defaults to DEFAULT_DOT_RADIUS)
     """
+    if dot_radius is None:
+        dot_radius = config.DEFAULT_DOT_RADIUS
+
     paint = canvas.paint
     paint.style = Paint.Style.FILL
 
-    num_rings = len(COLOR_LIST)
+    num_rings = len(color_list)
 
     # For each color ring
     for ring_index in range(num_rings):
-        paint.color = COLOR_LIST[ring_index]
+        paint.color = color_list[ring_index]
 
         # Draw a dot at each of the 12 clock positions
         for position in range(1, 13):  # 1-12 for clock positions
@@ -214,7 +250,7 @@ def draw_edge_distance_dots(canvas, center_x, center_y, screen_width, screen_hei
             canvas.draw_circle(x, y, dot_radius)
 
 
-def draw_clock_letters(canvas, center_x, center_y, radius, COLOR_TEXT):
+def draw_clock_letters(canvas, center_x: float, center_y: float, radius: float, text_color: str):
     """
     Draw the clock position letters (A-L) around the outer ring.
 
@@ -223,17 +259,29 @@ def draw_clock_letters(canvas, center_x, center_y, radius, COLOR_TEXT):
         center_x: X coordinate of clock center
         center_y: Y coordinate of clock center
         radius: Radius at which to place letters
-        COLOR_TEXT: Color for the letter text
+        text_color: Color hex string for the letter text
     """
     paint = canvas.paint
-    paint.color = COLOR_TEXT
+    paint.color = text_color
 
-    for i, letter in enumerate(CLOCK_LETTERS.upper(), start=1):
+    for i, letter in enumerate(config.CLOCK_LETTERS.upper(), start=1):
         x, y = calculate_clock_position(i, radius, center_x, center_y)
         canvas.draw_text(letter, x, y)
 
 
-def draw_mouse_clock(canvas, center_x, center_y, radius, COLOR_LIST, COLOR_ACTIVE, COLOR_TEXT, style="?", dot_radius=5, screen_width=None, screen_height=None):
+def draw_mouse_clock(
+    canvas,
+    center_x: float,
+    center_y: float,
+    radius: float,
+    color_list: list[str],
+    active_color: str,
+    text_color: str,
+    style: str = "rings",
+    dot_radius: float = None,
+    screen_width: float = None,
+    screen_height: float = None
+):
     """
     Draw the mouse clock visualization with concentric circles and clock position letters.
 
@@ -242,24 +290,27 @@ def draw_mouse_clock(canvas, center_x, center_y, radius, COLOR_LIST, COLOR_ACTIV
         center_x: X coordinate of clock center
         center_y: Y coordinate of clock center
         radius: Outer radius of the clock
-        COLOR_LIST: List of colors for the concentric rings
-        COLOR_ACTIVE: Color for active elements
-        COLOR_TEXT: Color for letter labels
+        color_list: List of color hex strings for the concentric rings
+        active_color: Color hex string for active elements
+        text_color: Color hex string for letter labels
         style: Drawing style - "rings", "dots", or "edge"
-        dot_radius: Radius of dots when style="dots" or "edge" (default: 5 pixels)
+        dot_radius: Radius of dots when style="dots" or "edge" (defaults to DEFAULT_DOT_RADIUS)
         screen_width: Screen width (optional, auto-detected if not provided)
         screen_height: Screen height (optional, auto-detected if not provided)
     """
-    setup_paint(canvas, COLOR_ACTIVE)
+    if dot_radius is None:
+        dot_radius = config.DEFAULT_DOT_RADIUS
+
+    setup_paint(canvas, active_color)
 
     if style == "edge":
         # Auto-detect screen dimensions if not provided
         if screen_width is None or screen_height is None:
             screen_width, screen_height = get_screen_dimensions(center_x, center_y)
-        draw_edge_distance_dots(canvas, center_x, center_y, screen_width, screen_height, COLOR_LIST, dot_radius)
+        draw_edge_distance_dots(canvas, center_x, center_y, screen_width, screen_height, color_list, dot_radius)
     elif style == "dots":
-        draw_clock_position_dots(canvas, center_x, center_y, radius, COLOR_LIST, dot_radius)
+        draw_clock_position_dots(canvas, center_x, center_y, radius, color_list, dot_radius)
     else:  # Default to "rings"
-        draw_concentric_rings(canvas, center_x, center_y, radius, COLOR_LIST)
+        draw_concentric_rings(canvas, center_x, center_y, radius, color_list)
 
-    draw_clock_letters(canvas, center_x, center_y, radius, COLOR_TEXT)
+    draw_clock_letters(canvas, center_x, center_y, radius, text_color)

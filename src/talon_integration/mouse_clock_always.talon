@@ -64,6 +64,18 @@ clock off:
     # sleep(200ms)
     user.mouse_clock_close()
 
+clock debug:
+    user.mouse_clock_debug_position()
+
+clock log:
+    user.mouse_clock_show_log_location()
+
+clock position:
+    user.mouse_clock_log_position()
+
+clock mark <user.text>:
+    user.mouse_clock_log_marker(text)
+
 # Activate clock and move in one command (when clock is currently off)
 # Note: Excludes "mouse clock" which is handled above
 ^clock <user.letters_colors>+$:
