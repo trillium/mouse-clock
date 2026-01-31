@@ -145,6 +145,22 @@
       "dependencies": [
         "feat-10"
       ]
+    },
+    {
+      "id": "feat-12",
+      "title": "Concentric Box - Target Computation",
+      "description": "Implement ray-rectangle intersection for targeting. Given (direction, box color) pair, compute and move to intersection point.",
+      "priority": "medium",
+      "passes": true,
+      "acceptanceCriteria": [
+        "Voice command '<color> <letter>' targets box-direction intersection",
+        "Voice command '<color> <number>' works with numeric clock positions",
+        "Ray-rect intersection handles all angles correctly (edges and corners)",
+        "Cursor moves to computed intersection point"
+      ],
+      "dependencies": [
+        "feat-11"
+      ]
     }
   ]
 }
