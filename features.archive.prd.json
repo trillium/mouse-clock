@@ -80,6 +80,22 @@
       "dependencies": [
         "feat-4"
       ]
+    },
+    {
+      "id": "feat-7",
+      "title": "Spiral Nudge - Core Movement",
+      "description": "Implement spiral nudge cursor movement. Move mouse stepwise in expanding spiral pattern from starting point, useful for fine-grained targeting.",
+      "priority": "medium",
+      "passes": true,
+      "acceptanceCriteria": [
+        "Spiral maintains state: origin point, current position, step count",
+        "Each nudge moves cursor to next point on spiral",
+        "Spiral expands outward with configurable step size and growth rate",
+        "Direction (clockwise/counterclockwise) is configurable",
+        "Maximum radius prevents cursor from drifting too far"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Spiral Nudge Navigation' section"
     }
   ]
 }
