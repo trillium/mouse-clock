@@ -102,3 +102,30 @@ def log_warning(msg: str):
 def log_error(msg: str):
     """Log an error message."""
     logger.error(msg)
+
+
+def log_position(label: str, x: float, y: float):
+    """
+    Log a position with context label.
+
+    Args:
+        label: Context description (e.g., "mouse", "target", "origin")
+        x: X coordinate
+        y: Y coordinate
+    """
+    logger.info(f"[{label}] Position: ({x:.1f}, {y:.1f})")
+
+
+def log_action(action_name: str, params: dict = None):
+    """
+    Log an action invocation with parameters.
+
+    Args:
+        action_name: Name of the action being invoked
+        params: Dictionary of parameters (optional)
+    """
+    if params:
+        param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+        logger.info(f"[ACTION] {action_name}({param_str})")
+    else:
+        logger.info(f"[ACTION] {action_name}()")
