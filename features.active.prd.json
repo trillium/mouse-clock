@@ -2,22 +2,6 @@
   "projectName": "MouseClock Features",
   "stories": [
     {
-      "id": "feat-2",
-      "title": "Parrot Sound Actions - Configurable Mapping",
-      "description": "Extend parrot integration with configurable sound-to-action mapping. Allow users to customize which sounds trigger which actions and with what parameters.",
-      "priority": "medium",
-      "passes": false,
-      "acceptanceCriteria": [
-        "Sound mappings stored in configuration (dict or settings file)",
-        "Parameters adjustable per action (e.g., hiss_widen_amount = 15)",
-        "New sound mappings can be added without code changes",
-        "Voice command to reload/reset sound mappings"
-      ],
-      "dependencies": [
-        "feat-1"
-      ]
-    },
-    {
       "id": "feat-3",
       "title": "Parrot Sound Actions - Extended Actions",
       "description": "Add more sound-to-action mappings: toggle visibility, recenter, click, go back. Expand the repertoire of non-verbal mouse control.",
