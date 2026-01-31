@@ -19,22 +19,6 @@
       ]
     },
     {
-      "id": "feat-5",
-      "title": "Lettered Line Overlay - Vertical Intersections",
-      "description": "Add vertical intersection lines that appear after a horizontal line is active. Color-coded verticals help identify specific intersection points.",
-      "priority": "medium",
-      "passes": false,
-      "acceptanceCriteria": [
-        "After horizontal line activated, vertical guides appear",
-        "Verticals are color-coded for identification",
-        "Verticals can be toggled on/off independently",
-        "Intersection points clearly marked with dots or crosses"
-      ],
-      "dependencies": [
-        "feat-4"
-      ]
-    },
-    {
       "id": "feat-6",
       "title": "Lettered Line Overlay - Toggle and Clear Commands",
       "description": "Add commands to toggle individual lines and clear all lines. Complete the line overlay control vocabulary.",

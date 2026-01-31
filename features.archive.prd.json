@@ -64,6 +64,22 @@
       ],
       "dependencies": [],
       "info": "See FEATURES.md 'Lettered Line Intersection Overlay' section"
+    },
+    {
+      "id": "feat-5",
+      "title": "Lettered Line Overlay - Vertical Intersections",
+      "description": "Add vertical intersection lines that appear after a horizontal line is active. Color-coded verticals help identify specific intersection points.",
+      "priority": "medium",
+      "passes": true,
+      "acceptanceCriteria": [
+        "After horizontal line activated, vertical guides appear",
+        "Verticals are color-coded for identification",
+        "Verticals can be toggled on/off independently",
+        "Intersection points clearly marked with dots or crosses"
+      ],
+      "dependencies": [
+        "feat-4"
+      ]
     }
   ]
 }
