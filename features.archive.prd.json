@@ -48,6 +48,22 @@
       "dependencies": [
         "feat-1"
       ]
+    },
+    {
+      "id": "feat-4",
+      "title": "Lettered Line Overlay - Core Drawing",
+      "description": "Implement horizontal line overlay system. Divide screen into lettered bands (A-E or similar), draw horizontal lines when activated by voice command.",
+      "priority": "medium",
+      "passes": true,
+      "acceptanceCriteria": [
+        "Screen divided into configurable number of horizontal bands",
+        "Each band assigned a letter (A, B, C, D, E)",
+        "Voice command 'line <letter>' draws horizontal line at that band's Y position",
+        "Line spans full viewport width",
+        "Line has configurable color and thickness"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Lettered Line Intersection Overlay' section"
     }
   ]
 }
