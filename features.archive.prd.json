@@ -1,4 +1,21 @@
 {
   "projectName": "MouseClock Features - Archive",
-  "stories": []
+  "stories": [
+    {
+      "id": "feat-1",
+      "title": "Parrot Sound Actions - Basic Hiss/Shush Integration",
+      "description": "Implement initial parrot sound integration for MouseClock. Map hiss to widen radius and shush to narrow radius. Only active when MouseClock is showing.",
+      "priority": "high",
+      "passes": true,
+      "acceptanceCriteria": [
+        "Hiss sound triggers mouse_clock_widen action",
+        "Shush sound triggers mouse_clock_narrow action",
+        "Actions only fire when user.mouse_clock_showing tag is active",
+        "Debounce prevents rapid-fire from sustained sounds",
+        "Minimum 150ms interval between accepted sound events"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Parrot Sound Actions Integration' section"
+    }
+  ]
 }

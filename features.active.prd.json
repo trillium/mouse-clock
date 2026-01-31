@@ -2,22 +2,6 @@
   "projectName": "MouseClock Features",
   "stories": [
     {
-      "id": "feat-1",
-      "title": "Parrot Sound Actions - Basic Hiss/Shush Integration",
-      "description": "Implement initial parrot sound integration for MouseClock. Map hiss to widen radius and shush to narrow radius. Only active when MouseClock is showing.",
-      "priority": "high",
-      "passes": false,
-      "acceptanceCriteria": [
-        "Hiss sound triggers mouse_clock_widen action",
-        "Shush sound triggers mouse_clock_narrow action",
-        "Actions only fire when user.mouse_clock_showing tag is active",
-        "Debounce prevents rapid-fire from sustained sounds",
-        "Minimum 150ms interval between accepted sound events"
-      ],
-      "dependencies": [],
-      "info": "See FEATURES.md 'Parrot Sound Actions Integration' section"
-    },
-    {
       "id": "feat-2",
       "title": "Parrot Sound Actions - Configurable Mapping",
       "description": "Extend parrot integration with configurable sound-to-action mapping. Allow users to customize which sounds trigger which actions and with what parameters.",
@@ -29,7 +13,9 @@
         "New sound mappings can be added without code changes",
         "Voice command to reload/reset sound mappings"
       ],
-      "dependencies": ["feat-1"]
+      "dependencies": [
+        "feat-1"
+      ]
     },
     {
       "id": "feat-3",
@@ -44,7 +30,9 @@
         "Shush-shush (double) can go back to previous position",
         "All new mappings respect debounce and overlay guards"
       ],
-      "dependencies": ["feat-2"]
+      "dependencies": [
+        "feat-2"
+      ]
     },
     {
       "id": "feat-4",
@@ -74,7 +62,9 @@
         "Verticals can be toggled on/off independently",
         "Intersection points clearly marked with dots or crosses"
       ],
-      "dependencies": ["feat-4"]
+      "dependencies": [
+        "feat-4"
+      ]
     },
     {
       "id": "feat-6",
@@ -88,7 +78,9 @@
         "'lines off' or 'clear lines' removes all active lines",
         "Lines render above content but below other overlays"
       ],
-      "dependencies": ["feat-5"]
+      "dependencies": [
+        "feat-5"
+      ]
     },
     {
       "id": "feat-7",
@@ -118,7 +110,10 @@
         "Debounce prevents runaway motion",
         "Only active when a targeting overlay is showing"
       ],
-      "dependencies": ["feat-7", "feat-1"]
+      "dependencies": [
+        "feat-7",
+        "feat-1"
+      ]
     },
     {
       "id": "feat-9",
@@ -133,7 +128,9 @@
         "Specific sound (e.g., pop) can also reset",
         "Quick cancel stops all spiral motion"
       ],
-      "dependencies": ["feat-8"]
+      "dependencies": [
+        "feat-8"
+      ]
     },
     {
       "id": "feat-10",
@@ -163,7 +160,9 @@
         "Intersection points with boxes clearly marked",
         "Optional labels at intersections or box boundaries"
       ],
-      "dependencies": ["feat-10"]
+      "dependencies": [
+        "feat-10"
+      ]
     },
     {
       "id": "feat-12",
@@ -177,7 +176,9 @@
         "Ray-rect intersection handles all angles correctly (edges and corners)",
         "Cursor moves to computed intersection point"
       ],
-      "dependencies": ["feat-11"]
+      "dependencies": [
+        "feat-11"
+      ]
     },
     {
       "id": "feat-13",
@@ -192,7 +193,9 @@
         "Mode preference can be saved in settings",
         "Hybrid mode renders boxes more subtly behind circles"
       ],
-      "dependencies": ["feat-12"]
+      "dependencies": [
+        "feat-12"
+      ]
     }
   ]
 }
