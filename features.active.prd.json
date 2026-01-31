@@ -35,23 +35,6 @@
       ]
     },
     {
-      "id": "feat-8",
-      "title": "Spiral Nudge - Sound Triggers",
-      "description": "Integrate spiral nudge with parrot sounds. Hiss advances spiral outward, shush reverses or pauses.",
-      "priority": "medium",
-      "passes": false,
-      "acceptanceCriteria": [
-        "Hiss triggers spiral advance (next position)",
-        "Shush pauses, reverses, or steps inward",
-        "Debounce prevents runaway motion",
-        "Only active when a targeting overlay is showing"
-      ],
-      "dependencies": [
-        "feat-7",
-        "feat-1"
-      ]
-    },
-    {
       "id": "feat-9",
       "title": "Spiral Nudge - Visual Feedback and Reset",
       "description": "Add visual feedback for spiral nudge: origin marker, optional trail. Add reset command to return to origin.",
