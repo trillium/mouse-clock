@@ -52,22 +52,6 @@
       ]
     },
     {
-      "id": "feat-10",
-      "title": "Concentric Box - Core Rendering",
-      "description": "Implement concentric rectangle overlay as alternative to circles. Render axis-aligned boxes centered at cursor, each with distinct color.",
-      "priority": "medium",
-      "passes": false,
-      "acceptanceCriteria": [
-        "Configurable number of concentric boxes (e.g., 5)",
-        "Each box has distinct color from COLOR_REGISTRY",
-        "Boxes are axis-aligned rectangles or squares",
-        "Size progression is configurable (linear or geometric)",
-        "Boxes render centered at cursor position"
-      ],
-      "dependencies": [],
-      "info": "See FEATURES.md 'Concentric Box Targeting' section"
-    },
-    {
       "id": "feat-11",
       "title": "Concentric Box - Directional Guides",
       "description": "Add clock-style directional rays that intersect the boxes. Thin dashed lines at each clock hour angle help identify intersection points.",
