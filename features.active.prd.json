@@ -52,22 +52,6 @@
       ]
     },
     {
-      "id": "feat-11",
-      "title": "Concentric Box - Directional Guides",
-      "description": "Add clock-style directional rays that intersect the boxes. Thin dashed lines at each clock hour angle help identify intersection points.",
-      "priority": "medium",
-      "passes": false,
-      "acceptanceCriteria": [
-        "12 directional rays drawn at clock-hour angles",
-        "Rays are thin and dashed (visual guides only)",
-        "Intersection points with boxes clearly marked",
-        "Optional labels at intersections or box boundaries"
-      ],
-      "dependencies": [
-        "feat-10"
-      ]
-    },
-    {
       "id": "feat-12",
       "title": "Concentric Box - Target Computation",
       "description": "Implement ray-rectangle intersection for targeting. Given (direction, box color) pair, compute and move to intersection point.",
