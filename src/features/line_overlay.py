@@ -9,8 +9,8 @@ from typing import Tuple, List, Optional
 from dataclasses import dataclass
 
 from ..core.config import get_setting
-from ..rendering.colors import get_color
-from ..rendering.drawing import draw_line, draw_text
+from ..rendering.colors import get_color, COLOR_ORDER
+from ..rendering.drawing import draw_line, draw_text, draw_dot, draw_cross
 
 
 @dataclass
@@ -182,3 +182,168 @@ def draw_single_line(
     y = get_y_for_letter(letter, screen_height)
     if y is not None:
         draw_horizontal_line(canvas, y, screen_width, color, thickness)
+
+
+# =============================================================================
+# Vertical Intersection Lines
+# =============================================================================
+
+# Colors for vertical lines (from COLOR_ORDER, skipping center)
+VERTICAL_COLORS = [
+    "ff0000ff",  # red
+    "0000ffff",  # blue
+    "00ff00ff",  # green
+    "ffd700ff",  # yellow
+    "800080ff",  # purple
+    "ff00ffff",  # pink
+]
+
+
+def get_vertical_count() -> int:
+    """Get number of vertical lines."""
+    return get_setting("line_overlay_verticals", 6)
+
+
+def get_vertical_x_positions(screen_width: float, num_verticals: int = None) -> List[Tuple[str, float, str]]:
+    """
+    Calculate X positions for color-coded vertical lines.
+
+    Args:
+        screen_width: Width of screen in pixels
+        num_verticals: Number of vertical lines
+
+    Returns:
+        List of (color_name, x_position, color_hex) tuples
+    """
+    if num_verticals is None:
+        num_verticals = get_vertical_count()
+
+    positions = []
+    segment_width = screen_width / (num_verticals + 1)
+
+    color_names = ["red", "blue", "green", "yellow", "purple", "pink"]
+
+    for i in range(num_verticals):
+        color_name = color_names[i % len(color_names)]
+        color_hex = VERTICAL_COLORS[i % len(VERTICAL_COLORS)]
+        x = segment_width * (i + 1)
+        positions.append((color_name, x, color_hex))
+
+    return positions
+
+
+def get_x_for_color(color_name: str, screen_width: float) -> Optional[float]:
+    """
+    Get X position for a specific color vertical.
+
+    Args:
+        color_name: Color name (red, blue, etc.)
+        screen_width: Width of screen
+
+    Returns:
+        X coordinate or None if invalid color
+    """
+    positions = get_vertical_x_positions(screen_width)
+
+    for name, x, _ in positions:
+        if name == color_name.lower():
+            return x
+
+    return None
+
+
+def draw_vertical_line(
+    canvas,
+    x: float,
+    screen_height: float,
+    color: str,
+    thickness: float = None
+):
+    """
+    Draw a vertical line from top to bottom.
+
+    Args:
+        canvas: Talon canvas object
+        x: X coordinate for the line
+        screen_height: Height of screen
+        color: Line color hex
+        thickness: Line thickness
+    """
+    if thickness is None:
+        thickness = get_setting("line_overlay_thickness", 2)
+
+    draw_line(canvas, (x, 0), (x, screen_height), color, thickness)
+
+
+def draw_all_verticals(
+    canvas,
+    screen_width: float,
+    screen_height: float,
+    thickness: float = None
+):
+    """
+    Draw all color-coded vertical lines.
+
+    Args:
+        canvas: Talon canvas object
+        screen_width: Width of screen
+        screen_height: Height of screen
+        thickness: Line thickness
+    """
+    positions = get_vertical_x_positions(screen_width)
+
+    for _, x, color_hex in positions:
+        draw_vertical_line(canvas, x, screen_height, color_hex, thickness)
+
+
+def draw_intersection_markers(
+    canvas,
+    horizontal_y: float,
+    screen_width: float,
+    marker_size: float = 5
+):
+    """
+    Draw markers at intersection points between horizontal and verticals.
+
+    Args:
+        canvas: Talon canvas object
+        horizontal_y: Y coordinate of horizontal line
+        screen_width: Width of screen
+        marker_size: Size of intersection markers
+    """
+    positions = get_vertical_x_positions(screen_width)
+
+    for _, x, color_hex in positions:
+        draw_cross(canvas, (x, horizontal_y), marker_size, color_hex, 2, style="plus")
+
+
+def draw_line_with_verticals(
+    canvas,
+    letter: str,
+    screen_width: float,
+    screen_height: float,
+    show_markers: bool = True
+):
+    """
+    Draw horizontal line with vertical intersection guides.
+
+    Args:
+        canvas: Talon canvas object
+        letter: Horizontal band letter
+        screen_width: Width of screen
+        screen_height: Height of screen
+        show_markers: Whether to show intersection markers
+    """
+    y = get_y_for_letter(letter, screen_height)
+    if y is None:
+        return
+
+    # Draw horizontal line
+    draw_horizontal_line(canvas, y, screen_width)
+
+    # Draw vertical lines
+    draw_all_verticals(canvas, screen_width, screen_height)
+
+    # Draw intersection markers
+    if show_markers:
+        draw_intersection_markers(canvas, y, screen_width)
