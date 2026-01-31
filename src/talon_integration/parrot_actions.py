@@ -76,16 +76,34 @@ def set_sound_param(sound: str, param: str, value):
 
 
 def _execute_action(action: str, amount: int = None):
-    """Execute a mouse clock action."""
-    if not is_overlay_active("mouse_clock"):
-        return
+    """Execute action based on active overlay."""
+    # Check which overlay is active and execute appropriate action
+    if is_overlay_active("spiral_nudge"):
+        _execute_spiral_action(action)
+    elif is_overlay_active("mouse_clock"):
+        _execute_mouse_clock_action(action)
 
+
+def _execute_mouse_clock_action(action: str):
+    """Execute mouse clock specific action."""
     if action == "widen":
         actions.user.mouse_clock_widen()
     elif action == "narrow":
         actions.user.mouse_clock_narrow()
     elif action == "click":
         actions.user.mouse_clock_close()
+        from talon import ctrl
+        ctrl.mouse_click()
+
+
+def _execute_spiral_action(action: str):
+    """Execute spiral nudge specific action."""
+    if action == "widen" or action == "advance":
+        actions.user.spiral_nudge()
+    elif action == "narrow" or action == "reverse":
+        actions.user.spiral_back()
+    elif action == "click":
+        actions.user.spiral_stop()
         from talon import ctrl
         ctrl.mouse_click()
 
