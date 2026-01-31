@@ -254,3 +254,85 @@ def draw_boxes_with_guides(
     # Draw intersection markers
     if show_markers:
         draw_intersection_markers(canvas, center, num_boxes)
+
+
+# =============================================================================
+# Target Computation
+# =============================================================================
+
+def get_target_position(
+    center: Tuple[float, float],
+    color_name: str,
+    direction: int
+) -> Tuple[float, float]:
+    """
+    Compute intersection point for targeting.
+
+    Args:
+        center: Center point (x, y)
+        color_name: Color name of target box (center, red, blue, etc.)
+        direction: Clock hour (1-12) or letter position
+
+    Returns:
+        (x, y) intersection point or center if not found
+    """
+    # Get the box index for this color
+    color_names = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
+
+    try:
+        box_index = color_names.index(color_name.lower())
+    except ValueError:
+        return center
+
+    # Get the box size
+    sizes = calculate_box_sizes()
+    if box_index >= len(sizes):
+        return center
+
+    w, h = sizes[box_index]
+    cx, cy = center
+
+    # Get angle for direction
+    angle = number_to_angle(direction)
+
+    # Compute rect for this box
+    rect = (cx - w / 2, cy - h / 2, w, h)
+
+    # Find intersection
+    intersection = ray_rect_intersection((cx, cy), angle, rect)
+
+    if intersection:
+        return intersection
+
+    return center
+
+
+def get_target_from_letter(
+    center: Tuple[float, float],
+    color_name: str,
+    letter: str
+) -> Tuple[float, float]:
+    """
+    Compute intersection for color + letter targeting.
+
+    Args:
+        center: Center point (x, y)
+        color_name: Color name of target box
+        letter: Clock letter (A-L)
+
+    Returns:
+        (x, y) intersection point
+    """
+    from ..core.geometry import letter_to_angle
+
+    # Convert letter to clock position
+    letter_upper = letter.upper()
+    if letter_upper < 'A' or letter_upper > 'L':
+        return center
+
+    # A=1, B=2, ..., L=12
+    position = ord(letter_upper) - ord('A') + 1
+    if position > 12:
+        position = 12
+
+    return get_target_position(center, color_name, position)

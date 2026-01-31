@@ -4,7 +4,8 @@ Talon integration for Concentric Box Targeting.
 
 from talon import Module, Context, canvas, ctrl, ui
 from ..features.concentric_box import (
-    draw_concentric_boxes, draw_boxes_with_guides, get_size_for_color
+    draw_concentric_boxes, draw_boxes_with_guides, get_size_for_color,
+    get_target_position, get_target_from_letter
 )
 from ..input.guards import set_overlay_active, set_overlay_inactive
 
@@ -110,3 +111,21 @@ class ConcentricBoxActions:
             hide_boxes()
         else:
             show_boxes()
+
+    def box_overlay_target(color: str, direction: int):
+        """Move cursor to box-direction intersection."""
+        global _center
+        if _center is None:
+            _center = ctrl.mouse_pos()
+
+        pos = get_target_position(_center, color, direction)
+        ctrl.mouse_move(pos[0], pos[1])
+
+    def box_overlay_target_letter(color: str, letter: str):
+        """Move cursor to box-letter intersection."""
+        global _center
+        if _center is None:
+            _center = ctrl.mouse_pos()
+
+        pos = get_target_from_letter(_center, color, letter)
+        ctrl.mouse_move(pos[0], pos[1])
