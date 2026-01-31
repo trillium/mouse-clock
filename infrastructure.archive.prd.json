@@ -1,0 +1,39 @@
+{
+  "projectName": "MouseClock Infrastructure - Archive",
+  "stories": [
+    {
+      "id": "infra-1",
+      "title": "Geometry Primitives - Angle and Direction",
+      "description": "Implement shared angle/direction conversion functions: letter_to_angle, number_to_angle, angle_to_letter, normalize_angle, opposite_angle, average_angles. These are used by MouseClock, Concentric Box, and Line Overlay systems.",
+      "priority": "critical",
+      "passes": true,
+      "acceptanceCriteria": [
+        "letter_to_angle converts A-L to degrees (A=30, B=60, ..., L=0/360)",
+        "number_to_angle converts 1-12 clock hours to degrees",
+        "angle_to_letter returns nearest clock letter for any angle",
+        "normalize_angle constrains any angle to 0-360 range",
+        "opposite_angle returns angle + 180 (normalized)",
+        "average_angles correctly handles wraparound (e.g., averaging 350 and 10)"
+      ],
+      "dependencies": [],
+      "completedAt": "2026-01-31T23:16:26.279Z"
+    },
+    {
+      "id": "infra-2",
+      "title": "Geometry Primitives - Point and Vector Math",
+      "description": "Implement point/vector math functions: move_in_direction, distance_between, point_on_circle, clamp_to_bounds. Used by all navigation systems for position calculations.",
+      "priority": "critical",
+      "passes": true,
+      "acceptanceCriteria": [
+        "move_in_direction computes point at given angle/distance from origin",
+        "distance_between returns Euclidean distance between two points",
+        "point_on_circle returns point on circle perimeter at given angle",
+        "clamp_to_bounds constrains point to stay within a rectangle"
+      ],
+      "dependencies": [
+        "infra-1"
+      ],
+      "completedAt": "2026-01-31T23:20:09.256Z"
+    }
+  ]
+}

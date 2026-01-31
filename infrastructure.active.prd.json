@@ -1,0 +1,214 @@
+{
+  "projectName": "MouseClock Infrastructure",
+  "stories": [
+    {
+      "id": "infra-3",
+      "title": "Geometry Primitives - Intersection Calculations",
+      "description": "Implement ray intersection functions: ray_circle_intersection, ray_rect_intersection, ray_line_intersection. Used by MouseClock and Concentric Box for target computation.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "ray_circle_intersection finds where ray from origin intersects circle",
+        "ray_rect_intersection finds where ray intersects axis-aligned rectangle",
+        "ray_line_intersection finds where ray intersects line segment",
+        "All functions handle edge cases (no intersection, tangent, etc.)"
+      ],
+      "dependencies": [
+        "infra-1",
+        "infra-2"
+      ]
+    },
+    {
+      "id": "infra-4",
+      "title": "Color Management",
+      "description": "Implement centralized color registry and utilities: COLOR_REGISTRY dict, get_color, get_color_index, index_to_color, with_alpha, contrasting_color. Shared across all overlay systems.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "COLOR_REGISTRY maps color names to 8-digit hex values (RGBA)",
+        "get_color looks up hex by name",
+        "get_color_index returns numeric index for ring/box ordering",
+        "index_to_color reverses index to color name",
+        "with_alpha modifies alpha channel of existing color",
+        "contrasting_color returns high-contrast color for labels"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-5",
+      "title": "Drawing Primitives - Basic Shapes",
+      "description": "Implement basic drawing functions: draw_line (with dashed option), draw_circle, draw_rect, draw_dot, draw_cross, draw_text. Used by all overlay systems.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "draw_line renders line segment with color, thickness, optional dashing",
+        "draw_circle renders outline or filled circle",
+        "draw_rect renders outline or filled rectangle",
+        "draw_dot renders small filled circle marker",
+        "draw_cross renders + or x marker",
+        "draw_text renders text with configurable anchor point"
+      ],
+      "dependencies": [
+        "infra-4"
+      ]
+    },
+    {
+      "id": "infra-6",
+      "title": "Drawing Primitives - Composite Shapes",
+      "description": "Implement composite drawing functions: draw_ray, draw_concentric_circles, draw_concentric_rects, draw_clock_rays. Build on basic shapes for common overlay patterns.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "draw_ray renders ray from origin at angle with optional dashing",
+        "draw_concentric_circles renders multiple circles with different colors",
+        "draw_concentric_rects renders multiple rectangles with different colors",
+        "draw_clock_rays renders all 12 clock-hour directional rays"
+      ],
+      "dependencies": [
+        "infra-5",
+        "infra-1"
+      ]
+    },
+    {
+      "id": "infra-7",
+      "title": "Canvas Management",
+      "description": "Implement canvas lifecycle functions: create_overlay_canvas, clear_canvas, refresh_canvas, close_canvas, get_canvas_for_point. Wraps Talon canvas API for multi-monitor support.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "create_overlay_canvas creates transparent overlay for a screen",
+        "clear_canvas removes all drawings",
+        "refresh_canvas triggers redraw (freeze)",
+        "close_canvas disposes resources",
+        "get_canvas_for_point finds canvas containing a point (multi-monitor)"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-8",
+      "title": "Mouse Control Primitives",
+      "description": "Implement mouse position functions: get_mouse_position, set_mouse_position, move_mouse_relative, get_screen_for_mouse, get_screen_rect. Thin wrapper over Talon ctrl module.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "get_mouse_position returns current cursor (x, y)",
+        "set_mouse_position moves cursor to absolute position",
+        "move_mouse_relative moves cursor by offset",
+        "get_screen_for_mouse returns screen containing cursor",
+        "get_screen_rect returns bounds of a screen"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-9",
+      "title": "Position History Stack",
+      "description": "Implement position history functions: push_position, pop_position, peek_position, clear_history, get_origin. Used by MouseClock go_back and Spiral Nudge reset.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "push_position adds position to history stack",
+        "pop_position removes and returns last position",
+        "peek_position views last position without removing",
+        "clear_history clears all stored positions",
+        "get_origin returns starting position for current session"
+      ],
+      "dependencies": [
+        "infra-8"
+      ]
+    },
+    {
+      "id": "infra-10",
+      "title": "Debounce and Rate Limiting",
+      "description": "Implement input event throttling: debounce, throttle, is_cooling_down, reset_cooldown. Critical for sound-triggered actions to prevent runaway behavior.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "debounce wraps callback to enforce minimum interval between calls",
+        "throttle limits call frequency to max rate per second",
+        "is_cooling_down checks if event type is in cooldown",
+        "reset_cooldown clears cooldown for an event type",
+        "Works correctly with Talon's event loop"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-11",
+      "title": "Sound-to-Action Mapping Registry",
+      "description": "Implement sound action registry: register_sound_action, unregister_sound_action, get_action_for_sound, set_sound_param. Enables configurable parrot sound bindings.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "register_sound_action maps sound label to action with parameters",
+        "unregister_sound_action removes a mapping",
+        "get_action_for_sound looks up action for a sound",
+        "set_sound_param adjusts parameters for existing mapping",
+        "Supports multiple actions per sound (action chains)"
+      ],
+      "dependencies": [
+        "infra-10"
+      ]
+    },
+    {
+      "id": "infra-12",
+      "title": "Overlay State Guards",
+      "description": "Implement state guard functions: is_overlay_active, any_overlay_active, get_active_overlay, require_overlay decorator. Ensures sound actions only fire when appropriate.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "is_overlay_active checks if specific overlay is showing",
+        "any_overlay_active checks if any mouse overlay is active",
+        "get_active_overlay returns name of current overlay",
+        "require_overlay decorator guards actions to only run with overlay active"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-13",
+      "title": "Screen and Window Utilities",
+      "description": "Implement screen/window functions: get_all_screens, get_primary_screen, get_active_window_rect, point_to_screen, clamp_to_screen, screen_center. Multi-monitor support.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "get_all_screens lists all available screens",
+        "get_primary_screen returns main screen",
+        "get_active_window_rect returns focused window bounds",
+        "point_to_screen finds which screen contains a point",
+        "clamp_to_screen keeps point within screen bounds",
+        "screen_center returns center point of a screen"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-14",
+      "title": "Configuration Infrastructure",
+      "description": "Implement settings management: get_setting, set_setting, reset_setting, load_settings, save_settings. Centralized configuration for all systems.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "get_setting retrieves a setting value with default fallback",
+        "set_setting updates a setting at runtime",
+        "reset_setting restores default value",
+        "load_settings reads from file",
+        "save_settings persists to file",
+        "Settings include: default_radius, radius_increment, debounce_interval_ms, etc."
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "infra-15",
+      "title": "Logging Infrastructure",
+      "description": "Implement shared logging: log_debug, log_info, log_warning, log_separator, log_position, log_action, get_log_file. Consistent diagnostics across systems.",
+      "priority": "low",
+      "passes": false,
+      "acceptanceCriteria": [
+        "log_debug/info/warning write appropriate level entries",
+        "log_separator adds visual separator in logs",
+        "log_position logs coordinates with context label",
+        "log_action logs action invocation with parameters",
+        "get_log_file returns path to current log file",
+        "Log files are timestamped and rotated"
+      ],
+      "dependencies": []
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "projectName": "MouseClock Features",
+  "stories": [
+    {
+      "id": "feat-1",
+      "title": "Parrot Sound Actions - Basic Hiss/Shush Integration",
+      "description": "Implement initial parrot sound integration for MouseClock. Map hiss to widen radius and shush to narrow radius. Only active when MouseClock is showing.",
+      "priority": "high",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Hiss sound triggers mouse_clock_widen action",
+        "Shush sound triggers mouse_clock_narrow action",
+        "Actions only fire when user.mouse_clock_showing tag is active",
+        "Debounce prevents rapid-fire from sustained sounds",
+        "Minimum 150ms interval between accepted sound events"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Parrot Sound Actions Integration' section"
+    },
+    {
+      "id": "feat-2",
+      "title": "Parrot Sound Actions - Configurable Mapping",
+      "description": "Extend parrot integration with configurable sound-to-action mapping. Allow users to customize which sounds trigger which actions and with what parameters.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Sound mappings stored in configuration (dict or settings file)",
+        "Parameters adjustable per action (e.g., hiss_widen_amount = 15)",
+        "New sound mappings can be added without code changes",
+        "Voice command to reload/reset sound mappings"
+      ],
+      "dependencies": ["feat-1"]
+    },
+    {
+      "id": "feat-3",
+      "title": "Parrot Sound Actions - Extended Actions",
+      "description": "Add more sound-to-action mappings: toggle visibility, recenter, click, go back. Expand the repertoire of non-verbal mouse control.",
+      "priority": "low",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Pop sound can trigger touch/click",
+        "Cluck sound can toggle MouseClock visibility",
+        "Tut sound can recenter clock at current position",
+        "Shush-shush (double) can go back to previous position",
+        "All new mappings respect debounce and overlay guards"
+      ],
+      "dependencies": ["feat-2"]
+    },
+    {
+      "id": "feat-4",
+      "title": "Lettered Line Overlay - Core Drawing",
+      "description": "Implement horizontal line overlay system. Divide screen into lettered bands (A-E or similar), draw horizontal lines when activated by voice command.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Screen divided into configurable number of horizontal bands",
+        "Each band assigned a letter (A, B, C, D, E)",
+        "Voice command 'line <letter>' draws horizontal line at that band's Y position",
+        "Line spans full viewport width",
+        "Line has configurable color and thickness"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Lettered Line Intersection Overlay' section"
+    },
+    {
+      "id": "feat-5",
+      "title": "Lettered Line Overlay - Vertical Intersections",
+      "description": "Add vertical intersection lines that appear after a horizontal line is active. Color-coded verticals help identify specific intersection points.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "After horizontal line activated, vertical guides appear",
+        "Verticals are color-coded for identification",
+        "Verticals can be toggled on/off independently",
+        "Intersection points clearly marked with dots or crosses"
+      ],
+      "dependencies": ["feat-4"]
+    },
+    {
+      "id": "feat-6",
+      "title": "Lettered Line Overlay - Toggle and Clear Commands",
+      "description": "Add commands to toggle individual lines and clear all lines. Complete the line overlay control vocabulary.",
+      "priority": "low",
+      "passes": false,
+      "acceptanceCriteria": [
+        "'line <letter> off' deactivates specific horizontal line",
+        "'verticals on/off' toggles vertical markers",
+        "'lines off' or 'clear lines' removes all active lines",
+        "Lines render above content but below other overlays"
+      ],
+      "dependencies": ["feat-5"]
+    },
+    {
+      "id": "feat-7",
+      "title": "Spiral Nudge - Core Movement",
+      "description": "Implement spiral nudge cursor movement. Move mouse stepwise in expanding spiral pattern from starting point, useful for fine-grained targeting.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Spiral maintains state: origin point, current position, step count",
+        "Each nudge moves cursor to next point on spiral",
+        "Spiral expands outward with configurable step size and growth rate",
+        "Direction (clockwise/counterclockwise) is configurable",
+        "Maximum radius prevents cursor from drifting too far"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Spiral Nudge Navigation' section"
+    },
+    {
+      "id": "feat-8",
+      "title": "Spiral Nudge - Sound Triggers",
+      "description": "Integrate spiral nudge with parrot sounds. Hiss advances spiral outward, shush reverses or pauses.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Hiss triggers spiral advance (next position)",
+        "Shush pauses, reverses, or steps inward",
+        "Debounce prevents runaway motion",
+        "Only active when a targeting overlay is showing"
+      ],
+      "dependencies": ["feat-7", "feat-1"]
+    },
+    {
+      "id": "feat-9",
+      "title": "Spiral Nudge - Visual Feedback and Reset",
+      "description": "Add visual feedback for spiral nudge: origin marker, optional trail. Add reset command to return to origin.",
+      "priority": "low",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Origin point marked with visible indicator",
+        "Optional faint trail shows spiral path taken",
+        "'spiral reset' voice command returns to origin",
+        "Specific sound (e.g., pop) can also reset",
+        "Quick cancel stops all spiral motion"
+      ],
+      "dependencies": ["feat-8"]
+    },
+    {
+      "id": "feat-10",
+      "title": "Concentric Box - Core Rendering",
+      "description": "Implement concentric rectangle overlay as alternative to circles. Render axis-aligned boxes centered at cursor, each with distinct color.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Configurable number of concentric boxes (e.g., 5)",
+        "Each box has distinct color from COLOR_REGISTRY",
+        "Boxes are axis-aligned rectangles or squares",
+        "Size progression is configurable (linear or geometric)",
+        "Boxes render centered at cursor position"
+      ],
+      "dependencies": [],
+      "info": "See FEATURES.md 'Concentric Box Targeting' section"
+    },
+    {
+      "id": "feat-11",
+      "title": "Concentric Box - Directional Guides",
+      "description": "Add clock-style directional rays that intersect the boxes. Thin dashed lines at each clock hour angle help identify intersection points.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "12 directional rays drawn at clock-hour angles",
+        "Rays are thin and dashed (visual guides only)",
+        "Intersection points with boxes clearly marked",
+        "Optional labels at intersections or box boundaries"
+      ],
+      "dependencies": ["feat-10"]
+    },
+    {
+      "id": "feat-12",
+      "title": "Concentric Box - Target Computation",
+      "description": "Implement ray-rectangle intersection for targeting. Given (direction, box color) pair, compute and move to intersection point.",
+      "priority": "medium",
+      "passes": false,
+      "acceptanceCriteria": [
+        "Voice command '<color> <letter>' targets box-direction intersection",
+        "Voice command '<color> <number>' works with numeric clock positions",
+        "Ray-rect intersection handles all angles correctly (edges and corners)",
+        "Cursor moves to computed intersection point"
+      ],
+      "dependencies": ["feat-11"]
+    },
+    {
+      "id": "feat-13",
+      "title": "Concentric Box - Display Mode Switching",
+      "description": "Add commands to switch between circle mode, box mode, and hybrid mode. Allow user to choose preferred overlay style.",
+      "priority": "low",
+      "passes": false,
+      "acceptanceCriteria": [
+        "'clock circles' activates pure circular MouseClock",
+        "'clock boxes' activates concentric box mode",
+        "'clock hybrid' shows both circles and boxes",
+        "Mode preference can be saved in settings",
+        "Hybrid mode renders boxes more subtly behind circles"
+      ],
+      "dependencies": ["feat-12"]
+    }
+  ]
+}
