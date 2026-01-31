@@ -47,6 +47,112 @@ def average_angles(angles: List[float]) -> float:
     return to_angle(avg_x, avg_y)
 
 
+def normalize_angle(degrees: float) -> float:
+    """
+    Normalize an angle to the 0-360 range.
+
+    Args:
+        degrees: Any angle in degrees (can be negative or > 360)
+
+    Returns:
+        Angle normalized to 0-360 range
+
+    Examples:
+        normalize_angle(450) -> 90
+        normalize_angle(-30) -> 330
+        normalize_angle(360) -> 0
+    """
+    result = degrees % 360
+    return 0.0 if result == 360 else result
+
+
+def opposite_angle(degrees: float) -> float:
+    """
+    Return the opposite direction (angle + 180°, normalized).
+
+    Args:
+        degrees: Angle in degrees
+
+    Returns:
+        Opposite angle, normalized to 0-360 range
+
+    Examples:
+        opposite_angle(0) -> 180
+        opposite_angle(270) -> 90
+        opposite_angle(350) -> 170
+    """
+    return normalize_angle(degrees + 180)
+
+
+def number_to_angle(hour: int) -> float:
+    """
+    Convert a clock hour (1-12) to degrees.
+
+    Clock hours map to angles: 1=30°, 2=60°, 3=90°, ..., 12=0°/360°.
+
+    Args:
+        hour: Clock hour from 1 to 12
+
+    Returns:
+        Angle in degrees
+
+    Examples:
+        number_to_angle(1) -> 30
+        number_to_angle(3) -> 90
+        number_to_angle(12) -> 0
+    """
+    return (hour * 30) % 360
+
+
+def letter_to_angle(letter: str) -> float:
+    """
+    Convert a clock letter (A-L) to degrees.
+
+    Clock letters map to angles: A=30°, B=60°, C=90°, ..., L=0°/360°.
+
+    Args:
+        letter: Clock letter A-L (case insensitive)
+
+    Returns:
+        Angle in degrees
+
+    Examples:
+        letter_to_angle('A') -> 30
+        letter_to_angle('C') -> 90
+        letter_to_angle('L') -> 0
+    """
+    position = ord(letter.upper()) - ord("A") + 1
+    return (position * 30) % 360
+
+
+def angle_to_letter(degrees: float) -> str:
+    """
+    Return the nearest clock letter for any angle.
+
+    Maps angles to the nearest of 12 clock positions (A-L).
+
+    Args:
+        degrees: Angle in degrees
+
+    Returns:
+        Nearest clock letter (A-L)
+
+    Examples:
+        angle_to_letter(30) -> 'A'
+        angle_to_letter(45) -> 'B' (rounds to nearest)
+        angle_to_letter(0) -> 'L'
+        angle_to_letter(350) -> 'L'
+    """
+    normalized = normalize_angle(degrees)
+    # Each letter spans 30 degrees, centered on its position
+    # A is centered at 30°, B at 60°, etc.
+    # Round to nearest 30-degree increment
+    position = round(normalized / 30)
+    if position == 0 or position == 12:
+        return "L"
+    return chr(ord("A") + position - 1)
+
+
 def letter_to_position(letter: str) -> int:
     """
     Return the position of a letter in the alphabet (1-indexed).
@@ -145,3 +251,78 @@ def move_in_direction(clock_angle_degrees: float, distance: float, origin: Tuple
 
     x0, y0 = origin
     return (x0 + dx, y0 + dy)
+
+
+def distance_between(point_a: Tuple[float, float], point_b: Tuple[float, float]) -> float:
+    """
+    Calculate the Euclidean distance between two points.
+
+    Args:
+        point_a: First point (x, y)
+        point_b: Second point (x, y)
+
+    Returns:
+        Distance between the two points
+
+    Examples:
+        distance_between((0, 0), (3, 4)) -> 5.0
+        distance_between((1, 1), (1, 1)) -> 0.0
+    """
+    x1, y1 = point_a
+    x2, y2 = point_b
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+def point_on_circle(center: Tuple[float, float], radius: float, angle_degrees: float) -> Tuple[float, float]:
+    """
+    Calculate a point on a circle's perimeter at a given angle.
+
+    Uses clock-style angle notation where 0° is up (12 o'clock) and
+    angles increase clockwise.
+
+    Args:
+        center: Center point of the circle (x, y)
+        radius: Radius of the circle
+        angle_degrees: Angle in clock notation (0° = up, 90° = right)
+
+    Returns:
+        Point (x, y) on the circle perimeter
+
+    Examples:
+        point_on_circle((100, 100), 50, 0)   -> (100, 50)  # Top
+        point_on_circle((100, 100), 50, 90)  -> (150, 100) # Right
+        point_on_circle((100, 100), 50, 180) -> (100, 150) # Bottom
+    """
+    # Convert clock angle to math angle (0° = up becomes -90° in standard math)
+    # In screen coordinates, Y increases downward
+    angle_rad = math.radians(angle_degrees - 90)
+
+    cx, cy = center
+    x = cx + radius * math.cos(angle_rad)
+    y = cy + radius * math.sin(angle_rad)
+    return (x, y)
+
+
+def clamp_to_bounds(point: Tuple[float, float], rect: Tuple[float, float, float, float]) -> Tuple[float, float]:
+    """
+    Constrain a point to stay within a rectangle.
+
+    Args:
+        point: Point to clamp (x, y)
+        rect: Rectangle bounds as (x, y, width, height)
+
+    Returns:
+        Clamped point (x, y) that lies within the rectangle
+
+    Examples:
+        clamp_to_bounds((150, 50), (0, 0, 100, 100)) -> (100, 50)
+        clamp_to_bounds((-10, 50), (0, 0, 100, 100)) -> (0, 50)
+        clamp_to_bounds((50, 50), (0, 0, 100, 100)) -> (50, 50)
+    """
+    x, y = point
+    rx, ry, rw, rh = rect
+
+    clamped_x = max(rx, min(x, rx + rw))
+    clamped_y = max(ry, min(y, ry + rh))
+
+    return (clamped_x, clamped_y)
