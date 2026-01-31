@@ -13,6 +13,7 @@ from ..core import config
 from ..core.mouse_clock import MouseClockCore, flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import logger, log_debug, log_info, log_warning, log_separator, initialize_logger, get_current_log_file
 from ..rendering.canvas import draw_mouse_clock
+from ..input.guards import set_overlay_active, set_overlay_inactive
 
 
 ctx = Context()
@@ -129,6 +130,7 @@ class MouseClockTalonAdapter:
             canvas_obj.register("draw", self.draw)
             canvas_obj.freeze()
         self.active = True
+        set_overlay_active("mouse_clock")
 
     def close(self):
         """Close the mouse clock and clean up canvases."""
@@ -140,6 +142,7 @@ class MouseClockTalonAdapter:
         self.canvases = []
         self.active_canvas = None
         self.active = False
+        set_overlay_inactive("mouse_clock")
 
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas."""
