@@ -41,8 +41,10 @@ def initialize_logger():
     """
     global _current_log_file
 
-    # Remove any existing handlers
-    logger.handlers.clear()
+    # Close and remove any existing handlers
+    for handler in logger.handlers[:]:
+        handler.close()
+        logger.removeHandler(handler)
 
     # Create new log file with timestamp
     _current_log_file = _create_new_log_file()
