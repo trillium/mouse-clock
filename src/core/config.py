@@ -10,7 +10,7 @@ CLOCK_LETTERS = "abcdefghijkl"
 
 # Radius configuration
 DEFAULT_RADIUS = 300
-RADIUS_INCREMENT = 20
+RADIUS_INCREMENT = 5
 MIN_RADIUS = 20
 
 # Color names (note: 7 colors including center, not 5 as in original design doc)

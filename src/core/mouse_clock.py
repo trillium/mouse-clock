@@ -1,8 +1,8 @@
 """
 Core mouse clock logic without Talon dependencies.
 
-This module contains the business logic for calculating mouse positions based on
-clock face letters and color rings, managing history, and handling radius adjustments.
+This module contains the MouseClockCore class for calculating mouse positions
+based on clock face letters and color rings.
 """
 
 import math
@@ -10,98 +10,11 @@ from typing import List, Tuple, Optional
 
 from . import geometry
 from . import config
-from .logger import log_debug, log_info, log_separator
+from .logger import log_info, log_separator
+from .animation import RadiusAnimator
 
-
-def flip_letter_to_opposite(letter: str) -> str:
-    """
-    Flip a clock letter to its opposite position (180 degrees).
-
-    Clock positions:
-    A=1, B=2, C=3, D=4, E=5, F=6, G=7, H=8, I=9, J=10, K=11, L=12
-
-    Opposites (add 6 positions, wrap around):
-    A↔G, B↔H, C↔I, D↔J, E↔K, F↔L
-
-    Args:
-        letter: A clock letter (a-l, case insensitive)
-
-    Returns:
-        The opposite clock letter
-    """
-    letter_index = config.CLOCK_LETTERS.index(letter.lower())
-    opposite_index = (letter_index + 6) % 12
-    return config.CLOCK_LETTERS[opposite_index]
-
-
-def parse_voice_inputs(words: List[str]) -> dict:
-    """
-    Parse voice input words into letters, colors, and apply ordinal multipliers.
-
-    Ordinals following a letter or color will multiply that item.
-
-    Args:
-        words: List of voice command words
-
-    Returns:
-        Dictionary with keys 'letters', 'colors', 'unknowns'
-
-    Example:
-        ["red", "3", "a", "pink"] ->
-        {"letters": ["a"], "colors": ["red", "red", "red", "pink"], "unknowns": []}
-    """
-    letters_list = []
-    colors_list = []
-    unknowns_list = []
-
-    i = 0
-    while i < len(words):
-        val = str(words[i]).lower()
-
-        # Check if this is a numeric string (ordinals come through as "1", "2", "3" etc)
-        is_ordinal = False
-        multiplier = 0
-        try:
-            multiplier = int(val)
-            if 1 <= multiplier <= 99:  # Valid ordinal range
-                is_ordinal = True
-        except ValueError:
-            is_ordinal = False
-
-        if is_ordinal:
-            # This is an ordinal - it should apply to the previous item
-            # Repeat the last added letter or color that many times
-            if letters_list:
-                # Repeat the last letter (multiplier - 1) more times
-                last_letter = letters_list[-1]
-                for _ in range(multiplier - 1):
-                    letters_list.append(last_letter)
-            elif colors_list:
-                # Repeat the last color (multiplier - 1) more times
-                last_color = colors_list[-1]
-                for _ in range(multiplier - 1):
-                    colors_list.append(last_color)
-
-        elif val in config.CLOCK_LETTERS:
-            letters_list.append(val)
-        elif val == "mouse":
-            # "mouse" means center point
-            colors_list.append("center")
-        elif val == "half":
-            # "half" means halfway to screen edge from last color
-            colors_list.append("half")
-        elif val in config.COLOR_MAP:
-            colors_list.append(val)
-        else:
-            unknowns_list.append(val)
-
-        i += 1
-
-    return {
-        "letters": letters_list,
-        "colors": colors_list,
-        "unknowns": unknowns_list
-    }
+# Re-export for backwards compatibility
+from .voice_parsing import flip_letter_to_opposite, parse_voice_inputs
 
 
 class MouseClockCore:
@@ -124,12 +37,22 @@ class MouseClockCore:
         self.center_x = center_x
         self.center_y = center_y
         self.radius = radius if radius is not None else config.DEFAULT_RADIUS
+        self.target_radius = self.radius
 
+        # Animation controller
+        self._animator = RadiusAnimator()
+
+        # State
         self.history: List[Tuple[float, float]] = []
         self.last_command: Tuple[List[str], List[str]] = ([], [])
         self.last_letters: List[str] = []
         self.last_colors: List[str] = []
         self.original_command: Tuple[List[str], List[str]] = ([], [])
+
+    # For backwards compatibility with debug logging
+    @property
+    def _animation_start_time(self):
+        return self._animator._animation_start_time
 
     def update_center(self, x: float, y: float):
         """Update the center position of the clock."""
@@ -159,20 +82,13 @@ class MouseClockCore:
         distances = []
 
         if dx > 0:
-            dist_right = (screen_right - self.center_x) / dx
-            distances.append(dist_right)
-
+            distances.append((screen_right - self.center_x) / dx)
         if dx < 0:
-            dist_left = (screen_left - self.center_x) / dx
-            distances.append(dist_left)
-
+            distances.append((screen_left - self.center_x) / dx)
         if dy > 0:
-            dist_bottom = (screen_bottom - self.center_y) / dy
-            distances.append(dist_bottom)
-
+            distances.append((screen_bottom - self.center_y) / dy)
         if dy < 0:
-            dist_top = (screen_top - self.center_y) / dy
-            distances.append(dist_top)
+            distances.append((screen_top - self.center_y) / dy)
 
         # Return the minimum positive distance (the edge we'll hit first)
         valid_distances = [d for d in distances if d > 0]
@@ -223,63 +139,18 @@ class MouseClockCore:
         self.last_colors = color_list
 
         log_separator()
-        log_info(f"[calculate_mouse_position] Starting calculation")
-        log_info(f"  Letters: {letter_list}, Colors: {color_list}")
-        log_info(f"  Clock active: {clock_active}, Is repeat: {is_repeat}")
-        log_info(f"  Center: ({self.center_x}, {self.center_y})")
-        if screen_rect:
-            log_info(f"  Screen bounds: left={screen_rect[0]}, top={screen_rect[1]}, right={screen_rect[2]}, bottom={screen_rect[3]}")
+        log_info(f"[calculate_mouse_position] Letters: {letter_list}, Colors: {color_list}")
+        log_info(f"  Center: ({self.center_x}, {self.center_y}), Active: {clock_active}")
 
         # Convert letters to angles
         letter_positions = [geometry.letter_to_position(letter) for letter in letter_list]
         angles = [geometry.letter_to_clock_angle(pos) for pos in letter_positions]
-        avg_angle = geometry.average_angles(angles)
         avg_hour, avg_deg = geometry.average_clock_angles(letter_positions)
 
-        log_info(f"  Letter positions: {letter_positions}")
-        log_info(f"  Angles: {angles}")
         log_info(f"  Average angle: {avg_deg}°")
 
-        # Use the full number of color rings, including center
-        num_rings = len(config.COLOR_LIST)
-
-        # Process colors - handle "half" specially
-        color_index_list = []
-        for color in color_list:
-            if color == 'center':
-                log_info(f"  Processing color 'center': distance=0")
-                color_index_list.append(0)
-            elif color == 'half':
-                log_info(f"  Processing color 'half':")
-                # Calculate halfway between last color and screen edge
-                if screen_rect is None:
-                    # No screen bounds provided, use a default distance
-                    half_distance = self.radius / 2
-                    log_info(f"    No screen bounds - using radius/2: {half_distance}")
-                    color_index_list.append(half_distance)
-                elif not clock_active:
-                    # Clock is off - current mouse position is the reference
-                    edge_distance = self.calculate_edge_distance(avg_deg, screen_rect)
-                    half_distance = edge_distance / 2
-                    log_info(f"    Clock OFF - edge_distance: {edge_distance}, half_distance: {half_distance}")
-                    color_index_list.append(half_distance)
-                else:
-                    # Clock is on - use last color circle as reference
-                    if color_index_list:
-                        last_color_radius = color_index_list[-1]
-                    else:
-                        # Default to outermost ring if no previous color
-                        last_color_radius = self.radius
-
-                    edge_distance = self.calculate_edge_distance(avg_deg, screen_rect)
-                    half_distance = (last_color_radius + edge_distance) / 2
-                    log_info(f"    Clock ON - last_color_radius: {last_color_radius}, edge_distance: {edge_distance}, half_distance: {half_distance}")
-                    color_index_list.append(half_distance)
-            else:
-                # Regular color from COLOR_POS
-                radius_value = self.radius * config.COLOR_POS[color] / (num_rings - 1)
-                log_info(f"  Processing color '{color}': distance={radius_value}")
-                color_index_list.append(radius_value)
+        # Process colors into distances
+        color_index_list = self._process_colors(color_list, avg_deg, screen_rect, clock_active)
 
         average_radius = geometry.calculate_mean(color_index_list)
         log_info(f"  Average radius: {average_radius}")
@@ -289,6 +160,54 @@ class MouseClockCore:
         log_separator()
 
         return new_x, new_y
+
+    def _process_colors(
+        self,
+        color_list: List[str],
+        avg_deg: float,
+        screen_rect: Optional[Tuple[float, float, float, float]],
+        clock_active: bool
+    ) -> List[float]:
+        """Process color list into distance values."""
+        num_rings = len(config.COLOR_LIST)
+        color_index_list = []
+
+        for color in color_list:
+            if color == 'center':
+                color_index_list.append(0)
+            elif color == 'half':
+                half_dist = self._calculate_half_distance(color_index_list, avg_deg, screen_rect, clock_active)
+                color_index_list.append(half_dist)
+            else:
+                # Regular color from COLOR_POS
+                radius_value = self.radius * config.COLOR_POS[color] / (num_rings - 1)
+                color_index_list.append(radius_value)
+
+        return color_index_list
+
+    def _calculate_half_distance(
+        self,
+        color_index_list: List[float],
+        avg_deg: float,
+        screen_rect: Optional[Tuple[float, float, float, float]],
+        clock_active: bool
+    ) -> float:
+        """Calculate 'half' distance - halfway between last color and screen edge."""
+        if screen_rect is None:
+            return self.radius / 2
+
+        if not clock_active:
+            edge_distance = self.calculate_edge_distance(avg_deg, screen_rect)
+            return edge_distance / 2
+
+        # Clock is on - use last color circle as reference
+        if color_index_list:
+            last_color_radius = color_index_list[-1]
+        else:
+            last_color_radius = self.radius
+
+        edge_distance = self.calculate_edge_distance(avg_deg, screen_rect)
+        return (last_color_radius + edge_distance) / 2
 
     def add_to_history(self, x: float, y: float):
         """Add a position to the movement history."""
@@ -301,16 +220,40 @@ class MouseClockCore:
         return None
 
     def widen_radius(self):
-        """Increase the radius of the clock."""
-        self.radius += config.RADIUS_INCREMENT
+        """Increase the target radius of the clock (animates smoothly)."""
+        self._animator.update_timing()
+        increment = self._animator.get_dynamic_increment()
+        self.target_radius = self.target_radius + increment
 
     def narrow_radius(self):
-        """Decrease the radius of the clock (with minimum limit)."""
-        self.radius = max(config.MIN_RADIUS, self.radius - config.RADIUS_INCREMENT)
+        """Decrease the target radius of the clock (animates smoothly)."""
+        self._animator.update_timing()
+        increment = self._animator.get_dynamic_increment()
+        self.target_radius = max(config.MIN_RADIUS, self.target_radius - increment)
 
     def set_radius(self, value: int):
         """Set the radius to a specific value (with minimum limit)."""
         self.radius = max(config.MIN_RADIUS, value)
+        self.target_radius = self.radius
+
+    def update_radius_animation(self) -> bool:
+        """
+        Interpolate radius toward target with exponential acceleration.
+
+        Returns:
+            True if still animating, False if animation complete.
+        """
+        if abs(self.radius - self.target_radius) < 0.5:
+            self.radius = self.target_radius
+            return False
+
+        lerp_factor = self._animator.get_lerp_factor()
+        self.radius += (self.target_radius - self.radius) * lerp_factor
+        return True
+
+    def _get_dynamic_increment(self) -> float:
+        """Get dynamic increment (for backwards compatibility with debug logging)."""
+        return self._animator.get_dynamic_increment()
 
     def clear_state(self):
         """Clear the command state."""
