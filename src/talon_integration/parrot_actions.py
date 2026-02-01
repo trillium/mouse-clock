@@ -1,14 +1,19 @@
 """
 Parrot sound integration for MouseClock.
 
-Maps parrot sounds to mouse clock actions with debouncing
-and configurable mappings.
+Talon action overrides and action class for parrot sounds.
 """
 
-from talon import Module, Context, actions
-from ..input.debounce import RateLimiter
-from ..input.guards import is_overlay_active, set_overlay_active, set_overlay_inactive
-from ..core.config import get_setting, set_setting
+import time
+from talon import Module, Context
+
+from .parrot_config import (
+    set_sound_param,
+    reset_sound_config,
+    reload_sound_config,
+)
+from .parrot_handlers import on_parrot, clear_rate_limiters
+from ..input.guards import set_overlay_active, set_overlay_inactive
 
 mod = Module()
 
@@ -18,142 +23,72 @@ ctx.matches = r"""
 tag: user.mouse_clock_showing
 """
 
-# Default sound configuration
-DEFAULT_SOUND_CONFIG = {
-    "hiss": {
-        "action": "widen",
-        "amount": 20,  # radius increment
-        "enabled": True,
-    },
-    "shush": {
-        "action": "narrow",
-        "amount": 20,
-        "enabled": True,
-    },
-    "pop": {
-        "action": "click",
-        "enabled": False,  # Disabled by default
-    },
-}
+# Context for overriding parrot actions when mouse clock is showing
+parrot_ctx = Context()
+parrot_ctx.matches = r"""
+tag: user.mouse_clock_showing
+tag: user.parrot_on
+"""
 
-# Rate limiters per sound (150ms debounce)
-_rate_limiters = {}
+# Track last execution time per sound for timing display
+_last_exec_times = {}
 
 
-def _get_limiter(sound: str) -> RateLimiter:
-    """Get or create rate limiter for a sound."""
-    if sound not in _rate_limiters:
-        debounce_ms = get_setting("debounce_interval_ms", 150)
-        _rate_limiters[sound] = RateLimiter(debounce_ms)
-    return _rate_limiters[sound]
+@parrot_ctx.action_class("user")
+class MouseClockParrotOverrides:
+    def noise_hiss():
+        """Hiss widens the clock radius."""
+        _log_parrot_event("hiss", "widen")
+        on_parrot("hiss")
+
+    def noise_shh():
+        """Shush narrows the clock radius."""
+        _log_parrot_event("shush", "narrow")
+        on_parrot("shush")
+
+    def noise_lip_pop():
+        """Pop clicks and closes the clock."""
+        _log_parrot_event("pop", "click")
+        on_parrot("pop")
+
+    def noise_tongue_click():
+        """Cluck toggles visibility."""
+        _log_parrot_event("cluck", "toggle")
+        on_parrot("cluck")
 
 
-def get_sound_config() -> dict:
-    """Get current sound configuration."""
-    return get_setting("parrot_sounds", DEFAULT_SOUND_CONFIG)
+def _log_parrot_event(sound: str, action: str):
+    """Log parrot event with timing, radius, and acceleration info."""
+    from .instance import get_mouse_clock_instance
+    from ..core.animation import exponential_lerp_factor
 
+    now = time.time() * 1000  # ms
 
-def set_sound_config(config: dict):
-    """Set sound configuration."""
-    set_setting("parrot_sounds", config)
+    if sound in _last_exec_times:
+        delta = now - _last_exec_times[sound]
+        delta_str = f"{delta:6.1f}ms"
+    else:
+        delta_str = "  first"
 
+    _last_exec_times[sound] = now
 
-def get_sound_param(sound: str, param: str, default=None):
-    """Get a parameter for a specific sound."""
-    config = get_sound_config()
-    if sound in config:
-        return config[sound].get(param, default)
-    return default
+    # Get radius and acceleration info
+    try:
+        mc = get_mouse_clock_instance()
+        r = mc.core.radius
+        tr = mc.core.target_radius
+        if mc.core._animation_start_time:
+            elapsed = time.time() - mc.core._animation_start_time
+            lerp = exponential_lerp_factor(elapsed)
+            inc = mc.core._get_dynamic_increment()
+            accel_str = f"t={elapsed:.2f}s inc={inc:.0f} lerp={lerp:.2f}"
+        else:
+            accel_str = "lerp=--"
+        radius_str = f"r={r:.0f}->{tr:.0f} {accel_str}"
+    except:
+        radius_str = "r=?"
 
-
-def set_sound_param(sound: str, param: str, value):
-    """Set a parameter for a specific sound."""
-    config = get_sound_config()
-    if sound not in config:
-        config[sound] = {}
-    config[sound][param] = value
-    set_sound_config(config)
-
-
-def _execute_action(action: str, amount: int = None):
-    """Execute action based on active overlay."""
-    # Check which overlay is active and execute appropriate action
-    if is_overlay_active("spiral_nudge"):
-        _execute_spiral_action(action)
-    elif is_overlay_active("mouse_clock"):
-        _execute_mouse_clock_action(action)
-
-
-def _execute_mouse_clock_action(action: str):
-    """Execute mouse clock specific action."""
-    if action == "widen":
-        actions.user.mouse_clock_widen()
-    elif action == "narrow":
-        actions.user.mouse_clock_narrow()
-    elif action == "click":
-        actions.user.mouse_clock_close()
-        from talon import ctrl
-        ctrl.mouse_click()
-
-
-def _execute_spiral_action(action: str):
-    """Execute spiral nudge specific action."""
-    if action == "widen" or action == "advance":
-        actions.user.spiral_nudge()
-    elif action == "narrow" or action == "reverse":
-        actions.user.spiral_back()
-    elif action == "click":
-        actions.user.spiral_stop()
-        from talon import ctrl
-        ctrl.mouse_click()
-
-
-def on_parrot(event: str):
-    """
-    Parrot event handler.
-
-    Called by Talon's parrot system when a sound is detected.
-    """
-    config = get_sound_config()
-
-    if event not in config:
-        return
-
-    sound_config = config[event]
-
-    if not sound_config.get("enabled", True):
-        return
-
-    # Check rate limiter
-    limiter = _get_limiter(event)
-    if not limiter.try_acquire():
-        return
-
-    action = sound_config.get("action")
-    amount = sound_config.get("amount")
-
-    if action:
-        _execute_action(action, amount)
-
-
-# Register with Talon's parrot system
-try:
-    from talon import noise
-    noise.register("noise", on_parrot)
-except ImportError:
-    # Parrot/noise module not available
-    pass
-
-
-def reset_sound_config():
-    """Reset sound configuration to defaults."""
-    set_sound_config(DEFAULT_SOUND_CONFIG.copy())
-    _rate_limiters.clear()
-
-
-def reload_sound_config():
-    """Reload sound configuration (clears rate limiters)."""
-    _rate_limiters.clear()
+    print(f"🕐 {sound:6} -> {action:8} | Δ {delta_str} | {radius_str}")
 
 
 @mod.action_class
@@ -169,10 +104,12 @@ class ParrotActions:
     def mouse_clock_parrot_reset_config():
         """Reset parrot sound configuration to defaults."""
         reset_sound_config()
+        clear_rate_limiters()
 
     def mouse_clock_parrot_reload():
         """Reload parrot sound configuration."""
         reload_sound_config()
+        clear_rate_limiters()
 
     def mouse_clock_parrot_set_param(sound: str, param: str, value: str):
         """Set a parrot sound parameter (e.g., 'hiss amount 30')."""
