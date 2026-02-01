@@ -62,7 +62,7 @@ def draw_info_overlay(
     screen_height = bottom - top
 
     # Colors
-    bg_color = "000000dd"
+    bg_color = "000000aa"
     text_color = "ffffffff"
     header_color = "00ff88ff"
     muted_color = "888888ff"
@@ -91,7 +91,7 @@ def draw_info_overlay(
 
     for letter, phonetic, number in CLOCK_FACE_LETTERS:
         # letter -> phonetic (number)
-        line = f"{letter}  →  {phonetic}  ({number})"
+        line = f"{letter}  ->  {phonetic}  ({number})"
         draw_text(canvas, (col1_x, y), line, text_color, font_size=16, anchor="left")
         y += row_height
 
@@ -141,8 +141,8 @@ def draw_info_overlay(
     for color_name, color_hex in COLORS:
         styles = LINE_STYLES_BY_COLOR.get(color_name, [])
 
-        # Color header
-        draw_rect(canvas, (col3_x, y - 12, 12, 12), color_hex, thickness=0, filled=True)
+        # Color header (outline only so line samples are visible)
+        draw_rect(canvas, (col3_x, y - 12, 12, 12), color_hex, thickness=2, filled=False)
         draw_text(canvas, (col3_x + 18, y), f"{color_name}:", text_color, font_size=14, anchor="left")
         y += row_height - 4
 
