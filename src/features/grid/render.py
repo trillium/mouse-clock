@@ -4,13 +4,14 @@ Grid overlay rendering.
 Drawing functions for the letter/color grid overlay.
 """
 
-print("reloaded trillium/mouse-clock/src/features/grid/render.py 2")
+print("reloaded trillium/mouse-clock/src/features/grid/render.py 4 - 3 styles per color")
 
 from typing import Tuple, List
 
 from ...core.config import get_setting
 from ...rendering.colors import get_color
 from ...rendering.drawing import draw_line, draw_text, draw_rect
+from ...features.line.vertical import LINE_STYLES, COLOR_STYLE_MAP, ALL_STYLES
 from .config import get_text_color, get_text_bg_color, get_grid_colors
 from .layout import get_visible_letters, calculate_row_positions, calculate_column_positions
 
@@ -37,32 +38,41 @@ def draw_grid_overlay(
     screen_height = bottom - top
     letters = get_visible_letters(screen_height, row_spacing)
 
-    # Line styles for each color (3 lines per color)
-    line_styles = ["solid", "dashed", "dotted"]
+    # Styles for horizontal lines (letters) - simple set of 3
+    row_line_styles = ["dash", "dot", "tick"]
 
     if swap_axes:
         # Colors on Y, Letters on X
         row_positions = calculate_row_positions(top, bottom, len(colors))
         col_positions = calculate_column_positions(left, right, len(letters))
         row_labels = colors
+        row_styles = ["dash"] * len(colors)
         col_labels = letters
-        col_styles = ["solid"] * len(letters)
+        col_styles = ["dash"] * len(letters)
     else:
         # Letters on Y, Colors on X (default)
-        # 3 lines per color: solid, dashed, dotted
-        row_positions = calculate_row_positions(top, bottom, len(letters))
-        col_positions = calculate_column_positions(left, right, len(colors) * 3)
-        # Expand colors and styles: [red, red, red, blue, blue, blue, ...]
+        # 3 lines per letter (dash, dot, tick)
+        row_positions = calculate_row_positions(top, bottom, len(letters) * len(row_line_styles))
+        row_labels = []
+        row_styles = []
+        for letter in letters:
+            for style in row_line_styles:
+                row_labels.append(letter)
+                row_styles.append(style)
+
+        # 3 lines per color (from COLOR_STYLE_MAP)
+        total_col_lines = sum(len(COLOR_STYLE_MAP.get(c, [])) for c in colors)
+        col_positions = calculate_column_positions(left, right, total_col_lines)
         col_labels = []
         col_styles = []
         for color in colors:
-            for style in line_styles:
+            styles_for_color = COLOR_STYLE_MAP.get(color, ["dash", "dot", "tick"])
+            for style in styles_for_color:
                 col_labels.append(color)
                 col_styles.append(style)
-        row_labels = letters
 
     # Draw horizontal lines (rows)
-    _draw_row_lines(canvas, row_positions, row_labels, left, right, swap_axes)
+    _draw_row_lines(canvas, row_positions, row_labels, row_styles, left, right, swap_axes)
 
     # Draw vertical lines (columns)
     _draw_column_lines(canvas, col_positions, col_labels, col_styles, top, bottom, swap_axes)
@@ -75,6 +85,7 @@ def _draw_row_lines(
     canvas,
     positions: List[float],
     labels: List[str],
+    styles: List[str],
     left: float,
     right: float,
     swap_axes: bool
@@ -84,7 +95,7 @@ def _draw_row_lines(
     text_color = get_text_color()
     bg_color = get_text_bg_color()
 
-    for y, label in zip(positions, labels):
+    for y, label, style in zip(positions, labels, styles):
         # Get line color
         if swap_axes:
             # Label is a color name
@@ -94,14 +105,14 @@ def _draw_row_lines(
             line_color = "ffffff99"  # Semi-transparent white
 
         # Draw the horizontal line
-        print(f"[DEBUG _draw_row_lines] label={label}, y={y:.0f}, color={line_color[:6]}")
-        draw_line(canvas, (left + label_margin, y), (right, y), line_color, thickness=1)
+        print(f"[DEBUG _draw_row_lines] label={label}, y={y:.0f}, color={line_color[:6]}, style={style}")
+        draw_line(canvas, (left + label_margin, y), (right, y), line_color, thickness=1, line_style=style)
 
-        # Draw the label with background
-        label_text = label.upper() if not swap_axes else label.capitalize()
-        # Draw background rect
-        draw_rect(canvas, (left + 2, y - 8, 22, 18), bg_color, thickness=0, filled=True)
-        draw_text(canvas, (left + 5, y + 5), label_text, text_color, font_size=14, anchor="left")
+        # Draw the label with background (only for first style to avoid clutter)
+        if style == "dash":
+            label_text = label.upper() if not swap_axes else label.capitalize()
+            draw_rect(canvas, (left + 2, y - 8, 22, 18), bg_color, thickness=0, filled=True)
+            draw_text(canvas, (left + 5, y + 5), label_text, text_color, font_size=14, anchor="left")
 
 
 def _draw_column_lines(

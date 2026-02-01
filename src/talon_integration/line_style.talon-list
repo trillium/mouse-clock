@@ -1,0 +1,24 @@
+list: user.line_style
+-
+# Simple patterns
+line: line
+dash: dash
+dot: dot
+tick: tick
+blip: blip
+long: long
+# Multi-segment
+morse: morse
+# Structural
+twin: twin
+chain: chain
+wave: wave
+zig: zig
+barb: barb
+rail: rail
+cross: cross
+link: link
+bead: bead
+spike: spike
+hash: hash
+saw: saw

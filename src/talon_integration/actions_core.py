@@ -3,6 +3,7 @@ Core mouse clock actions - activate, close, radius control.
 """
 
 from talon import Module
+from talon import actions
 from .instance import ctx, get_mouse_clock_instance
 from ..core.logger import log_info
 
@@ -20,10 +21,10 @@ class CoreActions:
         mouse_clock.show()
         mouse_clock.clear_state()
         ctx.tags = ["user.mouse_clock_showing"]
+        print(f"[DEBUG] Set ctx.tags to: {ctx.tags}")
 
     def mouse_clock_show():
         """Alias for mouse_clock_activate"""
-        from talon import actions
         actions.user.mouse_clock_activate()
 
     def mouse_clock_close():
@@ -34,7 +35,6 @@ class CoreActions:
 
     def mouse_clock_toggle():
         """Toggle mouse clock on/off"""
-        from talon import actions
         mouse_clock = get_mouse_clock_instance()
         if mouse_clock.active_canvas:
             actions.user.mouse_clock_close()

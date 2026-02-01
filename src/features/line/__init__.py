@@ -21,6 +21,9 @@ from .horizontal import (
 # Vertical components
 from .vertical import (
     VERTICAL_COLORS,
+    COLOR_NAMES,
+    LINE_STYLES,
+    get_color_count,
     get_vertical_count,
     get_vertical_x_positions,
     get_x_for_color,
@@ -47,6 +50,9 @@ __all__ = [
     "draw_single_line",
     # vertical
     "VERTICAL_COLORS",
+    "COLOR_NAMES",
+    "LINE_STYLES",
+    "get_color_count",
     "get_vertical_count",
     "get_vertical_x_positions",
     "get_x_for_color",

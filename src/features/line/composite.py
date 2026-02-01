@@ -26,7 +26,7 @@ def draw_intersection_markers(
     """
     positions = get_vertical_x_positions(screen_width)
 
-    for _, x, color_hex in positions:
+    for _, x, color_hex, _ in positions:
         draw_cross(canvas, (x, horizontal_y), marker_size, color_hex, 2, style="plus")
 
 
