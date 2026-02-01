@@ -102,7 +102,8 @@ def draw_concentric_boxes(
     canvas,
     center: Tuple[float, float],
     num_boxes: int = None,
-    thickness: float = 2
+    thickness: float = 2,
+    radius: float = None
 ):
     """
     Draw concentric box overlay.
@@ -112,6 +113,7 @@ def draw_concentric_boxes(
         center: Center point (x, y)
         num_boxes: Number of boxes
         thickness: Line thickness
+        radius: Optional outer radius to scale boxes to
     """
     if num_boxes is None:
         num_boxes = get_box_count()
@@ -119,6 +121,13 @@ def draw_concentric_boxes(
     sizes = calculate_box_sizes(num_boxes)
     colors = get_box_colors(num_boxes)
     cx, cy = center
+
+    # Scale sizes if radius provided
+    if radius is not None and sizes:
+        max_size = max(sizes[-1])  # Outermost box size
+        if max_size > 0:
+            scale = radius / max_size
+            sizes = [(w * scale, h * scale) for w, h in sizes]
 
     # Draw from innermost to outermost
     for i, ((w, h), color) in enumerate(zip(sizes, colors)):
