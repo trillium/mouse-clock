@@ -14,6 +14,9 @@ from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, initialize_logger
 from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
+from ..features.box import draw_concentric_boxes
+from ..features.grid import draw_grid_overlay, update_offset_animation
+# NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
 print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
 
@@ -22,6 +25,7 @@ DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_HYBRID = "hybrid"
 DISPLAY_MODE_GRID = "grid"
+DISPLAY_MODE_INFO = "info"
 
 
 class MouseClockTalonAdapter:
@@ -51,7 +55,7 @@ class MouseClockTalonAdapter:
 
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings."""
-        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID, DISPLAY_MODE_GRID):
+        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO):
             self._display_mode = mode
             set_setting("display_mode", mode)
             log_info(f"Display mode set to: {mode}")
@@ -164,11 +168,9 @@ class MouseClockTalonAdapter:
 
         if self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
-            from ..features.box import draw_concentric_boxes
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_HYBRID:
             # Draw boxes first (subtle, behind circles)
-            from ..features.box import draw_concentric_boxes
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), thickness=1, radius=self.core.radius)
             # Then draw circles on top
             draw_mouse_clock(
@@ -182,13 +184,18 @@ class MouseClockTalonAdapter:
             )
         elif self._display_mode == DISPLAY_MODE_GRID:
             # Draw letter/color grid overlay
-            from ..features.grid import draw_grid_overlay, update_offset_animation
             screen_rect = self.get_screen_rect()
             # Animate grid offset with same lerp factor
             lerp = self.core._animator.get_lerp_factor()
             grid_animating = update_offset_animation(lerp)
             still_animating = still_animating or grid_animating
             draw_grid_overlay(canvas_obj, screen_rect)
+        elif self._display_mode == DISPLAY_MODE_INFO:
+            # Draw info/help overlay
+            # Lazy import to avoid module load order issues with Talon
+            from ..features.info import draw_info_overlay
+            screen_rect = self.get_screen_rect()
+            draw_info_overlay(canvas_obj, screen_rect)
         else:
             # Default: circles only
             draw_mouse_clock(

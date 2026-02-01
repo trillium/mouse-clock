@@ -12,6 +12,7 @@ from .adapter import (
     DISPLAY_MODE_BOXES,
     DISPLAY_MODE_HYBRID,
     DISPLAY_MODE_GRID,
+    DISPLAY_MODE_INFO,
 )
 from .instance import (
     get_mouse_clock_instance,
