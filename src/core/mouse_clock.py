@@ -223,13 +223,13 @@ class MouseClockCore:
         """Increase the target radius of the clock (animates smoothly)."""
         self._animator.update_timing()
         increment = self._animator.get_dynamic_increment()
-        self.target_radius = self.target_radius + increment
+        self.target_radius = self._animator.clamp_radius(self.target_radius + increment)
 
     def narrow_radius(self):
         """Decrease the target radius of the clock (animates smoothly)."""
         self._animator.update_timing()
         increment = self._animator.get_dynamic_increment()
-        self.target_radius = max(config.MIN_RADIUS, self.target_radius - increment)
+        self.target_radius = self._animator.clamp_radius(self.target_radius - increment)
 
     def set_radius(self, value: int):
         """Set the radius to a specific value (with minimum limit)."""
