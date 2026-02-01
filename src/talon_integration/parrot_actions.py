@@ -58,37 +58,28 @@ class MouseClockParrotOverrides:
 
 
 def _log_parrot_event(sound: str, action: str):
-    """Log parrot event with timing, radius, and acceleration info."""
+    """Log parrot event with debug info matching visual display."""
     from .instance import get_mouse_clock_instance
-    from ..core.animation import exponential_lerp_factor
+    from datetime import datetime
 
-    now = time.time() * 1000  # ms
+    timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
-    if sound in _last_exec_times:
-        delta = now - _last_exec_times[sound]
-        delta_str = f"{delta:6.1f}ms"
-    else:
-        delta_str = "  first"
-
-    _last_exec_times[sound] = now
-
-    # Get radius and acceleration info
     try:
         mc = get_mouse_clock_instance()
-        r = mc.core.radius
-        tr = mc.core.target_radius
-        if mc.core._animation_start_time:
-            elapsed = time.time() - mc.core._animation_start_time
-            lerp = exponential_lerp_factor(elapsed)
-            inc = mc.core._get_dynamic_increment()
-            accel_str = f"t={elapsed:.2f}s inc={inc:.0f} lerp={lerp:.2f}"
-        else:
-            accel_str = "lerp=--"
-        radius_str = f"r={r:.0f}->{tr:.0f} {accel_str}"
-    except:
-        radius_str = "r=?"
+        animator = mc.core._animator
 
-    print(f"🕐 {sound:6} -> {action:8} | Δ {delta_str} | {radius_str}")
+        lerp = animator.get_lerp_factor()
+        inc = animator.get_dynamic_increment()
+        dur = animator.get_elapsed()
+
+        if animator._last_input_time:
+            last_input = datetime.fromtimestamp(animator._last_input_time).strftime("%H:%M:%S.%f")[:-3]
+        else:
+            last_input = "--"
+
+        print(f"🕐 {timestamp} {sound:6} | lerp:{lerp:.2f} inc:{inc:.0f} dur:{dur:.2f}s last:{last_input}")
+    except:
+        print(f"🕐 {timestamp} {sound:6} | (no instance)")
 
 
 @mod.action_class
