@@ -18,6 +18,7 @@ ctx = Context()
 _canvas = None
 _current_letter = None
 _show_verticals = False
+_active_lines = set()  # Set of active letter lines (A, B, C, etc.)
 
 
 def _get_screen_dimensions():
@@ -31,13 +32,19 @@ def _get_screen_dimensions():
 
 def _draw_callback(c):
     """Canvas draw callback."""
-    global _current_letter, _show_verticals
+    global _current_letter, _show_verticals, _active_lines
     width, height = _get_screen_dimensions()
 
     if _current_letter and _show_verticals:
         draw_line_with_verticals(c, _current_letter, width, height)
     elif _current_letter:
         draw_single_line(c, _current_letter, width, height)
+    elif _active_lines:
+        # Draw only active lines
+        for letter in _active_lines:
+            draw_single_line(c, letter, width, height)
+        if _show_verticals:
+            draw_all_verticals(c, width, height)
     else:
         draw_all_lines(c, width, height)
         if _show_verticals:
@@ -79,7 +86,7 @@ def toggle_verticals():
 
 def hide_line():
     """Hide the line overlay."""
-    global _canvas, _current_letter, _show_verticals
+    global _canvas, _current_letter, _show_verticals, _active_lines
 
     if _canvas:
         _canvas.unregister("draw", _draw_callback)
@@ -87,7 +94,51 @@ def hide_line():
         _canvas = None
         _current_letter = None
         _show_verticals = False
+        _active_lines = set()
         set_overlay_inactive("line_overlay")
+
+
+def add_line(letter: str):
+    """Add a specific letter line to active set."""
+    global _active_lines, _current_letter, _canvas
+    _active_lines.add(letter.upper())
+    _current_letter = None  # Clear single-line mode
+    if _canvas:
+        _canvas.freeze()
+
+
+def remove_line(letter: str):
+    """Remove a specific letter line from active set."""
+    global _active_lines, _canvas
+    _active_lines.discard(letter.upper())
+    if _canvas:
+        _canvas.freeze()
+
+
+def show_verticals():
+    """Show vertical lines."""
+    global _show_verticals, _canvas
+    _show_verticals = True
+    if _canvas:
+        _canvas.freeze()
+
+
+def hide_verticals():
+    """Hide vertical lines."""
+    global _show_verticals, _canvas
+    _show_verticals = False
+    if _canvas:
+        _canvas.freeze()
+
+
+def clear_all_lines():
+    """Clear all lines but keep overlay active."""
+    global _active_lines, _current_letter, _show_verticals, _canvas
+    _active_lines = set()
+    _current_letter = None
+    _show_verticals = False
+    if _canvas:
+        _canvas.freeze()
 
 
 def move_to_line(letter: str):
@@ -149,3 +200,24 @@ class LineOverlayActions:
     def line_overlay_show_grid():
         """Show full grid (horizontals + verticals)."""
         show_line(None, with_verticals=True)
+
+    def line_overlay_add_line(letter: str):
+        """Add a specific line to the display."""
+        add_line(letter)
+
+    def line_overlay_remove_line(letter: str):
+        """Remove a specific line from the display."""
+        remove_line(letter)
+
+    def line_overlay_verticals_on():
+        """Show vertical lines."""
+        show_verticals()
+
+    def line_overlay_verticals_off():
+        """Hide vertical lines."""
+        hide_verticals()
+
+    def line_overlay_clear():
+        """Clear all lines."""
+        clear_all_lines()
+        hide_line()

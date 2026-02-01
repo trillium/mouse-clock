@@ -76,6 +76,11 @@ clock position:
 clock mark <user.text>:
     user.mouse_clock_log_marker(text)
 
+# Display mode switching
+clock circles: user.mouse_clock_mode_circles()
+clock boxes: user.mouse_clock_mode_boxes()
+clock hybrid: user.mouse_clock_mode_hybrid()
+
 # Activate clock and move in one command (when clock is currently off)
 # Note: Excludes "mouse clock" which is handled above
 ^clock <user.letters_colors>+$:
