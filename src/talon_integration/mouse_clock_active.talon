@@ -6,8 +6,7 @@ key(cmd-ctrl-alt-shift-e):
     print("enter mimice SUPER-e")
     mimic('widen')
 key(cmd-ctrl-alt-shift-w):
-    print("enter mimice SUPER-w")
-    mimic('narrow')
+    user.mouse_clock_cycle_mode()
 
 [clock] widen [clock]:
     user.mouse_clock_widen()

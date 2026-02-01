@@ -9,7 +9,7 @@ from ...core.config import get_setting
 
 
 # Default colors for columns (can be configured)
-DEFAULT_GRID_COLORS = ["red", "blue", "green", "yellow", "purple"]
+DEFAULT_GRID_COLORS = ["red", "blue", "green", "yellow", "purple", "pink"]
 
 # Letters for rows
 GRID_LETTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")

@@ -37,24 +37,35 @@ def draw_grid_overlay(
     screen_height = bottom - top
     letters = get_visible_letters(screen_height, row_spacing)
 
+    # Line styles for each color (3 lines per color)
+    line_styles = ["solid", "dashed", "dotted"]
+
     if swap_axes:
         # Colors on Y, Letters on X
         row_positions = calculate_row_positions(top, bottom, len(colors))
         col_positions = calculate_column_positions(left, right, len(letters))
         row_labels = colors
         col_labels = letters
+        col_styles = ["solid"] * len(letters)
     else:
         # Letters on Y, Colors on X (default)
+        # 3 lines per color: solid, dashed, dotted
         row_positions = calculate_row_positions(top, bottom, len(letters))
-        col_positions = calculate_column_positions(left, right, len(colors))
+        col_positions = calculate_column_positions(left, right, len(colors) * 3)
+        # Expand colors and styles: [red, red, red, blue, blue, blue, ...]
+        col_labels = []
+        col_styles = []
+        for color in colors:
+            for style in line_styles:
+                col_labels.append(color)
+                col_styles.append(style)
         row_labels = letters
-        col_labels = colors
 
     # Draw horizontal lines (rows)
     _draw_row_lines(canvas, row_positions, row_labels, left, right, swap_axes)
 
     # Draw vertical lines (columns)
-    _draw_column_lines(canvas, col_positions, col_labels, top, bottom, swap_axes)
+    _draw_column_lines(canvas, col_positions, col_labels, col_styles, top, bottom, swap_axes)
 
     # Draw intersection markers
     _draw_intersections(canvas, row_positions, col_positions, row_labels, col_labels, swap_axes)
@@ -97,6 +108,7 @@ def _draw_column_lines(
     canvas,
     positions: List[float],
     labels: List[str],
+    styles: List[str],
     top: float,
     bottom: float,
     swap_axes: bool
@@ -105,22 +117,20 @@ def _draw_column_lines(
     text_color = get_text_color()
     bg_color = get_text_bg_color()
 
-    for x, label in zip(positions, labels):
+    for x, label, style in zip(positions, labels, styles):
         # Get line color
         if swap_axes:
             # Label is a letter, use white
             line_color = "ffffff99"
             label_margin = 25
-            line_style = "solid"
         else:
             # Label is a color name - no label needed, colors are self-explanatory
             line_color = get_color(label)
             label_margin = 0
-            line_style = "dashed"
 
         # Draw the vertical line
-        print(f"[DEBUG _draw_column_lines] label={label}, x={x:.0f}, color={line_color[:6]}, style={line_style}")
-        draw_line(canvas, (x, top + label_margin), (x, bottom), line_color, thickness=1, line_style=line_style)
+        print(f"[DEBUG _draw_column_lines] label={label}, x={x:.0f}, color={line_color[:6]}, style={style}")
+        draw_line(canvas, (x, top + label_margin), (x, bottom), line_color, thickness=1, line_style=style)
 
         # Only draw labels for letters (swap_axes mode), not colors
         if swap_axes:
