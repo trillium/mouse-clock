@@ -5,7 +5,7 @@ Talon action overrides and action class for parrot sounds.
 """
 
 import time
-from talon import Module, Context
+from talon import Module, Context, cron
 
 from .parrot_config import (
     set_sound_param,
@@ -32,6 +32,10 @@ tag: user.parrot_on
 
 # Track last execution time per sound for timing display
 _last_exec_times = {}
+
+# Cron jobs for keyboard-triggered continuous sounds
+_keyboard_hiss_job = None
+_keyboard_shush_job = None
 
 
 @parrot_ctx.action_class("user")
@@ -113,6 +117,40 @@ class ParrotActions:
             elif value.lower() == "false":
                 value = False
         set_sound_param(sound, param, value)
+
+    def mouse_clock_keyboard_hiss_start():
+        """Start continuous hiss triggered by keyboard."""
+        from talon import actions
+        global _keyboard_hiss_job
+        if _keyboard_hiss_job is None:
+            def hiss_tick():
+                actions.user.boolean_print("Hiss (keyboard)", "tick")
+                on_parrot("hiss")
+            _keyboard_hiss_job = cron.interval("30ms", hiss_tick)
+
+    def mouse_clock_keyboard_hiss_stop():
+        """Stop keyboard-triggered hiss."""
+        global _keyboard_hiss_job
+        if _keyboard_hiss_job is not None:
+            cron.cancel(_keyboard_hiss_job)
+            _keyboard_hiss_job = None
+
+    def mouse_clock_keyboard_shush_start():
+        """Start continuous shush triggered by keyboard."""
+        from talon import actions
+        global _keyboard_shush_job
+        if _keyboard_shush_job is None:
+            def shush_tick():
+                actions.user.boolean_print("Shush (keyboard)", "tick")
+                on_parrot("shush")
+            _keyboard_shush_job = cron.interval("30ms", shush_tick)
+
+    def mouse_clock_keyboard_shush_stop():
+        """Stop keyboard-triggered shush."""
+        global _keyboard_shush_job
+        if _keyboard_shush_job is not None:
+            cron.cancel(_keyboard_shush_job)
+            _keyboard_shush_job = None
 
 
 def register_overlay_active():

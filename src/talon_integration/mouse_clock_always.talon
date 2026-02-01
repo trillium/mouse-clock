@@ -7,7 +7,23 @@ tag: user.use_centroid_mouse_grid
     user.mouse_clock_activate()
 
 key(cmd-ctrl-alt-shift-q):
-    user.mouse_clock_close()
+    user.mouse_clock_toggle()
+
+key(cmd-ctrl-alt-shift-b:down):
+    user.boolean_print("Hiss (keyboard)", "start")
+    user.mouse_clock_keyboard_hiss_start()
+
+key(cmd-ctrl-alt-shift-b:up):
+    user.boolean_print("Hiss (keyboard)", "stop")
+    user.mouse_clock_keyboard_hiss_stop()
+
+key(cmd-ctrl-alt-shift-n:down):
+    user.boolean_print("Shush (keyboard)", "start")
+    user.mouse_clock_keyboard_shush_start()
+
+key(cmd-ctrl-alt-shift-n:up):
+    user.boolean_print("Shush (keyboard)", "stop")
+    user.mouse_clock_keyboard_shush_stop()
 
 clock win:
     user.mouse_clock_place_window()

@@ -108,3 +108,19 @@ right drag | righty drag:
     user.mouse_drag(1)
     # Close the mouse clock if active
     user.mouse_clock_close()
+
+key(cmd-ctrl-alt-shift-b:down):
+    user.boolean_print("Hiss (keyboard)", "start")
+    user.mouse_clock_keyboard_hiss_start()
+
+key(cmd-ctrl-alt-shift-b:up):
+    user.boolean_print("Hiss (keyboard)", "stop")
+    user.mouse_clock_keyboard_hiss_stop()
+
+key(cmd-ctrl-alt-shift-n:down):
+    user.boolean_print("Shush (keyboard)", "start")
+    user.mouse_clock_keyboard_shush_start()
+
+key(cmd-ctrl-alt-shift-n:up):
+    user.boolean_print("Shush (keyboard)", "stop")
+    user.mouse_clock_keyboard_shush_stop()

@@ -28,6 +28,15 @@ class CoreActions:
         mouse_clock = get_mouse_clock_instance()
         mouse_clock.close()
 
+    def mouse_clock_toggle():
+        """Toggle mouse clock on/off"""
+        from talon import actions
+        mouse_clock = get_mouse_clock_instance()
+        if mouse_clock.active_canvas:
+            actions.user.mouse_clock_close()
+        else:
+            actions.user.mouse_clock_activate()
+
     def mouse_clock_go_back():
         """Revert to the previous mouse position"""
         mouse_clock = get_mouse_clock_instance()
