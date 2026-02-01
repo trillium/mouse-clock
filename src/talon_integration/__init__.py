@@ -11,6 +11,7 @@ from .adapter import (
     DISPLAY_MODE_CIRCLES,
     DISPLAY_MODE_BOXES,
     DISPLAY_MODE_HYBRID,
+    DISPLAY_MODE_GRID,
 )
 from .instance import (
     get_mouse_clock_instance,
@@ -25,6 +26,7 @@ from . import actions_core
 from . import actions_move
 from . import actions_debug
 from . import actions_display
+from . import parrot_actions
 
 # Backwards compatibility - re-export from old talon_bridge location
 # These can be removed once all imports are updated

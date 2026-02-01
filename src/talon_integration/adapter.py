@@ -19,6 +19,7 @@ from ..input.guards import set_overlay_active, set_overlay_inactive
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_HYBRID = "hybrid"
+DISPLAY_MODE_GRID = "grid"
 
 
 class MouseClockTalonAdapter:
@@ -48,7 +49,7 @@ class MouseClockTalonAdapter:
 
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings."""
-        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID):
+        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID, DISPLAY_MODE_GRID):
             self._display_mode = mode
             set_setting("display_mode", mode)
             log_info(f"Display mode set to: {mode}")
@@ -156,14 +157,17 @@ class MouseClockTalonAdapter:
         # Interpolate radius toward target for smooth animation
         still_animating = self.core.update_radius_animation()
 
+        # Draw debug info at center
+        self._draw_debug_info(canvas_obj)
+
         if self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
             from ..features.concentric_box import draw_concentric_boxes
-            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y))
+            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_HYBRID:
             # Draw boxes first (subtle, behind circles)
             from ..features.concentric_box import draw_concentric_boxes
-            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), thickness=1)
+            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), thickness=1, radius=self.core.radius)
             # Then draw circles on top
             draw_mouse_clock(
                 canvas_obj,
@@ -174,6 +178,15 @@ class MouseClockTalonAdapter:
                 config.COLOR_ACTIVE,
                 config.COLOR_TEXT
             )
+        elif self._display_mode == DISPLAY_MODE_GRID:
+            # Draw letter/color grid overlay
+            from ..features.grid_overlay import draw_grid_overlay, update_offset_animation
+            screen_rect = self.get_screen_rect()
+            # Animate grid offset with same lerp factor
+            lerp = self.core._animator.get_lerp_factor()
+            grid_animating = update_offset_animation(lerp)
+            still_animating = still_animating or grid_animating
+            draw_grid_overlay(canvas_obj, screen_rect)
         else:
             # Default: circles only
             draw_mouse_clock(
@@ -189,6 +202,45 @@ class MouseClockTalonAdapter:
         # If still animating, schedule next frame (~60fps)
         if still_animating and self.active_canvas:
             cron.after("16ms", lambda: self.active_canvas.freeze())
+
+    def _draw_debug_info(self, canvas_obj):
+        """Draw debug info (lerp factor, increment, elapsed) at center."""
+        import time
+        from talon.skia import Paint
+
+        paint = Paint()
+        paint.color = "white"
+        paint.textsize = 14
+        paint.style = paint.Style.FILL
+
+        # Get animation values
+        animator = self.core._animator
+        elapsed = animator.get_elapsed()
+        lerp = animator.get_lerp_factor()
+        inc = animator.get_dynamic_increment()
+
+        # Calculate time since last input
+        if animator._last_input_time:
+            since_input = time.time() - animator._last_input_time
+            since_str = f"{since_input:.2f}s"
+        else:
+            since_str = "--"
+
+        # Format debug text
+        lines = [
+            f"lerp: {lerp:.2f}",
+            f"inc: {inc:.0f}",
+            f"dur: {elapsed:.2f}s",
+            f"gap: {since_str}",
+        ]
+
+        # Draw at center, stacked vertically
+        x = self.core.center_x
+        y = self.core.center_y - 28  # Start above center
+
+        for line in lines:
+            canvas_obj.draw_text(line, x - 30, y, paint)
+            y += 16
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""

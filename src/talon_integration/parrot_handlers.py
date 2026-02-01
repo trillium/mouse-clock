@@ -17,6 +17,28 @@ _rate_limiters = {}
 _last_sound_times = {}
 
 
+def _update_animation_timing():
+    """Update animation timing on every sound event (before rate limiting)."""
+    try:
+        from .instance import get_mouse_clock_instance
+        from .adapter import DISPLAY_MODE_GRID
+        mc = get_mouse_clock_instance()
+        gap_detected = mc.core._animator.update_timing()
+        mode = mc.get_display_mode()
+
+        # In grid mode, end sessions when gap detected to toggle direction/mode
+        if gap_detected:
+            print(f"🕐 gap! mode={mode}")
+        if gap_detected and mode == DISPLAY_MODE_GRID:
+            from ..features.grid_overlay import end_hiss_session, end_shush_session, get_hiss_direction
+            print(f"🕐 gap detected! toggling direction...")
+            end_hiss_session()
+            end_shush_session()
+            print(f"🕐 next direction: {get_hiss_direction()}")
+    except Exception as e:
+        print(f"🕐 _update_animation_timing error: {e}")
+
+
 def _get_limiter(sound: str):
     """Get or create rate limiter for a sound."""
     from ..input.debounce import RateLimiter
@@ -48,6 +70,12 @@ def on_parrot(event: str):
 
     if not sound_config.get("enabled", True):
         return
+
+    # For continuous sounds (hiss/shush), update animation timing on EVERY event
+    # This must happen BEFORE rate limiting so acceleration builds properly
+    action = sound_config.get("action")
+    if action in ("widen", "narrow"):
+        _update_animation_timing()
 
     # Check rate limiter
     limiter = _get_limiter(event)
@@ -90,7 +118,6 @@ def execute_action(action: str, amount: int = None):
         print(f"🕐 executing {action} for spiral_nudge")
         _execute_spiral_action(action)
     elif is_overlay_active("mouse_clock"):
-        print(f"🕐 executing {action} for mouse_clock")
         _execute_mouse_clock_action(action)
     elif is_overlay_active("box_overlay"):
         print(f"🕐 executing {action} for box_overlay")
@@ -114,6 +141,42 @@ def _execute_toggle_action():
 
 def _execute_mouse_clock_action(action: str):
     """Execute mouse clock specific action."""
+    from .instance import get_mouse_clock_instance
+    from .adapter import DISPLAY_MODE_GRID
+
+    mc = get_mouse_clock_instance()
+
+    # In grid mode, hiss/shush have toggle behavior
+    if mc.get_display_mode() == DISPLAY_MODE_GRID:
+        from ..features.grid_overlay import grid_hiss, grid_shush, get_hiss_direction, get_shush_mode
+
+        if action == "widen":
+            # Hiss shifts columns, toggling direction each time
+            direction = get_hiss_direction()
+            increment = mc.core._animator.get_dynamic_increment()
+            grid_hiss(increment)
+            print(f"🕐 grid: shift {direction} inc={increment:.0f}")
+            if mc.active_canvas:
+                mc.active_canvas.freeze()
+        elif action == "narrow":
+            # Shush toggles between widen/narrow radius
+            mode = get_shush_mode()
+            print(f"🕐 grid shush: mode before={mode}")
+            shush_action = grid_shush(0)
+            print(f"🕐 grid shush: action={shush_action}")
+            if shush_action == "widen":
+                actions.user.mouse_clock_widen()
+            else:
+                actions.user.mouse_clock_narrow()
+            if mc.active_canvas:
+                mc.active_canvas.freeze()
+        elif action == "click":
+            actions.user.mouse_clock_close()
+            ctrl.mouse_click()
+        return
+
+    # Normal mode actions
+    print(f"🕐 clock: {action}")
     if action == "widen":
         actions.user.mouse_clock_widen()
     elif action == "narrow":
