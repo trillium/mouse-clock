@@ -109,13 +109,28 @@ def draw_rect(
         thickness: Line width for outline
         filled: Whether to fill the rectangle
     """
-    paint = canvas.paint
-    paint.color = color
-    paint.style = Paint.Style.FILL if filled else Paint.Style.STROKE
-    paint.stroke_width = thickness
-
     x, y, w, h = rect
-    canvas.draw_rect(canvas.rect.x + x, canvas.rect.y + y, w, h)
+
+    if filled:
+        # For filled rect, use skia Path
+        from talon import skia
+        paint = canvas.paint
+        paint.color = color
+        paint.style = Paint.Style.FILL
+        path = skia.Path()
+        path.add_rect(skia.Rect(x, y, x + w, y + h))
+        canvas.draw_path(path)
+    else:
+        # Draw outline using 4 lines
+        top_left = (x, y)
+        top_right = (x + w, y)
+        bottom_right = (x + w, y + h)
+        bottom_left = (x, y + h)
+
+        draw_line(canvas, top_left, top_right, color, thickness)
+        draw_line(canvas, top_right, bottom_right, color, thickness)
+        draw_line(canvas, bottom_right, bottom_left, color, thickness)
+        draw_line(canvas, bottom_left, top_left, color, thickness)
 
 
 def draw_dot(
