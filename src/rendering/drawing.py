@@ -111,15 +111,15 @@ def draw_rect(
     """
     x, y, w, h = rect
 
+    paint = canvas.paint
+    paint.color = color
+
     if filled:
-        # For filled rect, use skia Path
-        from talon import skia
-        paint = canvas.paint
-        paint.color = color
+        # For filled rect, draw using fill style
+        from talon.skia import Rect
         paint.style = Paint.Style.FILL
-        path = skia.Path()
-        path.add_rect(skia.Rect(x, y, x + w, y + h))
-        canvas.draw_path(path)
+        paint.stroke_width = 0
+        canvas.draw_rect(Rect(x, y, x + w, y + h))
     else:
         # Draw outline using 4 lines
         top_left = (x, y)
