@@ -22,6 +22,7 @@ from .instance import (
 )
 
 # Import action modules to register them with Talon
+from . import actions  # List declarations and captures
 from . import actions_core
 from . import actions_move
 from . import actions_debug

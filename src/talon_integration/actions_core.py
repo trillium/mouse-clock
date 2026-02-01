@@ -2,9 +2,13 @@
 Core mouse clock actions - activate, close, radius control.
 """
 
-from .instance import mod, ctx, get_mouse_clock_instance
+from talon import Module
+from .instance import ctx, get_mouse_clock_instance
 from ..core.logger import log_info
 
+print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 4")
+
+mod = Module()
 
 @mod.action_class
 class CoreActions:

@@ -5,7 +5,7 @@ Handles canvas management, mouse control, and screen handling.
 """
 
 from typing import List
-from talon import canvas, ctrl, ui, cron
+from talon import canvas, ctrl, ui, cron, actions
 from talon.types.point import Point2d
 
 from ..core import config
@@ -14,6 +14,8 @@ from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, initialize_logger
 from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
+
+print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
 
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"

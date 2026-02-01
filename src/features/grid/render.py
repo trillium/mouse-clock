@@ -4,6 +4,8 @@ Grid overlay rendering.
 Drawing functions for the letter/color grid overlay.
 """
 
+print("reloaded trillium/mouse-clock/src/features/grid/render.py 2")
+
 from typing import Tuple, List
 
 from ...core.config import get_setting
@@ -81,6 +83,7 @@ def _draw_row_lines(
             line_color = "ffffff99"  # Semi-transparent white
 
         # Draw the horizontal line
+        print(f"[DEBUG _draw_row_lines] label={label}, y={y:.0f}, color={line_color[:6]}")
         draw_line(canvas, (left + label_margin, y), (right, y), line_color, thickness=1)
 
         # Draw the label with background
@@ -98,8 +101,7 @@ def _draw_column_lines(
     bottom: float,
     swap_axes: bool
 ):
-    """Draw vertical lines with labels."""
-    label_margin = 25
+    """Draw vertical lines with labels (only for letters, not colors)."""
     text_color = get_text_color()
     bg_color = get_text_bg_color()
 
@@ -108,19 +110,24 @@ def _draw_column_lines(
         if swap_axes:
             # Label is a letter, use white
             line_color = "ffffff99"
+            label_margin = 25
+            line_style = "solid"
         else:
-            # Label is a color name
+            # Label is a color name - no label needed, colors are self-explanatory
             line_color = get_color(label)
+            label_margin = 0
+            line_style = "dashed"
 
         # Draw the vertical line
-        draw_line(canvas, (x, top + label_margin), (x, bottom), line_color, thickness=1)
+        print(f"[DEBUG _draw_column_lines] label={label}, x={x:.0f}, color={line_color[:6]}, style={line_style}")
+        draw_line(canvas, (x, top + label_margin), (x, bottom), line_color, thickness=1, line_style=line_style)
 
-        # Draw the label at top with background
-        label_text = label.capitalize() if not swap_axes else label.upper()
-        # Draw background rect
-        text_width = len(label_text) * 7 + 6
-        draw_rect(canvas, (x - text_width/2, top + 5, text_width, 18), bg_color, thickness=0, filled=True)
-        draw_text(canvas, (x, top + 18), label_text, text_color, font_size=12, anchor="center")
+        # Only draw labels for letters (swap_axes mode), not colors
+        if swap_axes:
+            label_text = label.upper()
+            text_width = len(label_text) * 7 + 6
+            draw_rect(canvas, (x - text_width/2, top + 5, text_width, 18), bg_color, thickness=0, filled=True)
+            draw_text(canvas, (x, top + 18), label_text, text_color, font_size=12, anchor="center")
 
 
 def _draw_intersections(
