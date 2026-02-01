@@ -30,7 +30,7 @@ def _update_animation_timing():
         if gap_detected:
             print(f"🕐 gap! mode={mode}")
         if gap_detected and mode == DISPLAY_MODE_GRID:
-            from ..features.grid_overlay import end_hiss_session, end_shush_session, get_hiss_direction
+            from ..features.grid import end_hiss_session, end_shush_session, get_hiss_direction
             print(f"🕐 gap detected! toggling direction...")
             end_hiss_session()
             end_shush_session()
@@ -148,7 +148,7 @@ def _execute_mouse_clock_action(action: str):
 
     # In grid mode, hiss/shush have toggle behavior
     if mc.get_display_mode() == DISPLAY_MODE_GRID:
-        from ..features.grid_overlay import grid_hiss, grid_shush, get_hiss_direction, get_shush_mode
+        from ..features.grid import grid_hiss, grid_shush, get_hiss_direction, get_shush_mode
 
         if action == "widen":
             # Hiss shifts columns, toggling direction each time

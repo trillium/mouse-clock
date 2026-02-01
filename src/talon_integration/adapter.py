@@ -162,11 +162,11 @@ class MouseClockTalonAdapter:
 
         if self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
-            from ..features.concentric_box import draw_concentric_boxes
+            from ..features.box import draw_concentric_boxes
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_HYBRID:
             # Draw boxes first (subtle, behind circles)
-            from ..features.concentric_box import draw_concentric_boxes
+            from ..features.box import draw_concentric_boxes
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), thickness=1, radius=self.core.radius)
             # Then draw circles on top
             draw_mouse_clock(
@@ -180,7 +180,7 @@ class MouseClockTalonAdapter:
             )
         elif self._display_mode == DISPLAY_MODE_GRID:
             # Draw letter/color grid overlay
-            from ..features.grid_overlay import draw_grid_overlay, update_offset_animation
+            from ..features.grid import draw_grid_overlay, update_offset_animation
             screen_rect = self.get_screen_rect()
             # Animate grid offset with same lerp factor
             lerp = self.core._animator.get_lerp_factor()

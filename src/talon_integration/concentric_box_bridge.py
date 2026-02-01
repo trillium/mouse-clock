@@ -3,7 +3,7 @@ Talon integration for Concentric Box Targeting.
 """
 
 from talon import Module, Context, canvas, ctrl, ui
-from ..features.concentric_box import (
+from ..features.box import (
     draw_concentric_boxes, draw_boxes_with_guides, get_size_for_color,
     get_target_position, get_target_from_letter
 )

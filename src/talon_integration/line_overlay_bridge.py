@@ -3,7 +3,7 @@ Talon integration for Lettered Line Overlay.
 """
 
 from talon import Module, Context, canvas, ui
-from ..features.line_overlay import (
+from ..features.line import (
     draw_single_line, draw_all_lines, get_y_for_letter,
     draw_line_with_verticals, get_x_for_color, draw_all_verticals
 )
