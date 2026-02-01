@@ -56,3 +56,16 @@ class DisplayActions:
         next_mode = DISPLAY_MODES[next_idx]
         mouse_clock.set_display_mode(next_mode)
         print(f"Display mode: {next_mode}")
+
+    def mouse_clock_cycle_mode_previous():
+        """Cycle to previous display mode."""
+        mouse_clock = get_mouse_clock_instance()
+        current = mouse_clock.get_display_mode()
+        try:
+            idx = DISPLAY_MODES.index(current)
+            prev_idx = (idx - 1) % len(DISPLAY_MODES)
+        except ValueError:
+            prev_idx = 0
+        prev_mode = DISPLAY_MODES[prev_idx]
+        mouse_clock.set_display_mode(prev_mode)
+        print(f"Display mode: {prev_mode}")

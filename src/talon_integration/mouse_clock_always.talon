@@ -66,6 +66,9 @@ clock circles: user.mouse_clock_mode_circles()
 clock boxes: user.mouse_clock_mode_boxes()
 clock hybrid: user.mouse_clock_mode_hybrid()
 clock grid: user.mouse_clock_mode_grid()
+clock info: user.mouse_clock_mode_info()
+clock display next: user.mouse_clock_cycle_mode()
+clock display (previous | last): user.mouse_clock_cycle_mode_previous()
 
 # Activate clock and move in one command (when clock is currently off)
 # Note: Excludes "mouse clock" which is handled above
