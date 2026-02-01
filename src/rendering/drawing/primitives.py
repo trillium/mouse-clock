@@ -8,61 +8,14 @@ crosses, and text on Talon canvas objects.
 from typing import Tuple
 from talon.skia import Paint
 
-
-def draw_line(
-    canvas,
-    start: Tuple[float, float],
-    end: Tuple[float, float],
-    color: str,
-    thickness: float = 2,
-    dashed: bool = False,
-    dash_pattern: Tuple[float, float] = (5, 3)
-):
-    """
-    Draw a line segment.
-
-    Args:
-        canvas: Talon canvas object
-        start: Start point (x, y)
-        end: End point (x, y)
-        color: 8-digit RGBA hex color
-        thickness: Line width in pixels
-        dashed: Whether to draw dashed line
-        dash_pattern: (dash_length, gap_length) when dashed=True
-    """
-    paint = canvas.paint
-    paint.color = color
-    paint.style = Paint.Style.STROKE
-    paint.stroke_width = thickness
-
-    if dashed:
-        # Talon/Skia path effect for dashing
-        import math
-        x1, y1 = start
-        x2, y2 = end
-        dash_len, gap_len = dash_pattern
-        total_len = dash_len + gap_len
-
-        dx = x2 - x1
-        dy = y2 - y1
-        length = math.sqrt(dx * dx + dy * dy)
-        if length == 0:
-            return
-
-        # Normalize direction
-        dx /= length
-        dy /= length
-
-        # Draw dashes
-        pos = 0
-        while pos < length:
-            seg_start = (x1 + dx * pos, y1 + dy * pos)
-            seg_end_pos = min(pos + dash_len, length)
-            seg_end = (x1 + dx * seg_end_pos, y1 + dy * seg_end_pos)
-            canvas.draw_line(seg_start[0], seg_start[1], seg_end[0], seg_end[1])
-            pos += total_len
-    else:
-        canvas.draw_line(start[0], start[1], end[0], end[1])
+# Re-export line infrastructure from dedicated module
+from .lines import (
+    LineStyle,
+    LINE_STYLE_PATTERNS,
+    draw_line,
+    draw_dotted_line,
+    draw_dashed_line,
+)
 
 
 def draw_circle(
