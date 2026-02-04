@@ -7,7 +7,7 @@ Functions for calculating row and column positions.
 from typing import List
 
 from ...core.config import get_setting
-from .config import GRID_LETTERS, get_column_spacing
+from .config import get_grid_letters, get_column_spacing
 from .state import get_column_offset
 
 
@@ -22,8 +22,9 @@ def get_visible_letters(screen_height: float, row_spacing: float) -> List[str]:
     Returns:
         List of letters that fit
     """
+    letters = get_grid_letters()
     max_rows = int(screen_height / row_spacing)
-    return GRID_LETTERS[:min(max_rows, len(GRID_LETTERS))]
+    return letters[:min(max_rows, len(letters))]
 
 
 def calculate_row_positions(

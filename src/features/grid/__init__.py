@@ -2,20 +2,20 @@
 Grid Overlay for MouseClock.
 
 Renders a letter/color grid for precise targeting:
-- Y-axis: Letters (A-Z) with horizontal lines
+- Y-axis: Letters with horizontal lines
 - X-axis: Colors with vertical lines
 - Intersections provide target points
 """
 
 # Configuration
 from .config import (
-    DEFAULT_GRID_COLORS,
-    GRID_LETTERS,
     DEFAULT_TEXT_COLOR,
     DEFAULT_TEXT_BG_COLOR,
     get_text_color,
     get_text_bg_color,
     get_grid_colors,
+    get_grid_styles,
+    get_grid_letters,
     get_column_spacing,
 )
 
@@ -56,13 +56,13 @@ from .targeting import (
 
 __all__ = [
     # config
-    "DEFAULT_GRID_COLORS",
-    "GRID_LETTERS",
     "DEFAULT_TEXT_COLOR",
     "DEFAULT_TEXT_BG_COLOR",
     "get_text_color",
     "get_text_bg_color",
     "get_grid_colors",
+    "get_grid_styles",
+    "get_grid_letters",
     "get_column_spacing",
     # state
     "get_column_offset",
