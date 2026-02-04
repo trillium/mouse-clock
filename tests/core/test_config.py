@@ -18,7 +18,7 @@ class TestConstants:
         assert config.MIN_RADIUS == 20
 
     def test_color_map_has_all_colors(self):
-        expected = {"center", "red", "blue", "green", "yellow", "purple", "pink"}
+        expected = {"center", "red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"}
         assert set(config.COLOR_MAP.keys()) == expected
 
     def test_color_pos_ordering(self):
