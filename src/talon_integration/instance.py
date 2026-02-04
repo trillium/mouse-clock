@@ -25,20 +25,23 @@ tag: user.use_mouse_clock
 
 # Global instance - using factory function for better control
 _mouse_clock_instance = None
-_module_load_time = time.time()  # Track when module loaded
 
 
 def get_mouse_clock_instance() -> MouseClockTalonAdapter:
     """Get the global mouse clock instance, recreating on module reload."""
     global _mouse_clock_instance
-    # Recreate instance if module was reloaded (stale instance)
+    # Recreate instance if adapter class changed (module was reloaded)
     if _mouse_clock_instance is not None:
-        if not hasattr(_mouse_clock_instance, '_created_at') or _mouse_clock_instance._created_at < _module_load_time:
-            log_info("Module reloaded - recreating MouseClockTalonAdapter instance")
+        if type(_mouse_clock_instance) is not MouseClockTalonAdapter:
+            log_info("Adapter class changed - recreating MouseClockTalonAdapter instance")
+            # Close old instance to clean up canvases
+            try:
+                _mouse_clock_instance.close()
+            except Exception:
+                pass
             _mouse_clock_instance = None
     if _mouse_clock_instance is None:
         _mouse_clock_instance = MouseClockTalonAdapter()
-        _mouse_clock_instance._created_at = _module_load_time
     return _mouse_clock_instance
 
 
