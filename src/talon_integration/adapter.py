@@ -16,6 +16,7 @@ from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
 from ..features.box import draw_concentric_boxes
 from ..features.grid import draw_grid_overlay, update_offset_animation
+from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
 print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
@@ -164,7 +165,7 @@ class MouseClockTalonAdapter:
         still_animating = self.core.update_radius_animation()
 
         # Draw debug info at center
-        self._draw_debug_info(canvas_obj)
+        draw_debug_info(canvas_obj, self.core)
 
         if self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
@@ -193,7 +194,7 @@ class MouseClockTalonAdapter:
         elif self._display_mode == DISPLAY_MODE_INFO:
             # Draw info/help overlay
             # Lazy import to avoid module load order issues with Talon
-            from ..features.info import draw_info_overlay
+            from ..features.info.render import draw_info_overlay
             screen_rect = self.get_screen_rect()
             draw_info_overlay(canvas_obj, screen_rect)
         else:
@@ -211,45 +212,6 @@ class MouseClockTalonAdapter:
         # If still animating, schedule next frame (~60fps)
         if still_animating and self.active_canvas:
             cron.after("16ms", lambda: self.active_canvas.freeze())
-
-    def _draw_debug_info(self, canvas_obj):
-        """Draw debug info (lerp factor, increment, elapsed) at center."""
-        import time
-        from talon.skia import Paint
-
-        paint = Paint()
-        paint.color = "white"
-        paint.textsize = 14
-        paint.style = paint.Style.FILL
-
-        # Get animation values
-        animator = self.core._animator
-        elapsed = animator.get_elapsed()
-        lerp = animator.get_lerp_factor()
-        inc = animator.get_dynamic_increment()
-
-        # Calculate time since last input
-        if animator._last_input_time:
-            since_input = time.time() - animator._last_input_time
-            since_str = f"{since_input:.2f}s"
-        else:
-            since_str = "--"
-
-        # Format debug text
-        lines = [
-            f"lerp: {lerp:.2f}",
-            f"inc: {inc:.0f}",
-            f"dur: {elapsed:.2f}s",
-            f"gap: {since_str}",
-        ]
-
-        # Draw at center, stacked vertically
-        x = self.core.center_x
-        y = self.core.center_y - 28  # Start above center
-
-        for line in lines:
-            canvas_obj.draw_text(line, x - 30, y, paint)
-            y += 16
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""

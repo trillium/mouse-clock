@@ -8,49 +8,17 @@ from typing import Tuple
 from talon.skia import Paint
 
 from ...rendering.drawing import draw_text, draw_line, draw_rect
-
-# Clock face letters with phonetic names
-CLOCK_FACE_LETTERS = [
-    ("a", "air", "1"),
-    ("b", "bat", "2"),
-    ("c", "cap", "3"),
-    ("d", "drum", "4"),
-    ("e", "each", "5"),
-    ("f", "fine", "6"),
-    ("g", "gust", "7"),
-    ("h", "harp", "8"),
-    ("i", "sit", "9"),
-    ("j", "jury", "10"),
-    ("k", "crunch", "11"),
-    ("l", "look", "12"),
-]
-
-# Colors available
-COLORS = [
-    ("red", "ff0000ff"),
-    ("blue", "0088ffff"),
-    ("green", "00ff00ff"),
-    ("yellow", "ffff00ff"),
-    ("purple", "8800ffff"),
-    ("pink", "ff00ffff"),
-]
-
-# Line styles grouped by color assignment
-LINE_STYLES_BY_COLOR = {
-    "red": ["dash", "dot", "tick"],
-    "blue": ["blip", "long", "morse"],
-    "green": ["twin", "chain", "wave"],
-    "yellow": ["zig", "barb", "rail"],
-    "purple": ["cross", "link", "bead"],
-    "pink": ["spike", "hash", "saw"],
-}
-
-# Style constants
-HEADER_COLOR = "00ff88ff"
-TEXT_COLOR = "ffffffff"
-MUTED_COLOR = "888888ff"
-ROW_HEIGHT = 28
-SECTION_GAP = 40
+from .data import (
+    BG_COLOR,
+    CLOCK_FACE_LETTERS,
+    COLORS,
+    HEADER_COLOR,
+    LINE_STYLES,
+    MUTED_COLOR,
+    ROW_HEIGHT,
+    SECTION_GAP,
+    TEXT_COLOR,
+)
 
 
 def draw_letters_section(canvas, x: float, y: float) -> float:
@@ -108,19 +76,12 @@ def draw_line_styles_section(canvas, x: float, y: float) -> float:
     draw_text(canvas, (x, y), "LINE STYLES", HEADER_COLOR, font_size=18, anchor="left")
     y += ROW_HEIGHT + 10
 
-    # Collect all unique styles
-    all_styles = []
-    for styles in LINE_STYLES_BY_COLOR.values():
-        for style in styles:
-            if style not in all_styles:
-                all_styles.append(style)
-
     h_line_length = 50
     v_line_length = 22  # Shorter to fit within row height
     style_color = "00aaffff"  # Neutral blue for visibility
     v_stagger_step = 25  # Horizontal offset between stagger positions
 
-    for i, style in enumerate(all_styles):
+    for i, style in enumerate(LINE_STYLES):
         # Style name
         draw_text(canvas, (x, y), style, TEXT_COLOR, font_size=14, anchor="left")
 
@@ -163,12 +124,11 @@ def draw_info_overlay(
     screen_height = bottom - top
 
     # Layout
-    bg_color = "000000aa"
     padding = 40
     col_width = 340
 
     # Draw semi-transparent background
-    draw_rect(canvas, (left, top, screen_width, screen_height), bg_color, thickness=0, filled=True)
+    draw_rect(canvas, (left, top, screen_width, screen_height), BG_COLOR, thickness=0, filled=True)
 
     # Title
     title_y = top + padding
