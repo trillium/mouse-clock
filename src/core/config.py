@@ -14,7 +14,7 @@ RADIUS_INCREMENT = 5
 MIN_RADIUS = 20
 
 # Color names (note: 7 colors including center, not 5 as in original design doc)
-COLOR_NAMES = "center red blue green yellow purple pink"
+COLOR_NAMES = "center red blue green yellow purple pink black white teal"
 
 # Color hex values (8-digit RGBA format for Talon/Skia)
 COLORS = {
@@ -22,7 +22,9 @@ COLORS = {
     "GREEN": "00ff00ff",       # Text color
     "RED": "ff0000ff",         # Dot and active grid color
     "LIGHT_GREEN": "00ff007f", # Cross color
-    "BLACK": "000000ff",       # Inactive grid color
+    "BLACK": "000000ff",       # Black
+    "WHITE": "ffffffff",       # White
+    "TEAL": "008080ff",        # Teal
     "BLUE": "0000ffff",        # Blue ring color
     "PINK": "ff00ffff",        # Pink ring color
     "ORANGE": "ffa500ff",      # Orange color (unused currently)
@@ -60,6 +62,19 @@ import json
 from typing import Any, Dict, Optional
 from pathlib import Path
 
+# All available line styles
+ALL_LINE_STYLES = [
+    "dash", "dot", "tick", "blip", "long", "morse",
+    "twin", "chain", "wave", "zig", "barb", "rail",
+    "cross", "link", "bead", "spike", "hash", "saw",
+]
+
+# All available color names (excluding "center" which is a special position)
+ALL_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
+
+# All available letters
+ALL_LETTERS = list("abcdefghijkl")
+
 # Default settings registry
 _DEFAULTS: Dict[str, Any] = {
     "default_radius": DEFAULT_RADIUS,
@@ -71,6 +86,9 @@ _DEFAULTS: Dict[str, Any] = {
     "line_thickness": DEFAULT_STROKE_WIDTH,
     "dot_radius": DEFAULT_DOT_RADIUS,
     "dashed_line_pattern": [5, 3],
+    "active_colors": list(ALL_COLORS),
+    "active_styles": list(ALL_LINE_STYLES),
+    "active_letters": list(ALL_LETTERS),
 }
 
 # Runtime settings (can be modified)
@@ -171,3 +189,22 @@ def save_settings(file_path: str) -> bool:
     except Exception:
         pass
     return False
+
+
+# =============================================================================
+# Active Configuration Accessors
+# =============================================================================
+
+def get_active_colors() -> list:
+    """Get the list of currently active color names."""
+    return get_setting("active_colors", ALL_COLORS)
+
+
+def get_active_styles() -> list:
+    """Get the list of currently active line style names."""
+    return get_setting("active_styles", ALL_LINE_STYLES)
+
+
+def get_active_letters() -> list:
+    """Get the list of currently active letters."""
+    return get_setting("active_letters", ALL_LETTERS)

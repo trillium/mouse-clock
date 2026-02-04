@@ -2,11 +2,11 @@
 Vertical line overlay components.
 
 Draws color-coded vertical lines for intersection targeting.
-Each color has 18 style variants for unique visual identification.
+Every color can use any of the 18 line styles.
 
 Layout:
     Red     Red     Red     ...     Blue    Blue    Blue    ...
-    line    dash    dot     ...     line    dash    dot     ...
+    dash    dot     tick    ...     dash    dot     tick    ...
 """
 
 from typing import List, Tuple, Optional, Literal, Dict
@@ -23,30 +23,24 @@ VERTICAL_COLORS = [
     "ffd700ff",  # yellow
     "800080ff",  # purple
     "ff00ffff",  # pink
+    "000000ff",  # black
+    "ffffffff",  # white
+    "008080ff",  # teal
 ]
 
 # Color names corresponding to VERTICAL_COLORS
-COLOR_NAMES = ["red", "blue", "green", "yellow", "purple", "pink"]
+COLOR_NAMES = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
 
-# Styles assigned to each color (3 per color, excluding plain "line")
-# This gives 6 colors × 3 styles = 18 unique vertical lines
-COLOR_STYLE_MAP: Dict[str, List[LineStyle]] = {
-    "red": ["dash", "dot", "tick"],
-    "blue": ["blip", "long", "morse"],
-    "green": ["twin", "chain", "wave"],
-    "yellow": ["zig", "barb", "rail"],
-    "purple": ["cross", "link", "bead"],
-    "pink": ["spike", "hash", "saw"],
-}
-
-# All styles used (for reference)
+# All line styles (every color can use any style)
 ALL_STYLES: List[LineStyle] = [
     "dash", "dot", "tick", "blip", "long", "morse",
     "twin", "chain", "wave", "zig", "barb", "rail",
     "cross", "link", "bead", "spike", "hash", "saw",
 ]
 
-# Legacy: flat list for compatibility (not used in new distribution)
+# Every color maps to all styles
+COLOR_STYLE_MAP: Dict[str, List[LineStyle]] = {name: list(ALL_STYLES) for name in COLOR_NAMES}
+
 LINE_STYLES: List[LineStyle] = ALL_STYLES
 
 # Style suffixes for naming (e.g., "red dash", "blue morse", etc.)
@@ -54,13 +48,13 @@ STYLE_SUFFIXES = {style: f" {style}" for style in ALL_STYLES}
 
 
 def get_color_count() -> int:
-    """Get number of colors (each color has 3 style variants)."""
-    return get_setting("line_overlay_colors", 6)
+    """Get number of colors (each color has 18 style variants)."""
+    return get_setting("line_overlay_colors", len(COLOR_NAMES))
 
 
 def get_vertical_count() -> int:
-    """Get total number of vertical lines (6 colors × 3 styles = 18)."""
-    return 18  # Fixed: 6 colors × 3 styles each
+    """Get total number of vertical lines (colors × styles)."""
+    return len(COLOR_NAMES) * len(ALL_STYLES)
 
 
 def get_vertical_x_positions(screen_width: float, num_colors: int = None) -> List[Tuple[str, float, str, LineStyle]]:
