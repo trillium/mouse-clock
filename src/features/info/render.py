@@ -45,6 +45,107 @@ LINE_STYLES_BY_COLOR = {
     "pink": ["spike", "hash", "saw"],
 }
 
+# Style constants
+HEADER_COLOR = "00ff88ff"
+TEXT_COLOR = "ffffffff"
+MUTED_COLOR = "888888ff"
+ROW_HEIGHT = 28
+SECTION_GAP = 40
+
+
+def draw_letters_section(canvas, x: float, y: float) -> float:
+    """Draw the letters/clock face section. Returns final y position."""
+    draw_text(canvas, (x, y), "LETTERS (Clock Face)", HEADER_COLOR, font_size=18, anchor="left")
+    y += ROW_HEIGHT + 10
+
+    for letter, phonetic, number in CLOCK_FACE_LETTERS:
+        line = f"{letter}  ->  {phonetic}  ({number})"
+        draw_text(canvas, (x, y), line, TEXT_COLOR, font_size=16, anchor="left")
+        y += ROW_HEIGHT
+
+    return y
+
+
+def draw_colors_section(canvas, x: float, y: float) -> float:
+    """Draw the colors section. Returns final y position."""
+    draw_text(canvas, (x, y), "COLORS", HEADER_COLOR, font_size=18, anchor="left")
+    y += ROW_HEIGHT + 10
+
+    for color_name, color_hex in COLORS:
+        swatch_size = 16
+        draw_rect(canvas, (x, y - 12, swatch_size, swatch_size), color_hex, thickness=0, filled=True)
+        draw_text(canvas, (x + swatch_size + 10, y), color_name, TEXT_COLOR, font_size=16, anchor="left")
+        y += ROW_HEIGHT
+
+    return y
+
+
+def draw_commands_section(canvas, x: float, y: float) -> float:
+    """Draw the commands section. Returns final y position."""
+    draw_text(canvas, (x, y), "COMMANDS", HEADER_COLOR, font_size=18, anchor="left")
+    y += ROW_HEIGHT + 10
+
+    commands = [
+        ("widen", "Increase radius"),
+        ("narrow", "Decrease radius"),
+        ("recenter", "Move clock to mouse"),
+        ("touch", "Click and close"),
+        ("reverse", "Opposite of last"),
+    ]
+
+    # Indent to match color names (swatch_size 16 + 10 gap = 26)
+    indent = 26
+    for cmd, desc in commands:
+        draw_text(canvas, (x + indent, y), cmd, TEXT_COLOR, font_size=16, anchor="left")
+        draw_text(canvas, (x + indent + 100, y), desc, MUTED_COLOR, font_size=14, anchor="left")
+        y += ROW_HEIGHT
+
+    return y
+
+
+def draw_line_styles_section(canvas, x: float, y: float) -> float:
+    """Draw the line styles section. Returns final y position."""
+    draw_text(canvas, (x, y), "LINE STYLES", HEADER_COLOR, font_size=18, anchor="left")
+    y += ROW_HEIGHT + 10
+
+    # Collect all unique styles
+    all_styles = []
+    for styles in LINE_STYLES_BY_COLOR.values():
+        for style in styles:
+            if style not in all_styles:
+                all_styles.append(style)
+
+    h_line_length = 50
+    v_line_length = 22  # Shorter to fit within row height
+    style_color = "00aaffff"  # Neutral blue for visibility
+    v_stagger_step = 25  # Horizontal offset between stagger positions
+
+    for i, style in enumerate(all_styles):
+        # Style name
+        draw_text(canvas, (x, y), style, TEXT_COLOR, font_size=14, anchor="left")
+
+        # Horizontal sample
+        h_start_x = x + 70
+        h_y = y - 6
+        # White base line showing click area
+        draw_line(canvas, (h_start_x, h_y), (h_start_x + h_line_length, h_y), "ffffffff", thickness=1, line_style="solid")
+        # Styled line on top
+        draw_line(canvas, (h_start_x, h_y), (h_start_x + h_line_length, h_y), style_color, thickness=2, line_style=style)
+
+        # Vertical sample - staggered horizontally in 3-step pattern
+        stagger_offset = (i % 3) * v_stagger_step
+        v_x = h_start_x + h_line_length + 20 + stagger_offset
+        v_start_y = y - 6 - (v_line_length // 2)
+        v_end_y = y - 6 + (v_line_length // 2)
+        # White base line showing click area
+        draw_line(canvas, (v_x, v_start_y), (v_x, v_end_y), "ffffffff", thickness=1, line_style="solid")
+        # Styled line on top
+        draw_line(canvas, (v_x, v_start_y), (v_x, v_end_y), style_color, thickness=2, line_style=style)
+
+        y += ROW_HEIGHT
+
+    return y
+
 
 def draw_info_overlay(
     canvas,
@@ -61,101 +162,36 @@ def draw_info_overlay(
     screen_width = right - left
     screen_height = bottom - top
 
-    # Colors
-    bg_color = "000000aa"
-    text_color = "ffffffff"
-    header_color = "00ff88ff"
-    muted_color = "888888ff"
-
     # Layout
+    bg_color = "000000aa"
     padding = 40
-    col_width = 280
-    row_height = 28
-    section_gap = 40
+    col_width = 340
 
     # Draw semi-transparent background
     draw_rect(canvas, (left, top, screen_width, screen_height), bg_color, thickness=0, filled=True)
 
     # Title
     title_y = top + padding
-    draw_text(canvas, (left + padding, title_y), "MOUSE CLOCK COMMANDS", header_color, font_size=24, anchor="left")
+    draw_text(canvas, (left + padding, title_y), "MOUSE CLOCK COMMANDS", HEADER_COLOR, font_size=24, anchor="left")
 
     content_top = title_y + 50
 
-    # === COLUMN 1: Letters ===
+    # Column positions
     col1_x = left + padding
-    y = content_top
-
-    draw_text(canvas, (col1_x, y), "LETTERS (Clock Face)", header_color, font_size=18, anchor="left")
-    y += row_height + 10
-
-    for letter, phonetic, number in CLOCK_FACE_LETTERS:
-        # letter -> phonetic (number)
-        line = f"{letter}  ->  {phonetic}  ({number})"
-        draw_text(canvas, (col1_x, y), line, text_color, font_size=16, anchor="left")
-        y += row_height
-
-    # === COLUMN 2: Colors ===
     col2_x = col1_x + col_width
-    y = content_top
-
-    draw_text(canvas, (col2_x, y), "COLORS", header_color, font_size=18, anchor="left")
-    y += row_height + 10
-
-    for color_name, color_hex in COLORS:
-        # Draw color swatch
-        swatch_size = 16
-        draw_rect(canvas, (col2_x, y - 12, swatch_size, swatch_size), color_hex, thickness=0, filled=True)
-        # Draw name
-        draw_text(canvas, (col2_x + swatch_size + 10, y), color_name, text_color, font_size=16, anchor="left")
-        y += row_height
-
-    y += section_gap
-
-    # Commands section
-    draw_text(canvas, (col2_x, y), "COMMANDS", header_color, font_size=18, anchor="left")
-    y += row_height + 10
-
-    commands = [
-        ("widen", "Increase radius"),
-        ("narrow", "Decrease radius"),
-        ("recenter", "Move clock to mouse"),
-        ("touch", "Click and close"),
-        ("reverse", "Opposite of last"),
-    ]
-
-    for cmd, desc in commands:
-        draw_text(canvas, (col2_x, y), cmd, text_color, font_size=16, anchor="left")
-        draw_text(canvas, (col2_x + 100, y), desc, muted_color, font_size=14, anchor="left")
-        y += row_height
-
-    # === COLUMN 3: Line Styles ===
     col3_x = col2_x + col_width
-    y = content_top
 
-    draw_text(canvas, (col3_x, y), "LINE STYLES (by color)", header_color, font_size=18, anchor="left")
-    y += row_height + 10
+    # Column 1: Letters
+    draw_letters_section(canvas, col1_x, content_top)
 
-    line_sample_width = 60
+    # Column 2: Line Styles
+    draw_line_styles_section(canvas, col2_x, content_top)
 
-    for color_name, color_hex in COLORS:
-        styles = LINE_STYLES_BY_COLOR.get(color_name, [])
+    # Column 3: Colors + Commands
+    y = draw_colors_section(canvas, col3_x, content_top)
+    y += SECTION_GAP
+    draw_commands_section(canvas, col3_x, y)
 
-        # Color header (outline only so line samples are visible)
-        draw_rect(canvas, (col3_x, y - 12, 12, 12), color_hex, thickness=2, filled=False)
-        draw_text(canvas, (col3_x + 18, y), f"{color_name}:", text_color, font_size=14, anchor="left")
-        y += row_height - 4
-
-        for style in styles:
-            # Style name
-            draw_text(canvas, (col3_x + 20, y), style, muted_color, font_size=14, anchor="left")
-            # Draw line sample
-            sample_x = col3_x + 80
-            draw_line(canvas, (sample_x, y - 6), (sample_x + line_sample_width, y - 6), color_hex, thickness=2, line_style=style)
-            y += row_height - 6
-
-        y += 8  # Gap between colors
-
-    # === Footer with mode cycling hint ===
+    # Footer
     footer_y = bottom - padding
-    draw_text(canvas, (left + padding, footer_y), "Press super-w to cycle display modes", muted_color, font_size=14, anchor="left")
+    draw_text(canvas, (left + padding, footer_y), "Press super-w to cycle display modes", MUTED_COLOR, font_size=14, anchor="left")
