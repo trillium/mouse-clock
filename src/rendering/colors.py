@@ -20,6 +20,7 @@ COLOR_REGISTRY = {
     "center": "000000ff",
     "black": "000000ff",
     "white": "ffffffff",
+    "teal": "008080ff",
     "gray": "9999995f",
     "light_green": "00ff007f",
 }
