@@ -9,7 +9,8 @@ from talon import canvas, ctrl, ui, cron, actions
 from talon.types.point import Point2d
 
 from ..core import config
-from ..core.config import get_setting, set_setting
+from ..core.config import get_setting, set_setting, get_active_colors
+from ..rendering.colors import get_color
 from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, initialize_logger
 from ..rendering.canvas import draw_mouse_clock
@@ -179,7 +180,7 @@ class MouseClockTalonAdapter:
                 self.core.center_x,
                 self.core.center_y,
                 self.core.radius,
-                config.COLOR_LIST,
+                [get_color(c) for c in get_active_colors()],
                 config.COLOR_ACTIVE,
                 config.COLOR_TEXT
             )
@@ -204,7 +205,7 @@ class MouseClockTalonAdapter:
                 self.core.center_x,
                 self.core.center_y,
                 self.core.radius,
-                config.COLOR_LIST,
+                [get_color(c) for c in get_active_colors()],
                 config.COLOR_ACTIVE,
                 config.COLOR_TEXT
             )

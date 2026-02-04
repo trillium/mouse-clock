@@ -6,7 +6,7 @@ Functions for box count, spacing, and size calculations.
 
 from typing import List, Tuple
 
-from ...core.config import get_setting
+from ...core.config import get_setting, get_active_colors
 from ...rendering.colors import get_color
 
 
@@ -81,12 +81,10 @@ def get_box_colors(num_boxes: int = None) -> List[str]:
     if num_boxes is None:
         num_boxes = get_box_count()
 
+    active = get_active_colors()
     colors = []
-    # Use COLOR_ORDER, skipping "center" for outer boxes
-    color_names = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
-
     for i in range(num_boxes):
-        color_name = color_names[i % len(color_names)]
+        color_name = active[i % len(active)]
         try:
             color_hex = get_color(color_name)
         except KeyError:
