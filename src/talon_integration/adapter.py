@@ -9,7 +9,7 @@ from talon import canvas, ctrl, ui, cron, actions
 from talon.types.point import Point2d
 
 from ..core import config
-from ..core.config import get_setting, set_setting, get_active_colors
+from ..core.config import get_setting, set_setting, get_mode_config
 from ..rendering.colors import get_color
 from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, initialize_logger
@@ -25,7 +25,6 @@ print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
-DISPLAY_MODE_HYBRID = "hybrid"
 DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_INFO = "info"
 
@@ -57,7 +56,7 @@ class MouseClockTalonAdapter:
 
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings."""
-        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO):
+        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO):
             self._display_mode = mode
             set_setting("display_mode", mode)
             log_info(f"Display mode set to: {mode}")
@@ -140,17 +139,22 @@ class MouseClockTalonAdapter:
 
     def show(self):
         """Show the mouse clock on all canvases."""
+        print(f"[DEBUG show] called, active={self.active}, canvases={len(self.canvases)}")
         if self.active:
+            print("[DEBUG show] already active, returning")
             return
         for canvas_obj in self.canvases:
             canvas_obj.register("draw", self.draw)
             canvas_obj.freeze()
         self.active = True
         set_overlay_active("mouse_clock")
+        print(f"[DEBUG show] done, active={self.active}")
 
     def close(self):
         """Close the mouse clock and clean up canvases."""
+        print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
         if not self.active:
+            print("[DEBUG close] not active, returning")
             return
         for canvas_obj in self.canvases:
             canvas_obj.unregister("draw", self.draw)
@@ -159,9 +163,12 @@ class MouseClockTalonAdapter:
         self.active_canvas = None
         self.active = False
         set_overlay_inactive("mouse_clock")
+        print("[DEBUG close] done")
 
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas."""
+        print(f"[DEBUG draw] mode={self._display_mode}, active={self.active}, canvases={len(self.canvases)}")
+
         # Interpolate radius toward target for smooth animation
         still_animating = self.core.update_radius_animation()
 
@@ -171,19 +178,6 @@ class MouseClockTalonAdapter:
         if self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
-        elif self._display_mode == DISPLAY_MODE_HYBRID:
-            # Draw boxes first (subtle, behind circles)
-            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), thickness=1, radius=self.core.radius)
-            # Then draw circles on top
-            draw_mouse_clock(
-                canvas_obj,
-                self.core.center_x,
-                self.core.center_y,
-                self.core.radius,
-                [get_color(c) for c in get_active_colors()],
-                config.COLOR_ACTIVE,
-                config.COLOR_TEXT
-            )
         elif self._display_mode == DISPLAY_MODE_GRID:
             # Draw letter/color grid overlay
             screen_rect = self.get_screen_rect()
@@ -205,7 +199,7 @@ class MouseClockTalonAdapter:
                 self.core.center_x,
                 self.core.center_y,
                 self.core.radius,
-                [get_color(c) for c in get_active_colors()],
+                [get_color(c) for c in get_mode_config("circles", "colors")],
                 config.COLOR_ACTIVE,
                 config.COLOR_TEXT
             )

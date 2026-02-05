@@ -62,6 +62,9 @@ import json
 from typing import Any, Dict, Optional
 from pathlib import Path
 
+# Default settings file path (in the mouse-clock directory)
+_SETTINGS_FILE = Path(__file__).parent.parent / "settings.json"
+
 # All available line styles
 ALL_LINE_STYLES = [
     "dash", "dot", "tick", "blip", "long", "morse",
@@ -191,6 +194,16 @@ def save_settings(file_path: str) -> bool:
     return False
 
 
+def _auto_save():
+    """Save settings to the default file (called after mode config changes)."""
+    save_settings(str(_SETTINGS_FILE))
+
+
+def load_default_settings() -> bool:
+    """Load settings from the default file on startup."""
+    return load_settings(str(_SETTINGS_FILE))
+
+
 # =============================================================================
 # Active Configuration Accessors
 # =============================================================================
@@ -208,3 +221,110 @@ def get_active_styles() -> list:
 def get_active_letters() -> list:
     """Get the list of currently active letters."""
     return get_setting("active_letters", ALL_LETTERS)
+
+
+# =============================================================================
+# Per-Display-Mode Configuration
+# =============================================================================
+
+CONFIGURABLE_MODES = ["circles", "boxes", "grid"]
+
+# Map dimension names to their global getter and validation set
+_DIMENSION_INFO = {
+    "colors": {"global_key": "active_colors", "all_items": ALL_COLORS},
+    "styles": {"global_key": "active_styles", "all_items": ALL_LINE_STYLES},
+    "letters": {"global_key": "active_letters", "all_items": ALL_LETTERS},
+}
+
+
+def _mode_key(mode: str, dimension: str) -> str:
+    """Build the settings key for a per-mode dimension."""
+    return f"{mode}_active_{dimension}"
+
+
+def get_mode_config(mode: str, dimension: str) -> list:
+    """Get the active items for a mode+dimension, falling back to global.
+
+    Args:
+        mode: One of CONFIGURABLE_MODES
+        dimension: "colors", "styles", or "letters"
+
+    Returns:
+        List of active items for this mode, or the global list if no override.
+    """
+    key = _mode_key(mode, dimension)
+    per_mode = get_setting(key)
+    if per_mode is not None:
+        return list(per_mode)
+    info = _DIMENSION_INFO.get(dimension)
+    if info:
+        return list(get_setting(info["global_key"], info["all_items"]))
+    return []
+
+
+def set_mode_config(mode: str, dimension: str, items: list):
+    """Set the full list of active items for a mode+dimension.
+
+    Args:
+        mode: One of CONFIGURABLE_MODES
+        dimension: "colors", "styles", or "letters"
+        items: The new list of items
+    """
+    set_setting(_mode_key(mode, dimension), list(items))
+    _auto_save()
+
+
+def add_mode_item(mode: str, dimension: str, item: str) -> bool:
+    """Add an item to a mode's dimension list (copy-on-write from global).
+
+    Validates against the full set of allowed items for this dimension.
+
+    Args:
+        mode: One of CONFIGURABLE_MODES
+        dimension: "colors", "styles", or "letters"
+        item: Item to add
+
+    Returns:
+        True if added, False if invalid or already present.
+    """
+    info = _DIMENSION_INFO.get(dimension)
+    if not info or item not in info["all_items"]:
+        return False
+    current = get_mode_config(mode, dimension)
+    if item in current:
+        return False
+    current.append(item)
+    set_mode_config(mode, dimension, current)
+    return True
+
+
+def remove_mode_item(mode: str, dimension: str, item: str) -> bool:
+    """Remove an item from a mode's dimension list (copy-on-write from global).
+
+    Args:
+        mode: One of CONFIGURABLE_MODES
+        dimension: "colors", "styles", or "letters"
+        item: Item to remove
+
+    Returns:
+        True if removed, False if not present.
+    """
+    current = get_mode_config(mode, dimension)
+    if item not in current:
+        return False
+    current.remove(item)
+    set_mode_config(mode, dimension, current)
+    return True
+
+
+def reset_mode_config(mode: str, dimension: str):
+    """Delete the per-mode override, restoring fallback to global.
+
+    Args:
+        mode: One of CONFIGURABLE_MODES
+        dimension: "colors", "styles", or "letters"
+    """
+    key = _mode_key(mode, dimension)
+    if key in _settings:
+        del _settings[key]
+        _auto_save()

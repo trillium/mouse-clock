@@ -1,15 +1,11 @@
 list: user.line_style
 -
-# Simple patterns
-line: line
 dash: dash
 dot: dot
 tick: tick
 blip: blip
 long: long
-# Multi-segment
 morse: morse
-# Structural
 twin: twin
 chain: chain
 wave: wave

@@ -4,7 +4,7 @@ Mouse clock display mode actions.
 
 from talon import Module
 from .instance import get_mouse_clock_instance
-from .adapter import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_HYBRID, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO
+from .adapter import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO
 
 mod = Module()
 
@@ -24,11 +24,6 @@ class DisplayActions:
         mouse_clock = get_mouse_clock_instance()
         mouse_clock.set_display_mode(DISPLAY_MODE_BOXES)
 
-    def mouse_clock_mode_hybrid():
-        """Switch to hybrid display mode (boxes + circles)."""
-        mouse_clock = get_mouse_clock_instance()
-        mouse_clock.set_display_mode(DISPLAY_MODE_HYBRID)
-
     def mouse_clock_mode_grid():
         """Switch to grid display mode (letters + colors)."""
         mouse_clock = get_mouse_clock_instance()
@@ -47,6 +42,7 @@ class DisplayActions:
     def mouse_clock_cycle_mode():
         """Cycle to next display mode."""
         mouse_clock = get_mouse_clock_instance()
+        print(f"[DEBUG cycle_mode] active={mouse_clock.active}, canvases={len(mouse_clock.canvases)}")
         current = mouse_clock.get_display_mode()
         try:
             idx = DISPLAY_MODES.index(current)
@@ -55,7 +51,7 @@ class DisplayActions:
             next_idx = 0
         next_mode = DISPLAY_MODES[next_idx]
         mouse_clock.set_display_mode(next_mode)
-        print(f"Display mode: {next_mode}")
+        print(f"[DEBUG cycle_mode] {current} -> {next_mode}")
 
     def mouse_clock_cycle_mode_previous():
         """Cycle to previous display mode."""

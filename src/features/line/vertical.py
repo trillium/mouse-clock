@@ -11,7 +11,7 @@ Layout:
 
 from typing import List, Tuple, Optional, Literal, Dict
 
-from ...core.config import get_setting
+from ...core.config import get_setting, get_mode_config
 from ...rendering.drawing import draw_line, LineStyle
 
 
@@ -31,20 +31,32 @@ VERTICAL_COLORS = [
 # Color names corresponding to VERTICAL_COLORS
 COLOR_NAMES = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
 
-# All line styles (every color can use any style)
-ALL_STYLES: List[LineStyle] = [
+# All possible line styles (for reference/validation)
+ALL_POSSIBLE_STYLES: List[LineStyle] = [
     "dash", "dot", "tick", "blip", "long", "morse",
     "twin", "chain", "wave", "zig", "barb", "rail",
     "cross", "link", "bead", "spike", "hash", "saw",
 ]
 
-# Every color maps to all styles
-COLOR_STYLE_MAP: Dict[str, List[LineStyle]] = {name: list(ALL_STYLES) for name in COLOR_NAMES}
 
-LINE_STYLES: List[LineStyle] = ALL_STYLES
+def get_active_styles() -> List[LineStyle]:
+    """Get currently active styles from grid mode config."""
+    return get_mode_config("grid", "styles")
 
-# Style suffixes for naming (e.g., "red dash", "blue morse", etc.)
-STYLE_SUFFIXES = {style: f" {style}" for style in ALL_STYLES}
+
+def get_color_style_map() -> Dict[str, List[LineStyle]]:
+    """Get color-to-styles mapping using active styles."""
+    styles = get_active_styles()
+    return {name: list(styles) for name in COLOR_NAMES}
+
+
+def get_style_suffixes() -> Dict[str, str]:
+    """Get style suffix mapping for active styles."""
+    return {style: f" {style}" for style in get_active_styles()}
+
+
+# For backwards compatibility
+LINE_STYLES: List[LineStyle] = ALL_POSSIBLE_STYLES
 
 
 def get_color_count() -> int:
@@ -53,8 +65,8 @@ def get_color_count() -> int:
 
 
 def get_vertical_count() -> int:
-    """Get total number of vertical lines (colors × styles)."""
-    return len(COLOR_NAMES) * len(ALL_STYLES)
+    """Get total number of vertical lines (colors × active styles)."""
+    return len(COLOR_NAMES) * len(get_active_styles())
 
 
 def get_vertical_x_positions(screen_width: float, num_colors: int = None) -> List[Tuple[str, float, str, LineStyle]]:
@@ -73,11 +85,16 @@ def get_vertical_x_positions(screen_width: float, num_colors: int = None) -> Lis
     if num_colors is None:
         num_colors = get_color_count()
 
-    print(f"[DEBUG get_vertical_x_positions] num_colors={num_colors}, screen_width={screen_width}")
+    # Get dynamic style mappings
+    color_style_map = get_color_style_map()
+    style_suffixes = get_style_suffixes()
+    active_styles = get_active_styles()
+
+    print(f"[DEBUG get_vertical_x_positions] num_colors={num_colors}, active_styles={len(active_styles)}, screen_width={screen_width}")
 
     positions = []
     # Count total lines based on styles per color
-    total_lines = sum(len(COLOR_STYLE_MAP.get(COLOR_NAMES[i], [])) for i in range(num_colors))
+    total_lines = sum(len(color_style_map.get(COLOR_NAMES[i], [])) for i in range(num_colors))
     segment_width = screen_width / (total_lines + 1)
 
     print(f"[DEBUG get_vertical_x_positions] total_lines={total_lines}, segment_width={segment_width:.1f}")
@@ -86,12 +103,12 @@ def get_vertical_x_positions(screen_width: float, num_colors: int = None) -> Lis
     for color_idx in range(num_colors):
         color_name = COLOR_NAMES[color_idx % len(COLOR_NAMES)]
         color_hex = VERTICAL_COLORS[color_idx % len(VERTICAL_COLORS)]
-        styles_for_color = COLOR_STYLE_MAP.get(color_name, ["dash", "dot", "tick"])
+        styles_for_color = color_style_map.get(color_name, active_styles[:3] if active_styles else ["dash"])
 
         for style in styles_for_color:
             x = segment_width * (line_index + 1)
             # Create full name with style suffix (e.g., "red dash", "blue morse")
-            full_name = color_name + STYLE_SUFFIXES[style]
+            full_name = color_name + style_suffixes.get(style, f" {style}")
             positions.append((full_name, x, color_hex, style))
             line_index += 1
 
@@ -113,7 +130,8 @@ def get_x_for_color(color_name: str, screen_width: float, line_style: LineStyle 
     positions = get_vertical_x_positions(screen_width)
 
     # Build the full name to search for
-    suffix = STYLE_SUFFIXES.get(line_style, "")
+    style_suffixes = get_style_suffixes()
+    suffix = style_suffixes.get(line_style, f" {line_style}")
     search_name = color_name.lower() + suffix
 
     for name, x, _, _ in positions:

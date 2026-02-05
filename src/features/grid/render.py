@@ -34,6 +34,9 @@ def draw_grid_overlay(
     styles = get_grid_styles()
     letters = get_grid_letters()
 
+    print(f"[DEBUG render] Drawing grid with {len(colors)} colors, {len(styles)} styles, {len(letters)} letters")
+    print(f"[DEBUG render] Styles: {styles}")
+
     if swap_axes:
         # Colors on Y, Letters on X
         row_positions = calculate_row_positions(top, bottom, len(colors) * len(styles))

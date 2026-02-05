@@ -1,0 +1,83 @@
+{
+  "default_radius": 300,
+  "radius_increment": 5,
+  "min_radius": 20,
+  "debounce_interval_ms": 150,
+  "spiral_step_size": 10,
+  "spiral_max_radius": 100,
+  "line_thickness": 2,
+  "dot_radius": 5,
+  "dashed_line_pattern": [
+    5,
+    3
+  ],
+  "active_colors": [
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "purple",
+    "pink",
+    "black",
+    "white",
+    "teal"
+  ],
+  "active_styles": [
+    "dash",
+    "dot",
+    "tick",
+    "blip",
+    "long",
+    "morse",
+    "twin",
+    "chain",
+    "wave",
+    "zig",
+    "barb",
+    "rail",
+    "cross",
+    "link",
+    "bead",
+    "spike",
+    "hash",
+    "saw"
+  ],
+  "active_letters": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l"
+  ],
+  "display_mode": "circles",
+  "circles_active_colors": [
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "purple",
+    "pink",
+    "black",
+    "white",
+    "teal"
+  ],
+  "grid_active_styles": [
+    "dot",
+    "blip",
+    "long",
+    "morse",
+    "twin",
+    "chain",
+    "barb",
+    "link",
+    "bead",
+    "saw"
+  ]
+}
