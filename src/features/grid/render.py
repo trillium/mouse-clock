@@ -11,7 +11,7 @@ from typing import Tuple, List
 
 from ...rendering.colors import get_color
 from ...rendering.drawing import draw_line, draw_text, draw_rect
-from .config import get_text_color, get_text_bg_color, get_grid_colors, get_grid_styles, get_grid_letters
+from .config import get_text_color, get_text_bg_color, get_grid_colors, get_horizontal_styles, get_vertical_styles, get_grid_letters
 from .layout import calculate_row_positions, calculate_column_positions
 
 
@@ -31,52 +31,52 @@ def draw_grid_overlay(
     left, top, right, bottom = screen_rect
 
     colors = get_grid_colors()
-    styles = get_grid_styles()
+    h_styles = get_horizontal_styles()
+    v_styles = get_vertical_styles()
     letters = get_grid_letters()
 
-    print(f"[DEBUG render] Drawing grid with {len(colors)} colors, {len(styles)} styles, {len(letters)} letters")
-    print(f"[DEBUG render] Styles: {styles}")
+    print(f"[DEBUG render] Drawing grid with {len(colors)} colors, {len(h_styles)} h_styles, {len(v_styles)} v_styles, {len(letters)} letters")
 
     if swap_axes:
         # Colors on Y, Letters on X
-        row_positions = calculate_row_positions(top, bottom, len(colors) * len(styles))
+        row_positions = calculate_row_positions(top, bottom, len(colors) * len(h_styles))
         row_labels = []
         row_styles = []
         for color in colors:
-            for style in styles:
+            for style in h_styles:
                 row_labels.append(color)
                 row_styles.append(style)
 
-        col_positions = calculate_column_positions(left, right, len(letters) * len(styles))
+        col_positions = calculate_column_positions(left, right, len(letters) * len(v_styles))
         col_labels = []
         col_styles = []
         for letter in letters:
-            for style in styles:
+            for style in v_styles:
                 col_labels.append(letter)
                 col_styles.append(style)
     else:
         # Letters on Y, Colors on X (default)
-        row_positions = calculate_row_positions(top, bottom, len(letters) * len(styles))
+        row_positions = calculate_row_positions(top, bottom, len(letters) * len(h_styles))
         row_labels = []
         row_styles = []
         for letter in letters:
-            for style in styles:
+            for style in h_styles:
                 row_labels.append(letter)
                 row_styles.append(style)
 
-        col_positions = calculate_column_positions(left, right, len(colors) * len(styles))
+        col_positions = calculate_column_positions(left, right, len(colors) * len(v_styles))
         col_labels = []
         col_styles = []
         for color in colors:
-            for style in styles:
+            for style in v_styles:
                 col_labels.append(color)
                 col_styles.append(style)
 
     # Draw horizontal lines (rows)
-    _draw_row_lines(canvas, row_positions, row_labels, row_styles, left, right, swap_axes, styles)
+    _draw_row_lines(canvas, row_positions, row_labels, row_styles, left, right, swap_axes, h_styles)
 
     # Draw vertical lines (columns)
-    _draw_column_lines(canvas, col_positions, col_labels, col_styles, top, bottom, swap_axes, styles)
+    _draw_column_lines(canvas, col_positions, col_labels, col_styles, top, bottom, swap_axes, v_styles)
 
     # Draw intersection markers
     _draw_intersections(canvas, row_positions, col_positions, row_labels, col_labels, swap_axes)

@@ -15,6 +15,8 @@ from .config import (
     get_text_bg_color,
     get_grid_colors,
     get_grid_styles,
+    get_horizontal_styles,
+    get_vertical_styles,
     get_grid_letters,
     get_column_spacing,
 )
@@ -62,6 +64,8 @@ __all__ = [
     "get_text_bg_color",
     "get_grid_colors",
     "get_grid_styles",
+    "get_horizontal_styles",
+    "get_vertical_styles",
     "get_grid_letters",
     "get_column_spacing",
     # state

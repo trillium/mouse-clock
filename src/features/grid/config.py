@@ -6,7 +6,7 @@ Uses active configuration from core.config for colors, styles, and letters.
 """
 
 from typing import List
-from ...core.config import get_setting, get_active_colors, get_active_styles, get_active_letters
+from ...core.config import get_setting, get_mode_config
 
 
 # Default text styling
@@ -26,17 +26,27 @@ def get_text_bg_color() -> str:
 
 def get_grid_colors() -> List[str]:
     """Get the list of active colors for grid columns."""
-    return get_active_colors()
+    return get_mode_config("grid", "colors")
 
 
 def get_grid_styles() -> List[str]:
-    """Get the list of active line styles for the grid."""
-    return get_active_styles()
+    """Get the list of active line styles for the grid (legacy, uses horizontal)."""
+    return get_mode_config("grid", "horizontal_styles")
+
+
+def get_horizontal_styles() -> List[str]:
+    """Get the list of active styles for horizontal (letter) lines."""
+    return get_mode_config("grid", "horizontal_styles")
+
+
+def get_vertical_styles() -> List[str]:
+    """Get the list of active styles for vertical (color) lines."""
+    return get_mode_config("grid", "vertical_styles")
 
 
 def get_grid_letters() -> List[str]:
     """Get the list of active letters for grid rows."""
-    return get_active_letters()
+    return get_mode_config("grid", "letters")
 
 
 def get_column_spacing() -> float:

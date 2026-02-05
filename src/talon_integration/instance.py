@@ -11,17 +11,20 @@ from .adapter import MouseClockTalonAdapter
 from ..core.logger import log_info
 
 # Module and context setup
-ctx = Context()
-ctx.lists["user.mouse"] = ["mouse"]
-
 mod = Module()
 mod.tag("use_mouse_clock", desc="Tag enables using mouse clock")
 mod.tag("mouse_clock_showing", desc="Tag indicates whether the mouse clock is showing")
+mod.tag("mouse_clock_info_mode", desc="Tag indicates info panel is active (for command overrides)")
 
-# Only use if tag is active
+# Context for lists (requires use_mouse_clock)
+ctx = Context()
+ctx.lists["user.mouse"] = ["mouse"]
 ctx.matches = r"""
 tag: user.use_mouse_clock
 """
+
+# Separate context for dynamic tags - NO matches clause so tags are always active when set
+ctx_tags = Context()
 
 # Global instance - using factory function for better control
 _mouse_clock_instance = None

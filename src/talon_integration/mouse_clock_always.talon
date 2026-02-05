@@ -1,4 +1,4 @@
-tag: user.use_centroid_mouse_grid
+tag: user.use_mouse_clock
 -
 ^mouse clock$:
     # user.mouse_clock_select_screen(1)
@@ -64,7 +64,6 @@ clock mark <user.text>:
 # Display mode switching
 clock circles: user.mouse_clock_mode_circles()
 clock boxes: user.mouse_clock_mode_boxes()
-clock hybrid: user.mouse_clock_mode_hybrid()
 clock grid: user.mouse_clock_mode_grid()
 clock info: user.mouse_clock_mode_info()
 clock display next: user.mouse_clock_cycle_mode()

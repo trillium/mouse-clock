@@ -4,10 +4,11 @@ Core mouse clock actions - activate, close, radius control.
 
 from talon import Module
 from talon import actions
-from .instance import ctx, get_mouse_clock_instance
+from .instance import ctx_tags, get_mouse_clock_instance
+from .adapter import DISPLAY_MODE_INFO
 from ..core.logger import log_info
 
-print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 4")
+print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 6")
 
 mod = Module()
 
@@ -20,8 +21,12 @@ class CoreActions:
             mouse_clock.setup()
         mouse_clock.show()
         mouse_clock.clear_state()
-        ctx.tags = ["user.mouse_clock_showing"]
-        print(f"[DEBUG] Set ctx.tags to: {ctx.tags}")
+        # Set tags based on current display mode
+        tags = ["user.mouse_clock_showing"]
+        if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
+            tags.append("user.mouse_clock_info_mode")
+        ctx_tags.tags = tags
+        print(f"[DEBUG] Set ctx_tags.tags to: {ctx_tags.tags}")
 
     def mouse_clock_show():
         """Alias for mouse_clock_activate"""
@@ -29,7 +34,7 @@ class CoreActions:
 
     def mouse_clock_close():
         """Close the mouse clock"""
-        ctx.tags = []
+        ctx_tags.tags = []  # Clears both mouse_clock_showing and mouse_clock_info_mode
         mouse_clock = get_mouse_clock_instance()
         mouse_clock.close()
 

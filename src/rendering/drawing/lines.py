@@ -19,7 +19,7 @@ from talon.skia import Paint, Rect
 
 LineStyle = Literal[
     # Simple dash/gap patterns
-    "line", "dash", "dot", "tick", "blip", "long",
+    "solid", "line", "dash", "dot", "tick", "blip", "long",
     # Multi-segment pattern
     "morse",
     # Structural styles
@@ -30,7 +30,8 @@ LineStyle = Literal[
 # Simple dash/gap patterns: (dash_length, gap_length)
 # (0, 0) means solid/continuous
 SIMPLE_PATTERNS: Dict[str, Tuple[float, float]] = {
-    "line": (0, 0),       # solid
+    "solid": (0, 0),      # solid continuous line
+    "line": (0, 0),       # alias for solid
     "dash": (12, 6),      # — — —
     "dot": (2, 6),        # · · ·
     "tick": (4, 14),      # short marks, wide spacing

@@ -8,6 +8,8 @@ lines: user.line_overlay_show_all()
 lines off: user.line_overlay_clear()
 clear lines: user.line_overlay_clear()
 grid: user.line_overlay_show_grid()
+grid off: user.line_overlay_clear()
+grid hide: user.line_overlay_hide()
 
 # Toggle specific line
 line <user.letter> off: user.line_overlay_remove_line(letter)

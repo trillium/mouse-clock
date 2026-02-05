@@ -1,5 +1,6 @@
 list: user.line_style
 -
+solid: solid
 dash: dash
 dot: dot
 tick: tick

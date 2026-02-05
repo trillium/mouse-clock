@@ -4,7 +4,8 @@ Mouse clock movement actions - move, opposite, original, recenter_and_move.
 
 from typing import List
 
-from .instance import mod, ctx, get_mouse_clock_instance
+from .instance import mod, ctx_tags, get_mouse_clock_instance
+from .adapter import DISPLAY_MODE_INFO
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning
 
@@ -157,7 +158,11 @@ class MoveActions:
         log_info(f"[move_and_activate] After setup - center: ({mouse_clock.core.center_x}, {mouse_clock.core.center_y})")
         mouse_clock.show()
         mouse_clock.clear_state()
-        ctx.tags = ["user.mouse_clock_showing"]
+        # Set tags based on current display mode
+        tags = ["user.mouse_clock_showing"]
+        if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
+            tags.append("user.mouse_clock_info_mode")
+        ctx_tags.tags = tags
 
         # Store as original command for potential reversal
         mouse_clock.core.original_command = (letters, colors)

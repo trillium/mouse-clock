@@ -36,7 +36,7 @@ COLORS = [
 
 # All line styles (every color can use any style)
 LINE_STYLES = [
-    "dash", "dot", "tick", "blip", "long", "morse",
+    "solid", "dash", "dot", "tick", "blip", "long", "morse",
     "twin", "chain", "wave", "zig", "barb", "rail",
     "cross", "link", "bead", "spike", "hash", "saw",
 ]
