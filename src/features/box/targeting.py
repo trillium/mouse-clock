@@ -8,6 +8,11 @@ from typing import Tuple
 
 from ...core.geometry import number_to_angle, ray_rect_intersection
 from .config import calculate_box_sizes
+from ..shared.utils import safe_index_or_none
+
+
+# Canonical list of box color names in order
+BOX_COLOR_NAMES = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
 
 
 def get_size_for_color(color_name: str) -> Tuple[float, float]:
@@ -20,11 +25,8 @@ def get_size_for_color(color_name: str) -> Tuple[float, float]:
     Returns:
         (width, height) of that color's box
     """
-    color_names = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
-
-    try:
-        index = color_names.index(color_name.lower())
-    except ValueError:
+    index = safe_index_or_none(BOX_COLOR_NAMES, color_name)
+    if index is None:
         return None
 
     sizes = calculate_box_sizes()
@@ -50,12 +52,8 @@ def get_target_position(
     Returns:
         (x, y) intersection point or center if not found
     """
-    # Get the box index for this color
-    color_names = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
-
-    try:
-        box_index = color_names.index(color_name.lower())
-    except ValueError:
+    box_index = safe_index_or_none(BOX_COLOR_NAMES, color_name)
+    if box_index is None:
         return center
 
     # Get the box size

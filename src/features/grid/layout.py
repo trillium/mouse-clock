@@ -9,6 +9,13 @@ from typing import List
 from ...core.config import get_setting
 from .config import get_grid_letters
 from .state import get_column_offset
+from ..shared.layout import (
+    calculate_row_positions,
+    calculate_column_positions as _calculate_column_positions
+)
+
+# Re-export row positions directly (no grid-specific logic)
+__all__ = ['get_visible_letters', 'calculate_row_positions', 'calculate_column_positions']
 
 
 def get_visible_letters(screen_height: float, row_spacing: float) -> List[str]:
@@ -27,29 +34,6 @@ def get_visible_letters(screen_height: float, row_spacing: float) -> List[str]:
     return letters[:min(max_rows, len(letters))]
 
 
-def calculate_row_positions(
-    screen_top: float,
-    screen_bottom: float,
-    num_rows: int
-) -> List[float]:
-    """
-    Calculate Y positions for each letter row.
-
-    Args:
-        screen_top: Top of screen
-        screen_bottom: Bottom of screen
-        num_rows: Number of rows to position
-
-    Returns:
-        List of Y coordinates for each row
-    """
-    if num_rows <= 1:
-        return [(screen_top + screen_bottom) / 2]
-
-    spacing = (screen_bottom - screen_top) / (num_rows + 1)
-    return [screen_top + spacing * (i + 1) for i in range(num_rows)]
-
-
 def calculate_column_positions(
     screen_left: float,
     screen_right: float,
@@ -58,8 +42,7 @@ def calculate_column_positions(
     offset_x: float = None
 ) -> List[float]:
     """
-    Calculate X positions for each color column, distributed evenly across screen.
-    First column is at the left edge, last column at the right edge.
+    Calculate X positions for each color column, distributed edge-to-edge.
 
     Args:
         screen_left: Left edge of screen
@@ -71,12 +54,11 @@ def calculate_column_positions(
     Returns:
         List of X coordinates for each column
     """
-    if num_cols <= 1:
-        return [(screen_left + screen_right) / 2]
-
     if offset_x is None:
         offset_x = get_column_offset()
 
-    # Distribute edge-to-edge: first column at left edge, last at right edge
-    spacing = (screen_right - screen_left) / (num_cols - 1)
-    return [screen_left + spacing * i + offset_x for i in range(num_cols)]
+    return _calculate_column_positions(
+        screen_left, screen_right, num_cols,
+        offset_x=offset_x,
+        edge_to_edge=True
+    )

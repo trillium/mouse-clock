@@ -8,6 +8,7 @@ from typing import Tuple
 
 from .config import get_clock_letters_colors, get_clock_letters_letters
 from .layout import calculate_row_positions, calculate_column_positions
+from ..shared.utils import safe_index
 
 
 def get_clock_letters_target(
@@ -36,19 +37,9 @@ def get_clock_letters_target(
     colors = get_clock_letters_colors()
     letters = get_clock_letters_letters()
 
-    # Find indices
-    letter_lower = letter.lower()
-    color_lower = color.lower()
-
-    try:
-        letter_idx = letters.index(letter_lower)
-    except ValueError:
-        letter_idx = 0
-
-    try:
-        color_idx = colors.index(color_lower)
-    except ValueError:
-        color_idx = 0
+    # Find indices using safe_index
+    letter_idx = safe_index(letters, letter)
+    color_idx = safe_index(colors, color)
 
     row_positions = calculate_row_positions(top, bottom, len(letters))
     col_positions = calculate_column_positions(left, right, len(colors))

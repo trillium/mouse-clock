@@ -8,6 +8,7 @@ from typing import Tuple, Optional
 
 from .config import get_grid_colors, get_grid_letters, get_horizontal_styles, get_vertical_styles
 from .layout import calculate_row_positions, calculate_column_positions
+from ..shared.utils import safe_index
 
 
 def get_grid_target(
@@ -39,34 +40,11 @@ def get_grid_target(
     h_styles = get_horizontal_styles()
     v_styles = get_vertical_styles()
 
-    # Find indices
-    letter_lower = letter.lower()
-    color_lower = color.lower()
-
-    try:
-        letter_idx = letters.index(letter_lower)
-    except ValueError:
-        letter_idx = 0
-
-    try:
-        color_idx = colors.index(color_lower)
-    except ValueError:
-        color_idx = 0
-
-    # Find style indices (default to "solid")
-    h_style_idx = 0
-    h_style_to_find = (h_style or "solid").lower()
-    try:
-        h_style_idx = h_styles.index(h_style_to_find)
-    except ValueError:
-        h_style_idx = 0
-
-    v_style_idx = 0
-    v_style_to_find = (v_style or "solid").lower()
-    try:
-        v_style_idx = v_styles.index(v_style_to_find)
-    except ValueError:
-        v_style_idx = 0
+    # Find indices using safe_index
+    letter_idx = safe_index(letters, letter)
+    color_idx = safe_index(colors, color)
+    h_style_idx = safe_index(h_styles, h_style or "solid")
+    v_style_idx = safe_index(v_styles, v_style or "solid")
 
     # Calculate row index: letter * num_h_styles + h_style_idx
     # Calculate col index: color * num_v_styles + v_style_idx

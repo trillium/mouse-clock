@@ -7,11 +7,7 @@ Uses active configuration from core.config for colors, styles, and letters.
 
 from typing import List
 from ...core.config import get_setting, get_mode_config
-
-
-# Default text styling
-DEFAULT_TEXT_COLOR = "00ff00ff"      # Bright green
-DEFAULT_TEXT_BG_COLOR = "000000aa"   # Semi-transparent black
+from ..shared.config import DEFAULT_TEXT_COLOR, DEFAULT_TEXT_BG_COLOR
 
 
 def get_text_color() -> str:

@@ -5,7 +5,7 @@ Drawing functions for the letter/color grid overlay.
 Uses active colors, styles, and letters from settings.
 """
 
-print("reloaded trillium/mouse-clock/src/features/grid/render.py 6 - active config")
+print("reloaded trillium/mouse-clock/src/features/grid/render.py 7 - shared alpha")
 
 from typing import Tuple, List
 
@@ -13,20 +13,7 @@ from ...rendering.colors import get_color, with_alpha
 from ...rendering.drawing import draw_line, draw_text, draw_rect
 from .config import get_text_color, get_text_bg_color, get_grid_colors, get_horizontal_styles, get_vertical_styles, get_grid_letters
 from .layout import calculate_row_positions, calculate_column_positions
-
-# Module-level alpha for fade animations (set by draw_grid_overlay)
-_current_alpha = 255
-
-
-def _apply_alpha(color_hex: str) -> str:
-    """Apply current fade alpha to a color."""
-    if _current_alpha >= 255:
-        return color_hex
-    # Blend the existing alpha with fade alpha
-    existing_alpha = int(color_hex[6:8], 16) if len(color_hex) >= 8 else 255
-    new_alpha = (existing_alpha * _current_alpha) // 255
-    result = with_alpha(color_hex, new_alpha)
-    return result
+from ..shared.alpha import apply_alpha, set_alpha
 
 
 def draw_grid_overlay(
@@ -44,8 +31,7 @@ def draw_grid_overlay(
         swap_axes: If True, colors on Y-axis and letters on X-axis
         alpha: Overall transparency (0-255) for fade effects
     """
-    global _current_alpha
-    _current_alpha = alpha
+    set_alpha("grid", alpha)
     print(f"[DEBUG render] alpha={alpha}")
 
     left, top, right, bottom = screen_rect
@@ -114,18 +100,18 @@ def _draw_row_lines(
 ):
     """Draw horizontal lines with labels."""
     label_margin = 30
-    text_color = _apply_alpha(get_text_color())
-    bg_color = _apply_alpha(get_text_bg_color())
+    text_color = apply_alpha(get_text_color(), "grid")
+    bg_color = apply_alpha(get_text_bg_color(), "grid")
     first_style = active_styles[0] if active_styles else None
 
     for y, label, style in zip(positions, labels, styles):
         # Get line color
         if swap_axes:
             # Label is a color name
-            line_color = _apply_alpha(get_color(label))
+            line_color = apply_alpha(get_color(label), "grid")
         else:
             # Label is a letter, use white
-            line_color = _apply_alpha("ffffff99")  # Semi-transparent white
+            line_color = apply_alpha("ffffff99", "grid")  # Semi-transparent white
 
         # Draw the horizontal line
         draw_line(canvas, (left + label_margin, y), (right, y), line_color, thickness=1, line_style=style)
@@ -148,18 +134,18 @@ def _draw_column_lines(
     active_styles: List[str]
 ):
     """Draw vertical lines with labels."""
-    text_color = _apply_alpha(get_text_color())
-    bg_color = _apply_alpha(get_text_bg_color())
+    text_color = apply_alpha(get_text_color(), "grid")
+    bg_color = apply_alpha(get_text_bg_color(), "grid")
 
     for i, (x, label, style) in enumerate(zip(positions, labels, styles)):
         # Get line color
         if swap_axes:
             # Label is a letter, use white
-            line_color = _apply_alpha("ffffff99")
+            line_color = apply_alpha("ffffff99", "grid")
             label_margin = 25
         else:
             # Label is a color name - no label needed, colors are self-explanatory
-            line_color = _apply_alpha(get_color(label))
+            line_color = apply_alpha(get_color(label), "grid")
             label_margin = 0
 
         # Draw the vertical line

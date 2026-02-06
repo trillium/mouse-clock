@@ -5,7 +5,7 @@ Draws letters in a grid: rows = letters, columns = colors.
 Each letter appears once per color, horizontally distributed.
 """
 
-print("reloaded clock_letters/render.py")
+print("reloaded clock_letters/render.py 2 - shared alpha")
 
 from typing import Tuple, List
 
@@ -14,18 +14,7 @@ from ...rendering.drawing import draw_text, draw_rect
 from .config import get_text_color, get_text_bg_color, get_clock_letters_colors, get_clock_letters_letters
 from .layout import calculate_row_positions, calculate_column_positions
 from ..info.contrast import parse_hex_color, relative_luminance
-
-# Module-level alpha for fade animations
-_current_alpha = 255
-
-
-def _apply_alpha(color_hex: str) -> str:
-    """Apply current fade alpha to a color."""
-    if _current_alpha >= 255:
-        return color_hex
-    existing_alpha = int(color_hex[6:8], 16) if len(color_hex) >= 8 else 255
-    new_alpha = (existing_alpha * _current_alpha) // 255
-    return with_alpha(color_hex, new_alpha)
+from ..shared.alpha import apply_alpha, set_alpha
 
 
 def _is_dark_color(color_hex: str) -> bool:
@@ -60,8 +49,7 @@ def draw_clock_letters_overlay(
         screen_rect: (left, top, right, bottom) screen bounds
         alpha: Overall transparency (0-255) for fade effects
     """
-    global _current_alpha
-    _current_alpha = alpha
+    set_alpha("clock_letters", alpha)
 
     left, top, right, bottom = screen_rect
     screen_width = right - left
@@ -85,7 +73,7 @@ def draw_clock_letters_overlay(
     # print(f"[clock_letters] col_positions: first={col_positions[0]:.1f}, last={col_positions[-1]:.1f}")
     # print(f"[clock_letters] first letter 'a' red at ({col_positions[0]:.1f}, {row_positions[0]:.1f})")
 
-    bg_color = _apply_alpha(get_text_bg_color())
+    bg_color = apply_alpha(get_text_bg_color(), "clock_letters")
 
     # Calculate dash positions (midpoint between each pair of color columns)
     # Each dash takes the color of the column to its left
@@ -101,11 +89,11 @@ def draw_clock_letters_overlay(
         for col_idx, color_name in enumerate(colors):
             x = col_positions[col_idx]
             raw_color = get_color(color_name)
-            text_color = _apply_alpha(raw_color)
+            text_color = apply_alpha(raw_color, "clock_letters")
 
             # Use light background for dark text colors (like black)
             if _is_dark_color(raw_color):
-                box_bg = _apply_alpha(LIGHT_BG_COLOR)
+                box_bg = apply_alpha(LIGHT_BG_COLOR, "clock_letters")
             else:
                 box_bg = bg_color
 
@@ -133,7 +121,7 @@ def draw_clock_letters_overlay(
 
         # Draw dashes between columns for this row (colored by left column)
         for dash_x, dash_color_name in dash_info:
-            dash_color = _apply_alpha(get_color(dash_color_name))
+            dash_color = apply_alpha(get_color(dash_color_name), "clock_letters")
             draw_text(
                 canvas,
                 (dash_x, y),
