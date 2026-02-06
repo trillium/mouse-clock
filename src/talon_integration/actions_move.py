@@ -64,6 +64,11 @@ def _build_this_lines(mouse_clock, start_x: float, start_y: float):
     # Build parallel lines with perpendicular offsets
     spacing = 15.0  # Pixels between parallel lines
     lines = []
+
+    # Gray line FIRST (center indicator, drawn underneath)
+    lines.append(((start_x, start_y), main_target, "888888ff"))
+
+    # Colored lines on top (selected color at offset 0 will overlay gray)
     for i, color_name in enumerate(all_colors):
         offset = (i - current_idx) * spacing
         # Offset both start and end perpendicular to direction
@@ -73,9 +78,6 @@ def _build_this_lines(mouse_clock, start_x: float, start_y: float):
         e_y = main_target[1] + perp_y * offset
         color_hex = get_color(color_name)
         lines.append(((s_x, s_y), (e_x, e_y), color_hex))
-
-    # Add gray line to the main target (centered, on top)
-    lines.append(((start_x, start_y), main_target, "888888ff"))
 
     mouse_clock.set_this_lines(lines)
     log_info(f"[this] {len(lines)} parallel lines from ({start_x:.0f}, {start_y:.0f})")

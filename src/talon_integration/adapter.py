@@ -9,7 +9,7 @@ from talon import canvas, ctrl, ui, cron, actions
 from talon.types.point import Point2d
 
 from ..core import config
-from ..core.config import get_setting, set_setting, get_mode_config
+from ..core.config import get_setting, set_setting, get_mode_config, _auto_save
 from ..rendering.colors import get_color
 from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
@@ -81,7 +81,7 @@ class MouseClockTalonAdapter:
         self.active_canvas = None
         self.canvases = []
         self.active = False
-        self._display_mode = get_setting("display_mode", DISPLAY_MODE_CIRCLES)
+        self._display_mode = get_setting("display_mode", DISPLAY_MODE_CLOCK_LETTERS)
         self._alpha = 255  # Current overlay alpha (0-255)
         self._fade_animator = FadeAnimator(
             on_update=self._on_fade_update,
@@ -123,6 +123,7 @@ class MouseClockTalonAdapter:
         # Only save non-"this" modes to settings (don't persist "this")
         if mode != DISPLAY_MODE_THIS:
             set_setting("display_mode", mode)
+            _auto_save()
 
         log_mode_change(old_mode, mode)
 

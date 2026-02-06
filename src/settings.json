@@ -51,7 +51,7 @@
     "k",
     "l"
   ],
-  "display_mode": "info",
+  "display_mode": "clock_letters",
   "info_edit_focus": "horizontal",
   "grid_active_horizontal_styles": [
     "solid",
