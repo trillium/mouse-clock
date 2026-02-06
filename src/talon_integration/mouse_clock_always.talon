@@ -61,23 +61,6 @@ clock position:
 clock mark <user.text>:
     user.mouse_clock_log_marker(text)
 
-# Activate clock in a specific display mode
-show clock circles:
-    user.mouse_clock_mode_circles()
-    user.mouse_clock_activate()
-show clock boxes:
-    user.mouse_clock_mode_boxes()
-    user.mouse_clock_activate()
-show clock grid:
-    user.mouse_clock_mode_grid()
-    user.mouse_clock_activate()
-show clock letters:
-    user.mouse_clock_mode_clock_letters()
-    user.mouse_clock_activate()
-show clock info:
-    user.mouse_clock_mode_info()
-    user.mouse_clock_activate()
-
 # Activate clock and move in one command (when clock is currently off)
 # Note: Excludes "mouse clock" which is handled above
 ^clock <user.letters_colors>+$:
