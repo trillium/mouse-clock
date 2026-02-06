@@ -19,10 +19,11 @@ from ..features.box import draw_concentric_boxes
 from ..features.grid import draw_grid_overlay, update_offset_animation
 from ..features.clock_letters import draw_clock_letters_overlay
 from ..rendering.animation import FadeAnimator
+from ..rendering.drawing import draw_line, draw_dot
 from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
-print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
+print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py 7 - this mode tags")
 
 # Module-level canvas registry - tracks ALL canvases ever created
 # This allows cleanup of stale canvases after hot reload
@@ -75,6 +76,11 @@ class MouseClockTalonAdapter:
             on_update=self._on_fade_update,
             on_complete=None
         )
+        # "this" lines state: list of (start, end, color_hex) tuples
+        self._this_lines = []
+        self._this_lines_only = False  # When True, hide other overlays
+        # Store line geometry for color switching
+        self._this_line_data = None  # (target, perp_vector, spacing, all_colors)
 
     def get_display_mode(self) -> str:
         """Get current display mode."""
@@ -217,28 +223,43 @@ class MouseClockTalonAdapter:
             print(f"[DEBUG show] done, active={self.active}, info mode - no pulse")
 
     def close(self):
-        """Close the mouse clock with fade out animation."""
+        """Close the mouse clock instantly."""
         print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
         # Stop any animations
         self._fade_animator._pulsing = False
 
-        # If we have canvases, always try to close them
+        # If we have canvases, close them immediately
         if self.canvases:
-            if self.active:
-                # Normal close with fade out
-                self._fade_animator.fade_out(duration_ms=300, on_complete=self._on_fade_out_complete)
-                print("[DEBUG close] starting fade out")
-            else:
-                # Force close without fade (cleanup stale canvases)
-                print("[DEBUG close] force closing stale canvases")
-                self._on_fade_out_complete()
+            self._on_fade_out_complete()
         else:
             self.active = False
             print("[DEBUG close] no canvases to close")
 
+    def set_this_lines(self, lines: list, only: bool = False):
+        """Set lines to draw. Each line is (start, end, color_hex).
+
+        Args:
+            lines: List of (start, end, color_hex) tuples
+            only: If True, hide other overlays and show only lines
+        """
+        self._this_lines = lines
+        self._this_lines_only = only
+        print(f"[DEBUG] this_lines set: {len(lines)} lines, only={only}")
+        # Trigger redraw
+        for canvas_obj in self.canvases:
+            canvas_obj.freeze()
+
+    def clear_this_lines(self):
+        """Clear the 'this' lines."""
+        self._this_lines = []
+        self._this_lines_only = False
+        self._this_line_data = None
+        for canvas_obj in self.canvases:
+            canvas_obj.freeze()
+
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas."""
-        # print(f"[DEBUG draw] mode={self._display_mode}, active={self.active}, canvases={len(self.canvases)}")
+        print(f"[DEBUG draw] mode={self._display_mode}, this_lines={len(self._this_lines)}, this_only={self._this_lines_only}")
 
         # Interpolate radius toward target for smooth animation
         still_animating = self.core.update_radius_animation()
@@ -246,7 +267,10 @@ class MouseClockTalonAdapter:
         # Draw debug info at center
         draw_debug_info(canvas_obj, self.core)
 
-        if self._display_mode == DISPLAY_MODE_BOXES:
+        # Skip mode-specific drawing if showing only "this" lines
+        if self._this_lines_only:
+            pass  # Skip to the lines drawing below
+        elif self._display_mode == DISPLAY_MODE_BOXES:
             # Draw concentric boxes only
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_GRID:
@@ -284,6 +308,19 @@ class MouseClockTalonAdapter:
                 config.COLOR_ACTIVE,
                 config.COLOR_TEXT
             )
+
+        # Draw "this" lines if set (parallel colored lines showing precision aid)
+        if self._this_lines:
+            print(f"[DEBUG draw] Drawing {len(self._this_lines)} this_lines")
+            # Draw color lines first (thin)
+            for start, end, color in self._this_lines[:-1]:  # All but gray
+                draw_line(canvas_obj, start, end, color, thickness=1)
+            # Draw gray "this" line last (slightly thicker, on top)
+            if self._this_lines:
+                start, end, color = self._this_lines[-1]  # Gray line
+                draw_line(canvas_obj, start, end, color, thickness=2)
+                draw_dot(canvas_obj, start, 4, "ffffffff")  # White start dot
+                draw_dot(canvas_obj, end, 6, "ffffffff")    # White target dot
 
         # If still animating, schedule next frame (~60fps)
         if still_animating and self.active_canvas:

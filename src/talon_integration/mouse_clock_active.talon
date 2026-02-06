@@ -41,6 +41,10 @@ clock it <user.letters_colors>+:
 reverse:
     user.mouse_clock_move_opposite()
 
+# Draw a line from current position to target (switches to this mode)
+this <user.letters_colors>+:
+    user.mouse_clock_this_line(letters_colors)
+
 # Touch commands
 ^touch <user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
