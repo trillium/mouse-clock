@@ -23,24 +23,19 @@
     "teal"
   ],
   "active_styles": [
+    "solid",
     "dash",
     "dot",
     "tick",
     "blip",
     "long",
-    "morse",
     "twin",
     "chain",
-    "wave",
-    "zig",
-    "barb",
     "rail",
     "cross",
     "link",
     "bead",
-    "spike",
-    "hash",
-    "saw"
+    "hash"
   ],
   "active_letters": [
     "a",
@@ -56,28 +51,26 @@
     "k",
     "l"
   ],
-  "display_mode": "circles",
-  "circles_active_colors": [
+  "display_mode": "info",
+  "info_edit_focus": "horizontal",
+  "grid_active_horizontal_styles": [
+    "solid",
+    "dash"
+  ],
+  "info_panel_mode": "grid",
+  "grid_active_vertical_styles": [
+    "solid",
+    "dash",
+    "dot"
+  ],
+  "grid_active_colors": [
     "red",
     "blue",
     "green",
     "yellow",
     "purple",
     "pink",
-    "black",
     "white",
     "teal"
-  ],
-  "grid_active_styles": [
-    "dot",
-    "blip",
-    "long",
-    "morse",
-    "twin",
-    "chain",
-    "barb",
-    "link",
-    "bead",
-    "saw"
   ]
 }
