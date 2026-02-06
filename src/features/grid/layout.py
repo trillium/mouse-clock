@@ -59,6 +59,7 @@ def calculate_column_positions(
 ) -> List[float]:
     """
     Calculate X positions for each color column, distributed evenly across screen.
+    First column is at the left edge, last column at the right edge.
 
     Args:
         screen_left: Left edge of screen
@@ -76,6 +77,6 @@ def calculate_column_positions(
     if offset_x is None:
         offset_x = get_column_offset()
 
-    # Distribute evenly across screen width (like rows do for height)
-    spacing = (screen_right - screen_left) / (num_cols + 1)
-    return [screen_left + spacing * (i + 1) + offset_x for i in range(num_cols)]
+    # Distribute edge-to-edge: first column at left edge, last at right edge
+    spacing = (screen_right - screen_left) / (num_cols - 1)
+    return [screen_left + spacing * i + offset_x for i in range(num_cols)]
