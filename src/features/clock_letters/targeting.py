@@ -4,8 +4,6 @@ Clock letters targeting functions.
 Calculate target positions from letter+color combinations.
 """
 
-print("reloaded clock_letters/targeting.py")
-
 from typing import Tuple
 
 from .config import get_clock_letters_colors, get_clock_letters_letters
@@ -32,11 +30,9 @@ def get_clock_letters_target(
         (x, y) coordinates of the target
     """
     left, top, right, bottom = screen_rect
-    print(f"[clock_letters targeting] get_clock_letters_target called: letter={letter}, color={color}, directions={directions}")
 
     colors = get_clock_letters_colors()
     letters = get_clock_letters_letters()
-    print(f"[clock_letters targeting] colors={colors}, letters={letters}")
 
     # Find indices
     letter_lower = letter.lower()
@@ -46,15 +42,11 @@ def get_clock_letters_target(
         letter_idx = letters.index(letter_lower)
     except ValueError:
         letter_idx = 0
-        print(f"[clock_letters targeting] WARNING: letter '{letter_lower}' not found, using idx 0")
 
     try:
         color_idx = colors.index(color_lower)
     except ValueError:
         color_idx = 0
-        print(f"[clock_letters targeting] WARNING: color '{color_lower}' not found, using idx 0")
-
-    print(f"[clock_letters targeting] letter_idx={letter_idx}, color_idx={color_idx}")
 
     row_positions = calculate_row_positions(top, bottom, len(letters))
     col_positions = calculate_column_positions(left, right, len(colors))
@@ -80,7 +72,4 @@ def get_clock_letters_target(
             elif direction == 'right':
                 x += col_spacing * offset_factor
 
-        print(f"[clock_letters targeting] applied directions: {directions}")
-
-    print(f"[clock_letters targeting] result: ({x}, {y})")
     return (x, y)

@@ -25,9 +25,7 @@ class MoveActions:
 
         In clock_letters mode, uses grid-style targeting (letter+color -> position).
         """
-        print(f"[DEBUG move_multiple] CALLED with: {letters_colors}")
         mouse_clock = get_mouse_clock_instance()
-        print(f"[DEBUG move_multiple] display_mode={mouse_clock.get_display_mode()}")
 
         # Check if in clock_letters mode - use different targeting
         if mouse_clock.get_display_mode() == DISPLAY_MODE_CLOCK_LETTERS:
