@@ -23,8 +23,11 @@ ctx.matches = r"""
 tag: user.use_mouse_clock
 """
 
-# Separate context for dynamic tags - NO matches clause so tags are always active when set
+# Separate context for dynamic tags - needs matches clause to be active
 ctx_tags = Context()
+ctx_tags.matches = r"""
+tag: user.use_mouse_clock
+"""
 
 # Global instance - using factory function for better control
 _mouse_clock_instance = None
