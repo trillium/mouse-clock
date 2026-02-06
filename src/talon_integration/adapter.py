@@ -1,3 +1,4 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 MouseClockTalonAdapter - Talon-specific wrapper around core mouse clock logic.
 
@@ -22,8 +23,6 @@ from ..rendering.animation import FadeAnimator
 from ..rendering.drawing import draw_line, draw_dot
 from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
-
-print("reloaded adapter.py 8 - unified mode system")
 
 # Module-level canvas registry - tracks ALL canvases ever created
 # This allows cleanup of stale canvases after hot reload
@@ -268,6 +267,13 @@ class MouseClockTalonAdapter:
         # Stop any animations
         self._fade_animator._pulsing = False
 
+        # Reset "this" mode so reopening shows the default pane
+        if self._display_mode == DISPLAY_MODE_THIS:
+            self._display_mode = self._previous_mode or get_setting("display_mode", DISPLAY_MODE_CLOCK_LETTERS)
+            self._this_lines = []
+            self._this_line_data = None
+            self._previous_mode = None
+
         # If we have canvases, close them immediately
         if self.canvases:
             self._on_fade_out_complete()
@@ -330,17 +336,24 @@ class MouseClockTalonAdapter:
             cron.after("16ms", lambda: self.active_canvas.freeze())
 
     def _draw_this_lines(self, canvas_obj):
-        """Draw the 'this' mode lines."""
+        """Draw the 'this' mode lines.
+
+        Line order: lines[0] = gray (center indicator), lines[1:] = colors.
+        Gray drawn first (underneath), then colors on top.
+        """
         if not self._this_lines:
             return
-        # Draw color lines first (thin)
-        for start, end, color in self._this_lines[:-1]:
-            draw_line(canvas_obj, start, end, color, thickness=1)
-        # Draw gray line last (thicker, on top)
-        start, end, color = self._this_lines[-1]
+        # Gray line first (underneath, thin)
+        start, end, color = self._this_lines[0]
         draw_line(canvas_obj, start, end, color, thickness=2)
-        draw_dot(canvas_obj, start, 4, "ffffffff")  # White start dot
-        draw_dot(canvas_obj, end, 6, "ffffffff")    # White target dot
+        # Color lines on top (thin)
+        for start, end, color in self._this_lines[1:]:
+            draw_line(canvas_obj, start, end, color, thickness=1)
+        # Dots at start/end of the gray center line
+        gray_start = self._this_lines[0][0]
+        gray_end = self._this_lines[0][1]
+        draw_dot(canvas_obj, gray_start, 4, "ffffffff")  # White start dot
+        draw_dot(canvas_obj, gray_end, 6, "ffffffff")    # White target dot
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""

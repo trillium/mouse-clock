@@ -9,6 +9,6 @@ and tag: user.mouse_clock_this_mode
 clear line:
     user.mouse_clock_clear_this_line()
 
-# Also close on clock off
+# Close fully on clock off (not just step back one mode)
 clock off:
-    user.mouse_clock_clear_this_line()
+    user.mouse_clock_close()
