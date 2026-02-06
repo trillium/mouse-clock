@@ -34,6 +34,7 @@ class MoveActions:
             typed_expressions = parse_voice_inputs(letters_colors)
             letters = typed_expressions['letters']
             colors = typed_expressions['colors']
+            directions = typed_expressions.get('directions', [])
 
             if not letters or not colors:
                 log_warning("[clock_letters] Need both letter and color for targeting")
@@ -45,7 +46,8 @@ class MoveActions:
             points = []
             for letter in letters:
                 for color in colors:
-                    x, y = get_clock_letters_target(screen_rect, letter, color)
+                    # Pass all directions to apply them cumulatively
+                    x, y = get_clock_letters_target(screen_rect, letter, color, directions)
                     points.append((x, y))
 
             if not points:
@@ -57,10 +59,11 @@ class MoveActions:
             avg_y = sum(p[1] for p in points) / len(points)
 
             ctrl.mouse_move(avg_x, avg_y)
+            dir_str = f" {' '.join(directions)}" if directions else ""
             if len(points) == 1:
-                log_info(f"[clock_letters] Moved to {letters[0]} {colors[0]} -> ({avg_x:.0f}, {avg_y:.0f})")
+                log_info(f"[clock_letters] Moved to {letters[0]} {colors[0]}{dir_str} -> ({avg_x:.0f}, {avg_y:.0f})")
             else:
-                log_info(f"[clock_letters] Averaged {len(points)} points ({letters} x {colors}) -> ({avg_x:.0f}, {avg_y:.0f})")
+                log_info(f"[clock_letters] Averaged {len(points)} points ({letters} x {colors}){dir_str} -> ({avg_x:.0f}, {avg_y:.0f})")
             return
 
         # Standard mouse clock behavior

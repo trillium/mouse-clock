@@ -8,6 +8,9 @@ throughout the mouse clock application.
 # Clock configuration
 CLOCK_LETTERS = "abcdefghijkl"
 
+# Direction offsets for cell targeting
+DIRECTIONS = ("top", "bottom", "left", "right")
+
 # Radius configuration
 DEFAULT_RADIUS = 300
 RADIUS_INCREMENT = 5

@@ -15,21 +15,24 @@ from .layout import calculate_row_positions, calculate_column_positions
 def get_clock_letters_target(
     screen_rect: Tuple[float, float, float, float],
     letter: str,
-    color: str
+    color: str,
+    directions: list = None
 ) -> Tuple[float, float]:
     """
     Get the (x, y) position for a letter+color target.
 
     Args:
         screen_rect: (left, top, right, bottom) screen bounds
-        letter: Target letter (a-l)
+        letter: Target letter (a-z)
         color: Target color name
+        directions: Optional list of offset directions (top, bottom, left, right)
+                   Multiple directions combine (e.g., ["top", "left"] = top-left corner)
 
     Returns:
-        (x, y) coordinates of the letter
+        (x, y) coordinates of the target
     """
     left, top, right, bottom = screen_rect
-    print(f"[clock_letters targeting] get_clock_letters_target called: letter={letter}, color={color}")
+    print(f"[clock_letters targeting] get_clock_letters_target called: letter={letter}, color={color}, directions={directions}")
 
     colors = get_clock_letters_colors()
     letters = get_clock_letters_letters()
@@ -58,6 +61,26 @@ def get_clock_letters_target(
 
     x = col_positions[color_idx] if color_idx < len(col_positions) else left
     y = row_positions[letter_idx] if letter_idx < len(row_positions) else top
+
+    # Apply directional offsets (can combine multiple)
+    if directions:
+        # Calculate cell spacing for offset
+        row_spacing = (bottom - top) / (len(letters) + 1)
+        col_spacing = (right - left) / (len(colors) + 1)
+        # Offset by ~40% of cell size to get near edge but not at boundary
+        offset_factor = 0.4
+
+        for direction in directions:
+            if direction == 'top':
+                y -= row_spacing * offset_factor
+            elif direction == 'bottom':
+                y += row_spacing * offset_factor
+            elif direction == 'left':
+                x -= col_spacing * offset_factor
+            elif direction == 'right':
+                x += col_spacing * offset_factor
+
+        print(f"[clock_letters targeting] applied directions: {directions}")
 
     print(f"[clock_letters targeting] result: ({x}, {y})")
     return (x, y)

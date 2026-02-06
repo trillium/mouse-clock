@@ -32,27 +32,41 @@ def flip_letter_to_opposite(letter: str) -> str:
 
 def parse_voice_inputs(words: List[str]) -> dict:
     """
-    Parse voice input words into letters, colors, and apply ordinal multipliers.
+    Parse voice input words into letters, colors, directions, and apply ordinal multipliers.
 
+    Words can have "@direction" suffix (e.g., "a@top" or "red@left").
     Ordinals following a letter or color will multiply that item.
 
     Args:
         words: List of voice command words
 
     Returns:
-        Dictionary with keys 'letters', 'colors', 'unknowns'
+        Dictionary with keys 'letters', 'colors', 'directions', 'unknowns'
 
     Example:
         ["red", "3", "a", "pink"] ->
-        {"letters": ["a"], "colors": ["red", "red", "red", "pink"], "unknowns": []}
+        {"letters": ["a"], "colors": ["red", "red", "red", "pink"], "directions": [], "unknowns": []}
+
+        ["red@left", "a@top"] ->
+        {"letters": ["a"], "colors": ["red"], "directions": ["left", "top"], "unknowns": []}
     """
     letters_list = []
     colors_list = []
+    directions_list = []
     unknowns_list = []
 
     i = 0
     while i < len(words):
         val = str(words[i]).lower()
+
+        # Check for @direction suffix
+        direction = None
+        if "@" in val:
+            val, direction = val.split("@", 1)
+            if direction in config.DIRECTIONS:
+                directions_list.append(direction)
+            else:
+                direction = None  # Invalid direction, ignore
 
         # Check if this is a numeric string (ordinals come through as "1", "2", "3" etc)
         is_ordinal = False
@@ -88,7 +102,7 @@ def parse_voice_inputs(words: List[str]) -> dict:
             colors_list.append("half")
         elif val in config.COLOR_MAP:
             colors_list.append(val)
-        else:
+        elif val:  # Only add non-empty unknowns
             unknowns_list.append(val)
 
         i += 1
@@ -96,5 +110,6 @@ def parse_voice_inputs(words: List[str]) -> dict:
     return {
         "letters": letters_list,
         "colors": colors_list,
+        "directions": directions_list,
         "unknowns": unknowns_list
     }

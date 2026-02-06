@@ -1,0 +1,8 @@
+list: user.direction
+-
+top: top
+up: top
+bottom: bottom
+down: bottom
+left: left
+right: right

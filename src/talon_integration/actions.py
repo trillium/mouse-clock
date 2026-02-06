@@ -16,6 +16,7 @@ mod.list("clock_face", desc="Clock face positions (a-l)")
 mod.list("color", desc="Colors for mouse clock navigation")
 mod.list("mouse", desc="The word mouse")
 mod.list("line_style", desc="Line styles (solid, dashed, dotted)")
+mod.list("direction", desc="Directional offsets (top, bottom, left, right)")
 ctx.lists["user.mouse"] = ["mouse"]
 
 
@@ -44,18 +45,45 @@ def line_style(match) -> str:
     return match.line_style
 
 
-@mod.capture(rule="[{user.line_style}] ({user.clock_face} | {user.color})")
+@mod.capture(rule="[{user.line_style}] ({user.clock_face} | {user.color}) [{user.direction}]")
 def styled_target(match) -> str:
-    """Capture an optional line style followed by a letter or color.
+    """Capture an optional line style, a letter or color, and optional direction.
 
-    Returns: "style:target" or just "target" if no style.
-    Example: "dash air" -> "dashed:a", "red" -> "red"
+    Returns format: "[style:][target][@direction]"
+    Examples:
+        "air" -> "a"
+        "red" -> "red"
+        "air top" -> "a@top"
+        "red left" -> "red@left"
+        "dash air" -> "dashed:a"
+        "dash air top" -> "dashed:a@top"
     """
     parts = list(match)
-    if len(parts) == 2:
-        return f"{parts[0]}:{parts[1]}"
+
+    # Determine what we have based on parts count and types
+    style = None
+    target = None
+    direction = None
+
+    for part in parts:
+        part_str = str(part)
+        if part_str in ('solid', 'dashed', 'dotted'):
+            style = part_str
+        elif part_str in ('top', 'bottom', 'left', 'right'):
+            direction = part_str
+        else:
+            target = part_str
+
+    result = ""
+    if style:
+        result = f"{style}:{target}"
     else:
-        return str(parts[0])
+        result = target or ""
+
+    if direction:
+        result = f"{result}@{direction}"
+
+    return result
 
 
 @mod.capture(rule="<user.styled_target>+")
