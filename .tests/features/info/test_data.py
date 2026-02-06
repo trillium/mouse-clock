@@ -36,7 +36,7 @@ class TestColors:
 class TestLineStyles:
     def test_line_styles_reference_known_styles(self):
         known_styles = {
-            "dash", "dot", "tick",
+            "solid", "dash", "dot", "tick",
             "blip", "long", "morse",
             "twin", "chain", "wave",
             "zig", "barb", "rail",
