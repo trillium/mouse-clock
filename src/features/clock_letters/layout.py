@@ -39,6 +39,8 @@ def calculate_column_positions(
     """
     Calculate X positions for each color column.
 
+    First column (red) at left edge, last column (teal) at right edge.
+
     Args:
         screen_left: Left edge of screen
         screen_right: Right edge of screen
@@ -50,5 +52,5 @@ def calculate_column_positions(
     if num_cols <= 1:
         return [(screen_left + screen_right) / 2]
 
-    spacing = (screen_right - screen_left) / (num_cols + 1)
-    return [screen_left + spacing * (i + 1) for i in range(num_cols)]
+    spacing = (screen_right - screen_left) / (num_cols - 1)
+    return [screen_left + spacing * i for i in range(num_cols)]
