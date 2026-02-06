@@ -23,11 +23,8 @@ ctx.matches = r"""
 tag: user.use_mouse_clock
 """
 
-# Separate context for dynamic tags - needs matches clause to be active
-ctx_tags = Context()
-ctx_tags.matches = r"""
-tag: user.use_mouse_clock
-"""
+# Note: ctx_tags for dynamic tag management is now in actions_core.py
+# This follows the Talon pattern of keeping Context in same file as actions that modify it
 
 # Global instance - using factory function for better control
 _mouse_clock_instance = None

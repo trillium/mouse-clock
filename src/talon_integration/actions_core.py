@@ -1,16 +1,37 @@
 """
 Core mouse clock actions - activate, close, radius control.
+
+This module owns the ctx_tags Context for managing mouse_clock_showing tag.
+Other modules should use set_mouse_clock_tags() and clear_mouse_clock_tags()
+instead of manipulating ctx_tags directly.
 """
 
-from talon import Module
-from talon import actions
-from .instance import ctx_tags, get_mouse_clock_instance
+from talon import Context, Module, actions
+from .instance import get_mouse_clock_instance
 from .adapter import DISPLAY_MODE_INFO
 from ..core.logger import log_info
 
-print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 6")
+print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 7")
 
 mod = Module()
+
+# Context for dynamic tags - owned by this module
+ctx_tags = Context()
+ctx_tags.matches = r"""
+tag: user.use_mouse_clock
+"""
+
+
+def set_mouse_clock_tags(tags: list):
+    """Set the mouse clock tags. Called when showing clock or changing modes."""
+    ctx_tags.tags = tags
+    print(f"[DEBUG] Set ctx_tags.tags to: {ctx_tags.tags}")
+
+
+def clear_mouse_clock_tags():
+    """Clear all mouse clock tags. Called when closing clock."""
+    ctx_tags.tags = []
+    print(f"[DEBUG] Cleared ctx_tags.tags")
 
 @mod.action_class
 class CoreActions:
@@ -25,8 +46,7 @@ class CoreActions:
         tags = ["user.mouse_clock_showing"]
         if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
             tags.append("user.mouse_clock_info_mode")
-        ctx_tags.tags = tags
-        print(f"[DEBUG] Set ctx_tags.tags to: {ctx_tags.tags}")
+        set_mouse_clock_tags(tags)
 
     def mouse_clock_show():
         """Alias for mouse_clock_activate"""
@@ -34,7 +54,7 @@ class CoreActions:
 
     def mouse_clock_close():
         """Close the mouse clock"""
-        ctx_tags.tags = []  # Clears both mouse_clock_showing and mouse_clock_info_mode
+        clear_mouse_clock_tags()
         mouse_clock = get_mouse_clock_instance()
         mouse_clock.close()
 

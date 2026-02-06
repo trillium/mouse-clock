@@ -3,7 +3,8 @@ Mouse clock display mode actions.
 """
 
 from talon import Module
-from .instance import ctx_tags, get_mouse_clock_instance
+from .instance import get_mouse_clock_instance
+from .actions_core import set_mouse_clock_tags, ctx_tags
 from .adapter import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS
 from ..core.config import (
     cycle_info_panel_next,
@@ -25,9 +26,9 @@ def _update_info_tag(mode: str):
     """Update ctx_tags.tags to include/exclude info mode tag."""
     base_tags = [t for t in ctx_tags.tags if t != "user.mouse_clock_info_mode"]
     if mode == DISPLAY_MODE_INFO:
-        ctx_tags.tags = base_tags + ["user.mouse_clock_info_mode"]
+        set_mouse_clock_tags(base_tags + ["user.mouse_clock_info_mode"])
     else:
-        ctx_tags.tags = base_tags
+        set_mouse_clock_tags(base_tags)
 
 
 def _set_mode_and_refresh(mode: str):
@@ -44,7 +45,7 @@ def _set_mode_and_refresh(mode: str):
         tags = ["user.mouse_clock_showing"]
         if mode == DISPLAY_MODE_INFO:
             tags.append("user.mouse_clock_info_mode")
-        ctx_tags.tags = tags
+        set_mouse_clock_tags(tags)
     else:
         _update_info_tag(mode)
         # Refresh canvas
