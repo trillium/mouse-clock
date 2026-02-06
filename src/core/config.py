@@ -75,8 +75,8 @@ ALL_LINE_STYLES = [
 # All available color names (excluding "center" which is a special position)
 ALL_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
 
-# All available letters
-ALL_LETTERS = list("abcdefghijkl")
+# All available letters (full alphabet for clock_letters mode)
+ALL_LETTERS = list("abcdefghijklmnopqrstuvwxyz")
 
 # Default settings registry
 _DEFAULTS: Dict[str, Any] = {

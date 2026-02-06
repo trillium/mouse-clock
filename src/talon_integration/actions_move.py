@@ -39,13 +39,28 @@ class MoveActions:
                 log_warning("[clock_letters] Need both letter and color for targeting")
                 return
 
-            # Use first letter and first color for targeting
-            letter = letters[0]
-            color = colors[0]
             screen_rect = mouse_clock.get_screen_rect()
-            x, y = get_clock_letters_target(screen_rect, letter, color)
-            ctrl.mouse_move(x, y)
-            log_info(f"[clock_letters] Moved to {letter} {color} -> ({x:.0f}, {y:.0f})")
+
+            # Calculate all valid (letter, color) combinations and average their positions
+            points = []
+            for letter in letters:
+                for color in colors:
+                    x, y = get_clock_letters_target(screen_rect, letter, color)
+                    points.append((x, y))
+
+            if not points:
+                log_warning("[clock_letters] No valid target points")
+                return
+
+            # Average all points
+            avg_x = sum(p[0] for p in points) / len(points)
+            avg_y = sum(p[1] for p in points) / len(points)
+
+            ctrl.mouse_move(avg_x, avg_y)
+            if len(points) == 1:
+                log_info(f"[clock_letters] Moved to {letters[0]} {colors[0]} -> ({avg_x:.0f}, {avg_y:.0f})")
+            else:
+                log_info(f"[clock_letters] Averaged {len(points)} points ({letters} x {colors}) -> ({avg_x:.0f}, {avg_y:.0f})")
             return
 
         # Standard mouse clock behavior
