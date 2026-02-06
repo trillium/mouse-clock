@@ -22,35 +22,18 @@ mod = Module()
 DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_INFO]
 
 
-def _update_info_tag(mode: str):
-    """Update ctx_tags.tags to include/exclude info mode tag."""
-    base_tags = [t for t in ctx_tags.tags if t != "user.mouse_clock_info_mode"]
-    if mode == DISPLAY_MODE_INFO:
-        set_mouse_clock_tags(base_tags + ["user.mouse_clock_info_mode"])
-    else:
-        set_mouse_clock_tags(base_tags)
-
-
 def _set_mode_and_refresh(mode: str):
-    """Set display mode, update tags, and activate clock if not showing."""
+    """Set display mode using unified mode system."""
     mouse_clock = get_mouse_clock_instance()
-    mouse_clock.set_display_mode(mode)
 
     # Activate clock if not already showing
     if not mouse_clock.active:
         if not mouse_clock.active_canvas:
             mouse_clock.setup()
         mouse_clock.show()
-        # Set base tag
-        tags = ["user.mouse_clock_showing"]
-        if mode == DISPLAY_MODE_INFO:
-            tags.append("user.mouse_clock_info_mode")
-        set_mouse_clock_tags(tags)
-    else:
-        _update_info_tag(mode)
-        # Refresh canvas
-        for canvas_obj in mouse_clock.canvases:
-            canvas_obj.freeze()
+
+    # Use unified mode setter - handles both display mode and tags
+    mouse_clock.set_mode(mode, set_mouse_clock_tags)
 
 
 @mod.action_class

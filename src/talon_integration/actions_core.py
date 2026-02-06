@@ -9,7 +9,7 @@ instead of manipulating ctx_tags directly.
 from talon import Context, Module, actions
 from .instance import get_mouse_clock_instance
 from .adapter import DISPLAY_MODE_INFO
-from ..core.logger import log_info
+from ..core.logger import log_info, log_debug, log_tags
 
 print("reloaded trillium/mouse-clock/src/talon_integration/actions_core.py 7")
 
@@ -25,13 +25,13 @@ tag: user.use_mouse_clock
 def set_mouse_clock_tags(tags: list):
     """Set the mouse clock tags. Called when showing clock or changing modes."""
     ctx_tags.tags = tags
-    print(f"[DEBUG] Set ctx_tags.tags to: {ctx_tags.tags}")
+    log_tags(tags)
 
 
 def clear_mouse_clock_tags():
     """Clear all mouse clock tags. Called when closing clock."""
     ctx_tags.tags = []
-    print(f"[DEBUG] Cleared ctx_tags.tags")
+    log_debug("Tags cleared")
 
 @mod.action_class
 class CoreActions:
@@ -42,11 +42,9 @@ class CoreActions:
             mouse_clock.setup()
         mouse_clock.show()
         mouse_clock.clear_state()
-        # Set tags based on current display mode
-        tags = ["user.mouse_clock_showing"]
-        if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
-            tags.append("user.mouse_clock_info_mode")
-        set_mouse_clock_tags(tags)
+        # Use unified mode system - sets both display mode and tags
+        current_mode = mouse_clock.get_display_mode()
+        mouse_clock.set_mode(current_mode, set_mouse_clock_tags)
 
     def mouse_clock_show():
         """Alias for mouse_clock_activate"""

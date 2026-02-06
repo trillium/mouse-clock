@@ -2,7 +2,7 @@
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """
 
-print("reloaded actions_move.py 4 - parallel lines fix")
+print("reloaded actions_move.py 5 - unified mode system")
 
 from typing import List
 
@@ -10,11 +10,11 @@ from talon import Module, ctrl
 
 from .instance import get_mouse_clock_instance
 from .actions_core import set_mouse_clock_tags, clear_mouse_clock_tags
-from .adapter import DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_GRID
+from .adapter import DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_GRID, DISPLAY_MODE_THIS
 
 mod = Module()
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
-from ..core.logger import log_info, log_warning
+from ..core.logger import log_info, log_warning, log_debug, log_action, log_state
 from ..features.clock_letters.targeting import get_clock_letters_target
 from ..features.clock_letters.config import get_clock_letters_colors
 from ..features.grid.targeting import get_grid_target
@@ -29,25 +29,24 @@ def _build_this_lines(mouse_clock, start_x: float, start_y: float):
     but color_targets stores actual screen positions for shift functionality.
     """
     import math
-    print(f"[DEBUG _build_this_lines] called with start=({start_x}, {start_y})")
     data = mouse_clock._this_line_data
     if not data:
-        print("[DEBUG _build_this_lines] no data, returning")
+        log_warning("[this] No line data")
         return
 
     all_colors = data['colors']
     main_target = data['target']
     current_color = data.get('current_color', all_colors[0] if all_colors else 'red')
-    print(f"[DEBUG _build_this_lines] target={main_target}, colors={len(all_colors)}, current={current_color}")
 
     # Calculate direction vector from start to target
     dx = main_target[0] - start_x
     dy = main_target[1] - start_y
     length = math.sqrt(dx * dx + dy * dy)
-    print(f"[DEBUG _build_this_lines] dx={dx}, dy={dy}, length={length}")
     if length == 0:
-        print("[DEBUG _build_this_lines] length=0, returning")
+        log_warning("[this] Zero length line")
         return
+
+    log_debug(f"[this] Building lines: start=({start_x:.0f},{start_y:.0f}) target={main_target} color={current_color}")
 
     # Normalize direction
     dx /= length
@@ -78,7 +77,7 @@ def _build_this_lines(mouse_clock, start_x: float, start_y: float):
     # Add gray line to the main target (centered, on top)
     lines.append(((start_x, start_y), main_target, "888888ff"))
 
-    mouse_clock.set_this_lines(lines, only=True)
+    mouse_clock.set_this_lines(lines)
     log_info(f"[this] {len(lines)} parallel lines from ({start_x:.0f}, {start_y:.0f})")
 
 
@@ -351,16 +350,16 @@ class MoveActions:
         # Build and set lines
         _build_this_lines(mouse_clock, start_x, start_y)
 
-        # Switch to "this" mode - disable regular clock commands, enable ray commands
-        set_mouse_clock_tags(["user.use_mouse_clock", "user.mouse_clock_this_mode"])
+        # Switch to "this" mode using unified mode system
+        mouse_clock.set_mode(DISPLAY_MODE_THIS, set_mouse_clock_tags)
 
     def mouse_clock_this_shift(letters_colors: List[str]):
         """Shift the center/gray line to a color's target position."""
-        print(f"[this shift] called with: {letters_colors}")
+        log_action("this_shift", input=letters_colors)
         mouse_clock = get_mouse_clock_instance()
 
         if not mouse_clock._this_line_data:
-            log_warning("[this shift] No active 'this' lines to shift")
+            log_warning("[this] No active lines to shift")
             return
 
         # Parse to extract just colors
@@ -368,12 +367,12 @@ class MoveActions:
         colors = typed_expressions['colors']
 
         if not colors:
-            log_warning("[this shift] No colors specified")
+            log_warning("[this] No colors specified")
             return
 
         data = mouse_clock._this_line_data
         color_targets = data['color_targets']
-        print(f"[this shift] looking for {colors} in {list(color_targets.keys())}")
+        log_debug(f"[this] Shifting to {colors}")
 
         # Find target positions for the specified colors
         targets = []
@@ -401,8 +400,8 @@ class MoveActions:
             log_info(f"[this shift] Target moved to {colors} at ({avg_x:.0f}, {avg_y:.0f})")
 
     def mouse_clock_clear_this_line():
-        """Clear the 'this' lines and exit this mode."""
+        """Clear the 'this' lines and return to previous mode."""
         mouse_clock = get_mouse_clock_instance()
-        mouse_clock.clear_this_lines()
-        clear_mouse_clock_tags()
-        log_info("[this] Lines cleared, exited this mode")
+        previous_mode = mouse_clock.get_previous_mode()
+        mouse_clock.set_mode(previous_mode, set_mouse_clock_tags)
+        log_info(f"[this] Exited to {previous_mode}")

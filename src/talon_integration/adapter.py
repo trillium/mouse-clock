@@ -12,7 +12,7 @@ from ..core import config
 from ..core.config import get_setting, set_setting, get_mode_config
 from ..rendering.colors import get_color
 from ..core.mouse_clock import MouseClockCore
-from ..core.logger import log_info, initialize_logger
+from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
 from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
 from ..features.box import draw_concentric_boxes
@@ -23,7 +23,7 @@ from ..rendering.drawing import draw_line, draw_dot
 from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
-print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py 7 - this mode tags")
+print("reloaded adapter.py 8 - unified mode system")
 
 # Module-level canvas registry - tracks ALL canvases ever created
 # This allows cleanup of stale canvases after hot reload
@@ -49,6 +49,17 @@ DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_INFO = "info"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+DISPLAY_MODE_THIS = "this"  # Line targeting mode
+
+# Map modes to their required tags
+MODE_TAGS = {
+    DISPLAY_MODE_CIRCLES: ["user.mouse_clock_showing"],
+    DISPLAY_MODE_BOXES: ["user.mouse_clock_showing"],
+    DISPLAY_MODE_GRID: ["user.mouse_clock_showing"],
+    DISPLAY_MODE_INFO: ["user.mouse_clock_showing", "user.mouse_clock_info_mode"],
+    DISPLAY_MODE_CLOCK_LETTERS: ["user.mouse_clock_showing"],
+    DISPLAY_MODE_THIS: ["user.mouse_clock_showing", "user.mouse_clock_this_mode"],
+}
 
 
 class MouseClockTalonAdapter:
@@ -76,36 +87,67 @@ class MouseClockTalonAdapter:
             on_update=self._on_fade_update,
             on_complete=None
         )
-        # "this" lines state: list of (start, end, color_hex) tuples
-        self._this_lines = []
-        self._this_lines_only = False  # When True, hide other overlays
-        # Store line geometry for color switching
-        self._this_line_data = None  # (target, perp_vector, spacing, all_colors)
+        # "this" mode state
+        self._this_lines = []  # List of (start, end, color_hex) tuples
+        self._this_line_data = None  # Geometry for color switching
+        self._previous_mode = None  # Mode to return to after "this"
 
     def get_display_mode(self) -> str:
         """Get current display mode."""
         return self._display_mode
 
-    def set_display_mode(self, mode: str):
-        """Set display mode and save to settings."""
-        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS):
-            old_mode = self._display_mode
-            self._display_mode = mode
+    def set_mode(self, mode: str, set_tags_fn=None):
+        """Set display mode and update tags. Single source of truth for mode changes.
+
+        Args:
+            mode: The display mode to set
+            set_tags_fn: Function to call to set tags (injected to avoid circular import)
+        """
+        if mode not in MODE_TAGS:
+            log_info(f"Unknown mode: {mode}")
+            return
+
+        old_mode = self._display_mode
+
+        # When entering "this" mode, remember previous mode
+        if mode == DISPLAY_MODE_THIS and old_mode != DISPLAY_MODE_THIS:
+            self._previous_mode = old_mode
+
+        # When leaving "this" mode, clear line state
+        if old_mode == DISPLAY_MODE_THIS and mode != DISPLAY_MODE_THIS:
+            self._this_lines = []
+            self._this_line_data = None
+
+        self._display_mode = mode
+
+        # Only save non-"this" modes to settings (don't persist "this")
+        if mode != DISPLAY_MODE_THIS:
             set_setting("display_mode", mode)
-            log_info(f"Display mode set to: {mode}")
-            # Handle animation state changes
-            if self.active:
-                if mode == DISPLAY_MODE_INFO:
-                    # Stop pulsing for info mode
-                    self._fade_animator._pulsing = False
-                    self._alpha = 255
-                elif old_mode == DISPLAY_MODE_INFO:
-                    # Restart pulsing when leaving info mode
-                    self._fade_animator.alpha = 255
-                    self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
-                # Refresh display
-                for canvas_obj in self.canvases:
-                    canvas_obj.freeze()
+
+        log_mode_change(old_mode, mode)
+
+        # Update tags if function provided
+        if set_tags_fn:
+            set_tags_fn(MODE_TAGS[mode])
+            log_tags(MODE_TAGS[mode])
+
+        # Handle animation state changes
+        if self.active:
+            if mode in (DISPLAY_MODE_INFO, DISPLAY_MODE_THIS):
+                # Stop pulsing for info and this modes
+                self._fade_animator._pulsing = False
+                self._alpha = 255
+            elif old_mode in (DISPLAY_MODE_INFO, DISPLAY_MODE_THIS):
+                # Restart pulsing when leaving these modes
+                self._fade_animator.alpha = 255
+                self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
+            # Refresh display
+            for canvas_obj in self.canvases:
+                canvas_obj.freeze()
+
+    def set_display_mode(self, mode: str):
+        """Set display mode and save to settings. Legacy method - prefer set_mode()."""
+        self.set_mode(mode)
 
     def get_mouse_position(self) -> tuple[float, float]:
         """Get current mouse position from Talon and update core."""
@@ -198,13 +240,12 @@ class MouseClockTalonAdapter:
         self.active_canvas = None
         self.active = False
         set_overlay_inactive("mouse_clock")
-        print("[DEBUG close] fade out complete, canvases closed")
+        log_debug("Canvases closed")
 
     def show(self):
         """Show the mouse clock on all canvases with fade in."""
-        print(f"[DEBUG show] called, active={self.active}, canvases={len(self.canvases)}")
+        log_state("show", active=self.active, canvases=len(self.canvases))
         if self.active:
-            print("[DEBUG show] already active, returning")
             return
         # Start at full opacity, then pulse down
         self._alpha = 255
@@ -218,13 +259,11 @@ class MouseClockTalonAdapter:
             # Slow fade out (4s), quick fade in (1s), 2s pause at transparent
             self._fade_animator.alpha = 255
             self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
-            print(f"[DEBUG show] done, active={self.active}, starting pulse")
-        else:
-            print(f"[DEBUG show] done, active={self.active}, info mode - no pulse")
+        log_info(f"Clock shown, mode={self._display_mode}")
 
     def close(self):
         """Close the mouse clock instantly."""
-        print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
+        log_state("close", active=self.active, canvases=len(self.canvases))
         # Stop any animations
         self._fade_animator._pulsing = False
 
@@ -233,72 +272,48 @@ class MouseClockTalonAdapter:
             self._on_fade_out_complete()
         else:
             self.active = False
-            print("[DEBUG close] no canvases to close")
+        log_info("Clock closed")
 
-    def set_this_lines(self, lines: list, only: bool = False):
-        """Set lines to draw. Each line is (start, end, color_hex).
-
-        Args:
-            lines: List of (start, end, color_hex) tuples
-            only: If True, hide other overlays and show only lines
-        """
+    def set_this_lines(self, lines: list):
+        """Set lines to draw for 'this' mode. Each line is (start, end, color_hex)."""
         self._this_lines = lines
-        self._this_lines_only = only
-        print(f"[DEBUG] this_lines set: {len(lines)} lines, only={only}")
         # Trigger redraw
         for canvas_obj in self.canvases:
             canvas_obj.freeze()
 
-    def clear_this_lines(self):
-        """Clear the 'this' lines."""
-        self._this_lines = []
-        self._this_lines_only = False
-        self._this_line_data = None
-        for canvas_obj in self.canvases:
-            canvas_obj.freeze()
+    def get_previous_mode(self) -> str:
+        """Get the mode to return to after 'this' mode."""
+        return self._previous_mode or DISPLAY_MODE_CLOCK_LETTERS
 
     def draw(self, canvas_obj):
-        """Draw callback for Talon canvas."""
-        print(f"[DEBUG draw] mode={self._display_mode}, this_lines={len(self._this_lines)}, this_only={self._this_lines_only}")
-
+        """Draw callback for Talon canvas. Mode determines what is drawn."""
         # Interpolate radius toward target for smooth animation
         still_animating = self.core.update_radius_animation()
 
-        # Draw debug info at center
-        draw_debug_info(canvas_obj, self.core)
-
-        # Skip mode-specific drawing if showing only "this" lines
-        if self._this_lines_only:
-            pass  # Skip to the lines drawing below
+        # Draw based on current mode - single source of truth
+        if self._display_mode == DISPLAY_MODE_THIS:
+            # Draw "this" lines only
+            self._draw_this_lines(canvas_obj)
         elif self._display_mode == DISPLAY_MODE_BOXES:
-            # Draw concentric boxes only
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_GRID:
-            # Draw letter/color grid overlay
-            # Use canvas rect so each screen gets correct bounds
             rect = canvas_obj.rect
             screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
-            # Animate grid offset with same lerp factor
             lerp = self.core._animator.get_lerp_factor()
             grid_animating = update_offset_animation(lerp)
             still_animating = still_animating or grid_animating
             draw_grid_overlay(canvas_obj, screen_rect, alpha=self._alpha)
         elif self._display_mode == DISPLAY_MODE_INFO:
-            # Draw info/help overlay
-            # Lazy import to avoid module load order issues with Talon
             from ..features.info.render import draw_info_overlay
-            # Use canvas rect so each screen gets correct bounds
             rect = canvas_obj.rect
             screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             draw_info_overlay(canvas_obj, screen_rect)
         elif self._display_mode == DISPLAY_MODE_CLOCK_LETTERS:
-            # Draw clock letters overlay
-            # Use canvas rect so each screen gets correct bounds
             rect = canvas_obj.rect
             screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=self._alpha)
         else:
-            # Default: circles only
+            # Default: circles
             draw_mouse_clock(
                 canvas_obj,
                 self.core.center_x,
@@ -309,22 +324,22 @@ class MouseClockTalonAdapter:
                 config.COLOR_TEXT
             )
 
-        # Draw "this" lines if set (parallel colored lines showing precision aid)
-        if self._this_lines:
-            print(f"[DEBUG draw] Drawing {len(self._this_lines)} this_lines")
-            # Draw color lines first (thin)
-            for start, end, color in self._this_lines[:-1]:  # All but gray
-                draw_line(canvas_obj, start, end, color, thickness=1)
-            # Draw gray "this" line last (slightly thicker, on top)
-            if self._this_lines:
-                start, end, color = self._this_lines[-1]  # Gray line
-                draw_line(canvas_obj, start, end, color, thickness=2)
-                draw_dot(canvas_obj, start, 4, "ffffffff")  # White start dot
-                draw_dot(canvas_obj, end, 6, "ffffffff")    # White target dot
-
-        # If still animating, schedule next frame (~60fps)
+        # Schedule next frame if animating
         if still_animating and self.active_canvas:
             cron.after("16ms", lambda: self.active_canvas.freeze())
+
+    def _draw_this_lines(self, canvas_obj):
+        """Draw the 'this' mode lines."""
+        if not self._this_lines:
+            return
+        # Draw color lines first (thin)
+        for start, end, color in self._this_lines[:-1]:
+            draw_line(canvas_obj, start, end, color, thickness=1)
+        # Draw gray line last (thicker, on top)
+        start, end, color = self._this_lines[-1]
+        draw_line(canvas_obj, start, end, color, thickness=2)
+        draw_dot(canvas_obj, start, 4, "ffffffff")  # White start dot
+        draw_dot(canvas_obj, end, 6, "ffffffff")    # White target dot
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""
