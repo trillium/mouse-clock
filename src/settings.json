@@ -49,32 +49,21 @@
     "i",
     "j",
     "k",
-    "l"
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z"
   ],
-  "display_mode": "clock_letters",
-  "info_edit_focus": "horizontal",
-  "grid_active_horizontal_styles": [
-    "solid",
-    "dash"
-  ],
-  "info_panel_mode": "grid",
-  "grid_active_vertical_styles": [
-    "solid",
-    "dash",
-    "dot"
-  ],
-  "grid_active_colors": [
-    "red",
-    "blue",
-    "green",
-    "yellow",
-    "purple",
-    "pink",
-    "white",
-    "teal"
-  ],
-  "clock_letters_active_letters": [
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
-  ]
+  "display_mode": "clock_letters"
 }
