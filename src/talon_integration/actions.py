@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Talon captures and actions for mouse clock voice commands.
 

@@ -1,11 +1,10 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Grid overlay rendering.
 
 Drawing functions for the letter/color grid overlay.
 Uses active colors, styles, and letters from settings.
 """
-
-print("reloaded trillium/mouse-clock/src/features/grid/render.py 7 - shared alpha")
 
 from typing import Tuple, List
 

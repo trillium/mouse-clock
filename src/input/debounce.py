@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Debounce and rate limiting utilities for input events.
 

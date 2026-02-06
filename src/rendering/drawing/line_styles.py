@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """Structural line style drawing functions for the line drawing API."""
 
 import math

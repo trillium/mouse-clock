@@ -1,11 +1,10 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Clock letters overlay rendering.
 
 Draws letters in a grid: rows = letters, columns = colors.
 Each letter appears once per color, horizontally distributed.
 """
-
-print("reloaded clock_letters/render.py 2 - shared alpha")
 
 from typing import Tuple, List
 

@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Centralized color management for mouse clock overlay systems.
 
