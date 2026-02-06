@@ -5,9 +5,6 @@ and not tag: user.mouse_grid_showing
 key(cmd-ctrl-alt-shift-e):
     print("enter mimice SUPER-e")
     mimic('widen')
-key(cmd-ctrl-alt-shift-w):
-    print("super-w pressed")
-    user.mouse_clock_cycle_mode()
 
 [clock] widen [clock]:
     user.mouse_clock_widen()
@@ -130,6 +127,9 @@ clock circles: user.mouse_clock_mode_circles()
 clock boxes: user.mouse_clock_mode_boxes()
 clock grid: user.mouse_clock_mode_grid()
 clock letters: user.mouse_clock_mode_clock_letters()
+key(cmd-ctrl-alt-shift-e):
+    user.mouse_clock_mode_clock_letters()
+
 clock info: user.mouse_clock_mode_info()
 clock display next: user.mouse_clock_cycle_mode()
 clock display (previous | last): user.mouse_clock_cycle_mode_previous()
