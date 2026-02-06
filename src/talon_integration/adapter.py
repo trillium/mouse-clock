@@ -209,7 +209,9 @@ class MouseClockTalonAdapter:
             draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
         elif self._display_mode == DISPLAY_MODE_GRID:
             # Draw letter/color grid overlay
-            screen_rect = self.get_screen_rect()
+            # Use canvas rect so each screen gets correct bounds
+            rect = canvas_obj.rect
+            screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             # Animate grid offset with same lerp factor
             lerp = self.core._animator.get_lerp_factor()
             grid_animating = update_offset_animation(lerp)
@@ -219,11 +221,15 @@ class MouseClockTalonAdapter:
             # Draw info/help overlay
             # Lazy import to avoid module load order issues with Talon
             from ..features.info.render import draw_info_overlay
-            screen_rect = self.get_screen_rect()
+            # Use canvas rect so each screen gets correct bounds
+            rect = canvas_obj.rect
+            screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             draw_info_overlay(canvas_obj, screen_rect)
         elif self._display_mode == DISPLAY_MODE_CLOCK_LETTERS:
             # Draw clock letters overlay
-            screen_rect = self.get_screen_rect()
+            # Use canvas rect so each screen gets correct bounds
+            rect = canvas_obj.rect
+            screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=self._alpha)
         else:
             # Default: circles only
