@@ -1,6 +1,6 @@
 list: user.clock_face
 -
-# Phonetic alphabet for clock positions a-l
+# Phonetic alphabet for clock positions a-z
 air: a
 bat: b
 cap: c
@@ -13,3 +13,17 @@ sit: i
 jury: j
 crunch: k
 look: l
+made: m
+near: n
+odd: o
+pit: p
+quench: q
+raft: r
+sun: s
+trap: t
+urge: u
+vest: v
+whale: w
+plex: x
+yank: y
+zip: z
