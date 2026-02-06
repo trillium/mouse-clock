@@ -7,7 +7,7 @@ Functions for calculating row and column positions.
 from typing import List
 
 from ...core.config import get_setting
-from .config import get_grid_letters, get_column_spacing
+from .config import get_grid_letters
 from .state import get_column_offset
 
 
@@ -58,28 +58,24 @@ def calculate_column_positions(
     offset_x: float = None
 ) -> List[float]:
     """
-    Calculate X positions for each color column.
+    Calculate X positions for each color column, distributed evenly across screen.
 
     Args:
         screen_left: Left edge of screen
         screen_right: Right edge of screen
         num_cols: Number of columns to position
-        center_x: Center point for columns (defaults to screen center)
+        center_x: Unused, kept for API compatibility
         offset_x: Horizontal offset to apply (defaults to global offset)
 
     Returns:
         List of X coordinates for each column
     """
-    spacing = get_column_spacing()
-
-    if center_x is None:
-        center_x = (screen_left + screen_right) / 2
+    if num_cols <= 1:
+        return [(screen_left + screen_right) / 2]
 
     if offset_x is None:
         offset_x = get_column_offset()
 
-    # Calculate total width of all columns
-    total_width = spacing * (num_cols - 1)
-    start_x = center_x - total_width / 2 + offset_x
-
-    return [start_x + spacing * i for i in range(num_cols)]
+    # Distribute evenly across screen width (like rows do for height)
+    spacing = (screen_right - screen_left) / (num_cols + 1)
+    return [screen_left + spacing * (i + 1) + offset_x for i in range(num_cols)]
