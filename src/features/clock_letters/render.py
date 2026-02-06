@@ -49,7 +49,6 @@ def draw_clock_letters_overlay(
     _current_alpha = alpha
 
     left, top, right, bottom = screen_rect
-    print(f"[clock_letters] draw_clock_letters_overlay called, rect=({left}, {top}, {right}, {bottom}), alpha={alpha}")
 
     colors = get_clock_letters_colors()
     letters = get_clock_letters_letters()
@@ -61,7 +60,9 @@ def draw_clock_letters_overlay(
 
     row_positions = calculate_row_positions(top, bottom, len(letters))
     col_positions = calculate_column_positions(left, right, len(colors))
-    print(f"[clock_letters] row_positions={row_positions[:3]}..., col_positions={col_positions}")
+    print(f"[clock_letters] row_positions: first={row_positions[0]:.1f}, last={row_positions[-1]:.1f}")
+    print(f"[clock_letters] col_positions: first={col_positions[0]:.1f}, last={col_positions[-1]:.1f}")
+    print(f"[clock_letters] first letter 'a' red at ({col_positions[0]:.1f}, {row_positions[0]:.1f})")
 
     bg_color = _apply_alpha(get_text_bg_color())
 
@@ -73,20 +74,22 @@ def draw_clock_letters_overlay(
             x = col_positions[col_idx]
             text_color = _apply_alpha(get_color(color_name))
 
-            # Draw background box
+            # Draw background box centered at (x, y)
             box_size = 24
+            box_left = x - box_size / 2
+            box_top = y - box_size / 2
             draw_rect(
                 canvas,
-                (x - box_size/2, y - box_size/2, box_size, box_size),
+                (box_left, box_top, box_size, box_size),
                 bg_color,
                 thickness=0,
                 filled=True
             )
 
-            # Draw the letter
+            # Draw the letter (centered in box)
             draw_text(
                 canvas,
-                (x, y + 6),  # +6 for vertical centering
+                (x, y),
                 letter.upper(),
                 text_color,
                 font_size=18,

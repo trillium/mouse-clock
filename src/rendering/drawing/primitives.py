@@ -72,7 +72,8 @@ def draw_rect(
         from talon.skia import Rect
         paint.style = Paint.Style.FILL
         paint.stroke_width = 0
-        canvas.draw_rect(Rect(x, y, x + w, y + h))
+        # Rect takes (left, top, width, height), NOT (left, top, right, bottom)
+        canvas.draw_rect(Rect(x, y, w, h))
     else:
         # Draw outline using 4 lines
         top_left = (x, y)

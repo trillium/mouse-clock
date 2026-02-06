@@ -180,7 +180,7 @@ class MouseClockTalonAdapter:
         # Start pulsing animation: fade down to 0, pause, fade back up
         # Slow fade out (4s), quick fade in (1s), 2s pause at transparent
         self._fade_animator.alpha = 255
-        self._fade_animator.pulse(min_alpha=0, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
+        self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
         print(f"[DEBUG show] done, active={self.active}, starting pulse")
 
     def close(self):
