@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Voice actions for per-display-mode configuration.
 
@@ -5,7 +6,6 @@ Allows adding/removing colors, styles, and letters for individual display modes.
 """
 
 from talon import Module
-from .instance import get_mouse_clock_instance
 from ..core.config import (
     CONFIGURABLE_MODES,
     get_mode_config,
@@ -18,9 +18,14 @@ from ..core.config import (
 mod = Module()
 
 
+def _get_instance():
+    from .instance import get_mouse_clock_instance
+    return get_mouse_clock_instance()
+
+
 def _refresh_if_active():
     """Refresh the display if the clock is currently active."""
-    mc = get_mouse_clock_instance()
+    mc = _get_instance()
     if mc.active:
         for canvas_obj in mc.canvases:
             canvas_obj.freeze()

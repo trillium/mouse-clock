@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Grid mode targeting actions.
 
@@ -6,17 +7,23 @@ Supports both grid mode and clock_letters mode.
 """
 
 from talon import Module, ctrl
-from .instance import get_mouse_clock_instance
-from .adapter import DISPLAY_MODE_CLOCK_LETTERS
 from ..features.grid.targeting import get_grid_target
 from ..features.clock_letters.targeting import get_clock_letters_target
 
 mod = Module()
 
+# Inlined to avoid importing adapter.py at module level
+DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+
+
+def _get_instance():
+    from .instance import get_mouse_clock_instance
+    return get_mouse_clock_instance()
+
 
 def _get_target(letter: str, color: str, h_style: str = None, v_style: str = None):
     """Get target position based on current display mode."""
-    mouse_clock = get_mouse_clock_instance()
+    mouse_clock = _get_instance()
     screen_rect = mouse_clock.get_screen_rect()
 
     if mouse_clock.get_display_mode() == DISPLAY_MODE_CLOCK_LETTERS:

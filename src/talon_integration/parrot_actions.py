@@ -1,19 +1,15 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Parrot sound integration for MouseClock.
 
 Talon action overrides and action class for parrot sounds.
+
+NOTE: Imports from .parrot_config, .parrot_handlers, and ..input.guards are
+deferred to function bodies to prevent Talon cold-start [ ] cascade.
 """
 
 import time
 from talon import Module, Context, cron
-
-from .parrot_config import (
-    set_sound_param,
-    reset_sound_config,
-    reload_sound_config,
-)
-from .parrot_handlers import on_parrot, clear_rate_limiters
-from ..input.guards import set_overlay_active, set_overlay_inactive
 
 mod = Module()
 
@@ -38,27 +34,32 @@ _keyboard_hiss_job = None
 _keyboard_shush_job = None
 
 
+def _on_parrot(sound):
+    from .parrot_handlers import on_parrot
+    on_parrot(sound)
+
+
 @parrot_ctx.action_class("user")
 class MouseClockParrotOverrides:
     def noise_hiss():
         """Hiss widens the clock radius."""
         _log_parrot_event("hiss", "widen")
-        on_parrot("hiss")
+        _on_parrot("hiss")
 
     def noise_shh():
         """Shush narrows the clock radius."""
         _log_parrot_event("shush", "narrow")
-        on_parrot("shush")
+        _on_parrot("shush")
 
     def noise_lip_pop():
         """Pop clicks and closes the clock."""
         _log_parrot_event("pop", "click")
-        on_parrot("pop")
+        _on_parrot("pop")
 
     def noise_tongue_click():
         """Cluck toggles visibility."""
         _log_parrot_event("cluck", "toggle")
-        on_parrot("cluck")
+        _on_parrot("cluck")
 
 
 def _log_parrot_event(sound: str, action: str):
@@ -81,33 +82,38 @@ def _log_parrot_event(sound: str, action: str):
         else:
             last_input = "--"
 
-        print(f"🕐 {timestamp} {sound:6} | lerp:{lerp:.2f} inc:{inc:.0f} dur:{dur:.2f}s last:{last_input}")
+        print(f"\U0001f550 {timestamp} {sound:6} | lerp:{lerp:.2f} inc:{inc:.0f} dur:{dur:.2f}s last:{last_input}")
     except:
-        print(f"🕐 {timestamp} {sound:6} | (no instance)")
+        print(f"\U0001f550 {timestamp} {sound:6} | (no instance)")
 
 
 @mod.action_class
 class ParrotActions:
     def mouse_clock_parrot_hiss():
         """Handle hiss sound for mouse clock (manual trigger for testing)."""
-        on_parrot("hiss")
+        _on_parrot("hiss")
 
     def mouse_clock_parrot_shush():
         """Handle shush sound for mouse clock (manual trigger for testing)."""
-        on_parrot("shush")
+        _on_parrot("shush")
 
     def mouse_clock_parrot_reset_config():
         """Reset parrot sound configuration to defaults."""
+        from .parrot_config import reset_sound_config
+        from .parrot_handlers import clear_rate_limiters
         reset_sound_config()
         clear_rate_limiters()
 
     def mouse_clock_parrot_reload():
         """Reload parrot sound configuration."""
+        from .parrot_config import reload_sound_config
+        from .parrot_handlers import clear_rate_limiters
         reload_sound_config()
         clear_rate_limiters()
 
     def mouse_clock_parrot_set_param(sound: str, param: str, value: str):
         """Set a parrot sound parameter (e.g., 'hiss amount 30')."""
+        from .parrot_config import set_sound_param
         # Try to convert to int if numeric
         try:
             value = int(value)
@@ -125,7 +131,7 @@ class ParrotActions:
         if _keyboard_hiss_job is None:
             def hiss_tick():
                 actions.user.boolean_print("Hiss (keyboard)", "tick")
-                on_parrot("hiss")
+                _on_parrot("hiss")
             _keyboard_hiss_job = cron.interval("30ms", hiss_tick)
 
     def mouse_clock_keyboard_hiss_stop():
@@ -142,7 +148,7 @@ class ParrotActions:
         if _keyboard_shush_job is None:
             def shush_tick():
                 actions.user.boolean_print("Shush (keyboard)", "tick")
-                on_parrot("shush")
+                _on_parrot("shush")
             _keyboard_shush_job = cron.interval("30ms", shush_tick)
 
     def mouse_clock_keyboard_shush_stop():
@@ -155,9 +161,11 @@ class ParrotActions:
 
 def register_overlay_active():
     """Call when mouse clock becomes active."""
+    from ..input.guards import set_overlay_active
     set_overlay_active("mouse_clock")
 
 
 def register_overlay_inactive():
     """Call when mouse clock is closed."""
+    from ..input.guards import set_overlay_inactive
     set_overlay_inactive("mouse_clock")

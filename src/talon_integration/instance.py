@@ -1,14 +1,15 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Singleton instance management for MouseClockTalonAdapter.
 
 Also sets up the Talon module and context for mouse clock.
+
+NOTE: Imports from .adapter and ..core.logger are deferred to function
+bodies to prevent Talon cold-start [ ] cascade.
 """
 
 import time
 from talon import Context, Module
-
-from .adapter import MouseClockTalonAdapter
-from ..core.logger import log_info
 
 # Module and context setup
 mod = Module()
@@ -31,8 +32,10 @@ tag: user.use_mouse_clock
 _mouse_clock_instance = None
 
 
-def get_mouse_clock_instance() -> MouseClockTalonAdapter:
+def get_mouse_clock_instance():
     """Get the global mouse clock instance, recreating on module reload."""
+    from .adapter import MouseClockTalonAdapter
+    from ..core.logger import log_info
     global _mouse_clock_instance
     # Recreate instance if adapter class changed (module was reloaded)
     if _mouse_clock_instance is not None:

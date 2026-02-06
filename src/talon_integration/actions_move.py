@@ -1,18 +1,12 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """
 
-print("reloaded actions_move.py 5 - unified mode system")
-
 from typing import List
 
 from talon import Module, ctrl
-
-from .instance import get_mouse_clock_instance
 from .actions_core import set_mouse_clock_tags, clear_mouse_clock_tags
-from .adapter import DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_GRID, DISPLAY_MODE_THIS
-
-mod = Module()
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning, log_debug, log_action, log_state
 from ..features.clock_letters.targeting import get_clock_letters_target
@@ -20,67 +14,44 @@ from ..features.clock_letters.config import get_clock_letters_colors
 from ..features.grid.targeting import get_grid_target
 from ..features.grid.config import get_grid_colors
 from ..rendering.colors import get_color
+from ..core.geometry.parallel_lines import build_parallel_lines
+
+mod = Module()
+
+# Inlined to avoid importing adapter.py at module level
+DISPLAY_MODE_INFO = "info"
+DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+DISPLAY_MODE_GRID = "grid"
+DISPLAY_MODE_THIS = "this"
 
 
-def _build_this_lines(mouse_clock, start_x: float, start_y: float):
-    """Build parallel lines from start position toward target direction.
+def _get_instance():
+    from .instance import get_mouse_clock_instance
+    return get_mouse_clock_instance()
 
-    Lines are offset perpendicular to the main direction for visualization,
-    but color_targets stores actual screen positions for shift functionality.
+
+def _set_this_lines(mouse_clock, start, data):
+    """Build parallel lines from geometry and set them on the adapter.
+
+    Bridges pure geometry (build_parallel_lines) with adapter state.
+    Converts color names to hex for rendering.
     """
-    import math
-    data = mouse_clock._this_line_data
-    if not data:
-        log_warning("[this] No line data")
-        return
+    target = data['target']
+    colors = data['colors']
 
-    all_colors = data['colors']
-    main_target = data['target']
-    current_color = data.get('current_color', all_colors[0] if all_colors else 'red')
-
-    # Calculate direction vector from start to target
-    dx = main_target[0] - start_x
-    dy = main_target[1] - start_y
-    length = math.sqrt(dx * dx + dy * dy)
-    if length == 0:
+    lines = build_parallel_lines(start, target, colors)
+    if lines is None:
         log_warning("[this] Zero length line")
         return
 
-    log_debug(f"[this] Building lines: start=({start_x:.0f},{start_y:.0f}) target={main_target} color={current_color}")
+    # Convert color names to hex for rendering (gray -> hex, color names -> hex)
+    render_lines = []
+    for line_start, line_end, color_name in lines:
+        color_hex = "888888ff" if color_name == "gray" else get_color(color_name)
+        render_lines.append((line_start, line_end, color_hex))
 
-    # Normalize direction
-    dx /= length
-    dy /= length
-
-    # Perpendicular vector for offsets
-    perp_x, perp_y = -dy, dx
-
-    # Find current color's index for centering
-    try:
-        current_idx = all_colors.index(current_color)
-    except ValueError:
-        current_idx = len(all_colors) // 2
-
-    # Build parallel lines with perpendicular offsets
-    spacing = 15.0  # Pixels between parallel lines
-    lines = []
-
-    # Gray line FIRST (center indicator, drawn underneath)
-    lines.append(((start_x, start_y), main_target, "888888ff"))
-
-    # Colored lines on top (selected color at offset 0 will overlay gray)
-    for i, color_name in enumerate(all_colors):
-        offset = (i - current_idx) * spacing
-        # Offset both start and end perpendicular to direction
-        s_x = start_x + perp_x * offset
-        s_y = start_y + perp_y * offset
-        e_x = main_target[0] + perp_x * offset
-        e_y = main_target[1] + perp_y * offset
-        color_hex = get_color(color_name)
-        lines.append(((s_x, s_y), (e_x, e_y), color_hex))
-
-    mouse_clock.set_this_lines(lines)
-    log_info(f"[this] {len(lines)} parallel lines from ({start_x:.0f}, {start_y:.0f})")
+    mouse_clock.set_this_lines(render_lines)
+    log_info(f"[this] {len(render_lines)} parallel lines from ({start[0]:.0f}, {start[1]:.0f})")
 
 
 @mod.action_class
@@ -93,7 +64,7 @@ class MoveActions:
 
         In clock_letters mode, uses grid-style targeting (letter+color -> position).
         """
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
 
         # Check if in clock_letters mode - use different targeting
         if mouse_clock.get_display_mode() == DISPLAY_MODE_CLOCK_LETTERS:
@@ -165,7 +136,7 @@ class MoveActions:
 
     def mouse_clock_move_opposite():
         """Move the mouse in the opposite direction of the original command."""
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
 
         if not mouse_clock.core.original_command or mouse_clock.core.original_command == ([], []):
             log_warning("[opposite] No original command to reverse")
@@ -200,7 +171,7 @@ class MoveActions:
 
     def mouse_clock_move_original():
         """Move the mouse in the original direction (opposite of reverse)."""
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
 
         if not mouse_clock.core.original_command or mouse_clock.core.original_command == ([], []):
             log_warning("[original] No original command to move toward")
@@ -232,7 +203,7 @@ class MoveActions:
 
     def mouse_clock_recenter_and_move(letters_colors: List[str]):
         """Recenter clock at current position, then move to specified location"""
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
         mouse_clock.recenter()
         typed_expressions = parse_voice_inputs(letters_colors)
         letters = typed_expressions['letters']
@@ -242,7 +213,7 @@ class MoveActions:
 
     def mouse_clock_move_and_activate(letters_colors: List[str]):
         """Move mouse to position (with clock off), then activate clock at new position."""
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
         typed_expressions = parse_voice_inputs(letters_colors)
         letters = typed_expressions['letters']
         colors = typed_expressions['colors']
@@ -286,7 +257,7 @@ class MoveActions:
     def mouse_clock_this_line(letters_colors: List[str]):
         """Draw parallel colored lines from current position to target."""
         import math
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
 
         # Get current mouse position as start
         start_x, start_y = ctrl.mouse_pos()
@@ -350,7 +321,7 @@ class MoveActions:
         }
 
         # Build and set lines
-        _build_this_lines(mouse_clock, start_x, start_y)
+        _set_this_lines(mouse_clock, (start_x, start_y), mouse_clock._this_line_data)
 
         # Switch to "this" mode using unified mode system
         mouse_clock.set_mode(DISPLAY_MODE_THIS, set_mouse_clock_tags)
@@ -358,7 +329,7 @@ class MoveActions:
     def mouse_clock_this_shift(letters_colors: List[str]):
         """Shift the center/gray line to a color's target position."""
         log_action("this_shift", input=letters_colors)
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
 
         if not mouse_clock._this_line_data:
             log_warning("[this] No active lines to shift")
@@ -395,15 +366,15 @@ class MoveActions:
         data['target'] = (avg_x, avg_y)
         data['current_color'] = colors[0]
 
-        # Get current start position (from gray line)
+        # Get current start position (from gray line at index 0)
         if mouse_clock._this_lines:
-            start, _, _ = mouse_clock._this_lines[-1]
-            _build_this_lines(mouse_clock, start[0], start[1])
+            start, _, _ = mouse_clock._this_lines[0]
+            _set_this_lines(mouse_clock, start, data)
             log_info(f"[this shift] Target moved to {colors} at ({avg_x:.0f}, {avg_y:.0f})")
 
     def mouse_clock_clear_this_line():
         """Clear the 'this' lines and return to previous mode."""
-        mouse_clock = get_mouse_clock_instance()
+        mouse_clock = _get_instance()
         previous_mode = mouse_clock.get_previous_mode()
         mouse_clock.set_mode(previous_mode, set_mouse_clock_tags)
         log_info(f"[this] Exited to {previous_mode}")

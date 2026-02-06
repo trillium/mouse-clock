@@ -1,18 +1,24 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock debug and logging actions.
 """
 
-from talon import actions, ctrl
+from talon import Module, actions, ctrl
 
-from .instance import mod, get_mouse_clock_instance
-from ..core.logger import log_info, log_separator, get_current_log_file
+mod = Module()
+
+
+def _get_instance():
+    from .instance import get_mouse_clock_instance
+    return get_mouse_clock_instance()
 
 
 @mod.action_class
 class DebugActions:
     def mouse_clock_debug_position():
         """Print current mouse position and debug info to log file."""
-        mouse_clock = get_mouse_clock_instance()
+        from ..core.logger import log_info, log_separator
+        mouse_clock = _get_instance()
         current_x, current_y = ctrl.mouse_pos()
         screen_rect = mouse_clock.get_screen_rect()
 
@@ -31,6 +37,7 @@ class DebugActions:
 
     def mouse_clock_show_log_location():
         """Show the current log file location."""
+        from ..core.logger import log_info, get_current_log_file
         log_file = get_current_log_file()
         if log_file:
             log_info(f"Current log file: {log_file}")
@@ -40,6 +47,7 @@ class DebugActions:
 
     def mouse_clock_log_position():
         """Log the current mouse position immediately."""
+        from ..core.logger import log_info, log_separator
         current_x, current_y = ctrl.mouse_pos()
         log_separator()
         log_info(f"[POSITION CHECK] Current mouse position: ({current_x}, {current_y})")
@@ -48,6 +56,7 @@ class DebugActions:
 
     def mouse_clock_log_marker(text: str):
         """Log a custom marker/comment for context."""
+        from ..core.logger import log_info, log_separator
         log_separator()
         log_info(f"[MARKER] {text}")
         log_separator()
