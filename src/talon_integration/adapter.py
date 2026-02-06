@@ -24,6 +24,24 @@ from .debug_overlay import draw_debug_info
 
 print("reloaded trillium/mouse-clock/src/talon_integration/adapter.py")
 
+# Module-level canvas registry - tracks ALL canvases ever created
+# This allows cleanup of stale canvases after hot reload
+_all_canvases = []
+
+def _cleanup_all_canvases():
+    """Force close all registered canvases. Called on module reload."""
+    global _all_canvases
+    for c in _all_canvases:
+        try:
+            c.close()
+        except Exception:
+            pass
+    _all_canvases = []
+    print("[DEBUG] Cleaned up all registered canvases")
+
+# Clean up any stale canvases from previous module load
+_cleanup_all_canvases()
+
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
@@ -136,9 +154,11 @@ class MouseClockTalonAdapter:
         self.canvases = []
 
         # Create a canvas for each screen
+        global _all_canvases
         for screen in screens:
             canvas_obj = canvas.Canvas.from_screen(screen)
             self.canvases.append(canvas_obj)
+            _all_canvases.append(canvas_obj)  # Track in module-level registry
             if self.active:
                 canvas_obj.register("draw", self.draw)
                 canvas_obj.freeze()
@@ -199,17 +219,26 @@ class MouseClockTalonAdapter:
     def close(self):
         """Close the mouse clock with fade out animation."""
         print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
-        if not self.active:
-            print("[DEBUG close] not active, returning")
-            return
-        # Stop pulsing and fade out, then close canvases when complete
+        # Stop any animations
         self._fade_animator._pulsing = False
-        self._fade_animator.fade_out(duration_ms=300, on_complete=self._on_fade_out_complete)
-        print("[DEBUG close] starting fade out")
+
+        # If we have canvases, always try to close them
+        if self.canvases:
+            if self.active:
+                # Normal close with fade out
+                self._fade_animator.fade_out(duration_ms=300, on_complete=self._on_fade_out_complete)
+                print("[DEBUG close] starting fade out")
+            else:
+                # Force close without fade (cleanup stale canvases)
+                print("[DEBUG close] force closing stale canvases")
+                self._on_fade_out_complete()
+        else:
+            self.active = False
+            print("[DEBUG close] no canvases to close")
 
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas."""
-        print(f"[DEBUG draw] mode={self._display_mode}, active={self.active}, canvases={len(self.canvases)}")
+        # print(f"[DEBUG draw] mode={self._display_mode}, active={self.active}, canvases={len(self.canvases)}")
 
         # Interpolate radius toward target for smooth animation
         still_animating = self.core.update_radius_animation()

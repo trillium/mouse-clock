@@ -38,11 +38,23 @@ def get_mouse_clock_instance() -> MouseClockTalonAdapter:
         if type(_mouse_clock_instance) is not MouseClockTalonAdapter:
             log_info("Adapter class changed - recreating MouseClockTalonAdapter instance")
             # Close old instance to clean up canvases
-            try:
-                _mouse_clock_instance.close()
-            except Exception:
-                pass
+            old_instance = _mouse_clock_instance
             _mouse_clock_instance = None
+            try:
+                # Force close canvases directly if close() fails
+                if hasattr(old_instance, 'canvases') and old_instance.canvases:
+                    for c in old_instance.canvases:
+                        try:
+                            c.unregister("draw", old_instance.draw)
+                        except Exception:
+                            pass
+                        try:
+                            c.close()
+                        except Exception:
+                            pass
+                old_instance.close()
+            except Exception as e:
+                log_info(f"Error closing old instance: {e}")
     if _mouse_clock_instance is None:
         _mouse_clock_instance = MouseClockTalonAdapter()
     return _mouse_clock_instance
