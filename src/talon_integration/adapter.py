@@ -17,6 +17,8 @@ from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
 from ..features.box import draw_concentric_boxes
 from ..features.grid import draw_grid_overlay, update_offset_animation
+from ..features.clock_letters import draw_clock_letters_overlay
+from ..rendering.animation import FadeAnimator
 from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
@@ -27,6 +29,7 @@ DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_INFO = "info"
+DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 
 
 class MouseClockTalonAdapter:
@@ -49,6 +52,11 @@ class MouseClockTalonAdapter:
         self.canvases = []
         self.active = False
         self._display_mode = get_setting("display_mode", DISPLAY_MODE_CIRCLES)
+        self._alpha = 255  # Current overlay alpha (0-255)
+        self._fade_animator = FadeAnimator(
+            on_update=self._on_fade_update,
+            on_complete=None
+        )
 
     def get_display_mode(self) -> str:
         """Get current display mode."""
@@ -56,7 +64,7 @@ class MouseClockTalonAdapter:
 
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings."""
-        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO):
+        if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS):
             self._display_mode = mode
             set_setting("display_mode", mode)
             log_info(f"Display mode set to: {mode}")
@@ -137,25 +145,16 @@ class MouseClockTalonAdapter:
         self.screen = screen_found
         self.active_canvas = self.canvases[screens.index(self.screen)]
 
-    def show(self):
-        """Show the mouse clock on all canvases."""
-        print(f"[DEBUG show] called, active={self.active}, canvases={len(self.canvases)}")
-        if self.active:
-            print("[DEBUG show] already active, returning")
-            return
+    def _on_fade_update(self, alpha: int):
+        """Called when fade animation updates alpha."""
+        self._alpha = alpha
+        # Trigger redraw on all canvases
         for canvas_obj in self.canvases:
-            canvas_obj.register("draw", self.draw)
             canvas_obj.freeze()
-        self.active = True
-        set_overlay_active("mouse_clock")
-        print(f"[DEBUG show] done, active={self.active}")
 
-    def close(self):
-        """Close the mouse clock and clean up canvases."""
-        print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
-        if not self.active:
-            print("[DEBUG close] not active, returning")
-            return
+    def _on_fade_out_complete(self):
+        """Called when fade out animation completes."""
+        # Now actually close the canvases
         for canvas_obj in self.canvases:
             canvas_obj.unregister("draw", self.draw)
             canvas_obj.close()
@@ -163,7 +162,37 @@ class MouseClockTalonAdapter:
         self.active_canvas = None
         self.active = False
         set_overlay_inactive("mouse_clock")
-        print("[DEBUG close] done")
+        print("[DEBUG close] fade out complete, canvases closed")
+
+    def show(self):
+        """Show the mouse clock on all canvases with fade in."""
+        print(f"[DEBUG show] called, active={self.active}, canvases={len(self.canvases)}")
+        if self.active:
+            print("[DEBUG show] already active, returning")
+            return
+        # Start at full opacity, then pulse down
+        self._alpha = 255
+        for canvas_obj in self.canvases:
+            canvas_obj.register("draw", self.draw)
+            canvas_obj.freeze()
+        self.active = True
+        set_overlay_active("mouse_clock")
+        # Start pulsing animation: fade down to 0, pause, fade back up
+        # Slow fade out (4s), quick fade in (1s), 2s pause at transparent
+        self._fade_animator.alpha = 255
+        self._fade_animator.pulse(min_alpha=0, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
+        print(f"[DEBUG show] done, active={self.active}, starting pulse")
+
+    def close(self):
+        """Close the mouse clock with fade out animation."""
+        print(f"[DEBUG close] called, active={self.active}, canvases={len(self.canvases)}")
+        if not self.active:
+            print("[DEBUG close] not active, returning")
+            return
+        # Stop pulsing and fade out, then close canvases when complete
+        self._fade_animator._pulsing = False
+        self._fade_animator.fade_out(duration_ms=300, on_complete=self._on_fade_out_complete)
+        print("[DEBUG close] starting fade out")
 
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas."""
@@ -185,13 +214,17 @@ class MouseClockTalonAdapter:
             lerp = self.core._animator.get_lerp_factor()
             grid_animating = update_offset_animation(lerp)
             still_animating = still_animating or grid_animating
-            draw_grid_overlay(canvas_obj, screen_rect)
+            draw_grid_overlay(canvas_obj, screen_rect, alpha=self._alpha)
         elif self._display_mode == DISPLAY_MODE_INFO:
             # Draw info/help overlay
             # Lazy import to avoid module load order issues with Talon
             from ..features.info.render import draw_info_overlay
             screen_rect = self.get_screen_rect()
             draw_info_overlay(canvas_obj, screen_rect)
+        elif self._display_mode == DISPLAY_MODE_CLOCK_LETTERS:
+            # Draw clock letters overlay
+            screen_rect = self.get_screen_rect()
+            draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=self._alpha)
         else:
             # Default: circles only
             draw_mouse_clock(

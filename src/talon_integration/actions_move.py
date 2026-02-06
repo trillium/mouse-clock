@@ -4,10 +4,15 @@ Mouse clock movement actions - move, opposite, original, recenter_and_move.
 
 from typing import List
 
-from .instance import mod, ctx_tags, get_mouse_clock_instance
-from .adapter import DISPLAY_MODE_INFO
+from talon import Module, ctrl
+
+from .instance import ctx_tags, get_mouse_clock_instance
+from .adapter import DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS
+
+mod = Module()
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning
+from ..features.clock_letters.targeting import get_clock_letters_target
 
 
 @mod.action_class
@@ -17,8 +22,33 @@ class MoveActions:
 
         If the same command is repeated, recenter the clock at the current position
         and apply the command again, effectively moving in that direction.
+
+        In clock_letters mode, uses grid-style targeting (letter+color -> position).
         """
+        print(f"[DEBUG move_multiple] CALLED with: {letters_colors}")
         mouse_clock = get_mouse_clock_instance()
+        print(f"[DEBUG move_multiple] display_mode={mouse_clock.get_display_mode()}")
+
+        # Check if in clock_letters mode - use different targeting
+        if mouse_clock.get_display_mode() == DISPLAY_MODE_CLOCK_LETTERS:
+            typed_expressions = parse_voice_inputs(letters_colors)
+            letters = typed_expressions['letters']
+            colors = typed_expressions['colors']
+
+            if not letters or not colors:
+                log_warning("[clock_letters] Need both letter and color for targeting")
+                return
+
+            # Use first letter and first color for targeting
+            letter = letters[0]
+            color = colors[0]
+            screen_rect = mouse_clock.get_screen_rect()
+            x, y = get_clock_letters_target(screen_rect, letter, color)
+            ctrl.mouse_move(x, y)
+            log_info(f"[clock_letters] Moved to {letter} {color} -> ({x:.0f}, {y:.0f})")
+            return
+
+        # Standard mouse clock behavior
         typed_expressions = parse_voice_inputs(letters_colors)
         letters = typed_expressions['letters']
         colors = typed_expressions['colors']

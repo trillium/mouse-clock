@@ -227,7 +227,7 @@ def get_active_letters() -> list:
 # Per-Display-Mode Configuration
 # =============================================================================
 
-CONFIGURABLE_MODES = ["circles", "boxes", "grid"]
+CONFIGURABLE_MODES = ["circles", "boxes", "grid", "clock_letters"]
 
 # Info panel modes (which mode's config/commands to display)
 INFO_PANEL_MODES = ["grid", "boxes", "circles"]

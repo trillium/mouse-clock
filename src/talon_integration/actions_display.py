@@ -4,7 +4,7 @@ Mouse clock display mode actions.
 
 from talon import Module
 from .instance import ctx_tags, get_mouse_clock_instance
-from .adapter import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO
+from .adapter import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS
 from ..core.config import (
     cycle_info_panel_next,
     cycle_info_panel_previous,
@@ -18,7 +18,7 @@ from ..core.config import (
 mod = Module()
 
 # Display modes in rotation order
-DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO]
+DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_INFO]
 
 
 def _update_info_tag(mode: str):
@@ -69,6 +69,10 @@ class DisplayActions:
     def mouse_clock_mode_info():
         """Switch to info/help display mode."""
         _set_mode_and_refresh(DISPLAY_MODE_INFO)
+
+    def mouse_clock_mode_clock_letters():
+        """Switch to clock letters display mode (letters in colors)."""
+        _set_mode_and_refresh(DISPLAY_MODE_CLOCK_LETTERS)
 
     def mouse_clock_get_mode() -> str:
         """Get current display mode."""
