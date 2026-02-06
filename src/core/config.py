@@ -1,3 +1,4 @@
+_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Configuration and constants for the mouse clock system.
 
@@ -205,6 +206,11 @@ def _auto_save():
 def load_default_settings() -> bool:
     """Load settings from the default file on startup."""
     return load_settings(str(_SETTINGS_FILE))
+
+
+# Auto-load settings when this module is first imported by Talon
+if load_default_settings():
+    print("mouse-clock: loaded settings from settings.json")
 
 
 # =============================================================================

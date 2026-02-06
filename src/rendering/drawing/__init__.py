@@ -1,3 +1,4 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Basic shape drawing primitives for overlay systems.
 
@@ -5,43 +6,32 @@ Provides a consistent API for drawing lines, circles, rectangles, dots,
 crosses, and text on Talon canvas objects.
 """
 
-# Basic primitives
-from .primitives import (
-    draw_line,
-    draw_dotted_line,
-    draw_dashed_line,
-    draw_circle,
-    draw_rect,
-    draw_dot,
-    draw_cross,
-    draw_text,
-    LineStyle,
-    LINE_STYLE_PATTERNS,
-)
-
-# Composite shapes
-from .composite import (
-    draw_ray,
-    draw_concentric_circles,
-    draw_concentric_rects,
-    draw_clock_rays,
-)
-
-__all__ = [
+_LAZY_IMPORTS = {
     # primitives
-    "draw_line",
-    "draw_dotted_line",
-    "draw_dashed_line",
-    "draw_circle",
-    "draw_rect",
-    "draw_dot",
-    "draw_cross",
-    "draw_text",
-    "LineStyle",
-    "LINE_STYLE_PATTERNS",
+    'draw_line': '.primitives',
+    'draw_dotted_line': '.primitives',
+    'draw_dashed_line': '.primitives',
+    'draw_circle': '.primitives',
+    'draw_rect': '.primitives',
+    'draw_dot': '.primitives',
+    'draw_cross': '.primitives',
+    'draw_text': '.primitives',
+    'LineStyle': '.primitives',
+    'LINE_STYLE_PATTERNS': '.primitives',
     # composite
-    "draw_ray",
-    "draw_concentric_circles",
-    "draw_concentric_rects",
-    "draw_clock_rays",
-]
+    'draw_ray': '.composite',
+    'draw_concentric_circles': '.composite',
+    'draw_concentric_rects': '.composite',
+    'draw_clock_rays': '.composite',
+}
+
+def __getattr__(name):
+    if name in _LAZY_IMPORTS:
+        from importlib import import_module
+        mod = import_module(_LAZY_IMPORTS[name], __name__)
+        val = getattr(mod, name)
+        globals()[name] = val
+        return val
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+__all__ = list(_LAZY_IMPORTS.keys())

@@ -1,9 +1,6 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Mouse Clock - Voice-controlled mouse positioning tool.
 
-This package imports all Talon integration modules to ensure
-actions are registered.
+Talon loads each .py file individually; no eager imports needed here.
 """
-
-# Import talon integration to register all actions
-from . import talon_integration

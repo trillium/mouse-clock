@@ -1,3 +1,4 @@
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Grid Overlay for MouseClock.
 
@@ -7,88 +8,50 @@ Renders a letter/color grid for precise targeting:
 - Intersections provide target points
 """
 
-# Configuration
-from .config import (
-    DEFAULT_TEXT_COLOR,
-    DEFAULT_TEXT_BG_COLOR,
-    get_text_color,
-    get_text_bg_color,
-    get_grid_colors,
-    get_grid_styles,
-    get_horizontal_styles,
-    get_vertical_styles,
-    get_grid_letters,
-    get_column_spacing,
-)
-
-# State management
-from .state import (
-    get_column_offset,
-    get_target_offset,
-    set_column_offset,
-    shift_columns_left,
-    shift_columns_right,
-    reset_column_offset,
-    reset_grid_state,
-    end_hiss_session,
-    end_shush_session,
-    grid_hiss,
-    grid_shush,
-    get_hiss_direction,
-    get_shush_mode,
-    update_offset_animation,
-)
-
-# Layout calculations
-from .layout import (
-    get_visible_letters,
-    calculate_row_positions,
-    calculate_column_positions,
-)
-
-# Rendering
-from .render import (
-    draw_grid_overlay,
-)
-
-# Targeting
-from .targeting import (
-    get_grid_target,
-)
-
-__all__ = [
+_LAZY_IMPORTS = {
     # config
-    "DEFAULT_TEXT_COLOR",
-    "DEFAULT_TEXT_BG_COLOR",
-    "get_text_color",
-    "get_text_bg_color",
-    "get_grid_colors",
-    "get_grid_styles",
-    "get_horizontal_styles",
-    "get_vertical_styles",
-    "get_grid_letters",
-    "get_column_spacing",
+    'DEFAULT_TEXT_COLOR': '.config',
+    'DEFAULT_TEXT_BG_COLOR': '.config',
+    'get_text_color': '.config',
+    'get_text_bg_color': '.config',
+    'get_grid_colors': '.config',
+    'get_grid_styles': '.config',
+    'get_horizontal_styles': '.config',
+    'get_vertical_styles': '.config',
+    'get_grid_letters': '.config',
+    'get_column_spacing': '.config',
     # state
-    "get_column_offset",
-    "get_target_offset",
-    "set_column_offset",
-    "shift_columns_left",
-    "shift_columns_right",
-    "reset_column_offset",
-    "reset_grid_state",
-    "end_hiss_session",
-    "end_shush_session",
-    "grid_hiss",
-    "grid_shush",
-    "get_hiss_direction",
-    "get_shush_mode",
-    "update_offset_animation",
+    'get_column_offset': '.state',
+    'get_target_offset': '.state',
+    'set_column_offset': '.state',
+    'shift_columns_left': '.state',
+    'shift_columns_right': '.state',
+    'reset_column_offset': '.state',
+    'reset_grid_state': '.state',
+    'end_hiss_session': '.state',
+    'end_shush_session': '.state',
+    'grid_hiss': '.state',
+    'grid_shush': '.state',
+    'get_hiss_direction': '.state',
+    'get_shush_mode': '.state',
+    'update_offset_animation': '.state',
     # layout
-    "get_visible_letters",
-    "calculate_row_positions",
-    "calculate_column_positions",
+    'get_visible_letters': '.layout',
+    'calculate_row_positions': '.layout',
+    'calculate_column_positions': '.layout',
     # render
-    "draw_grid_overlay",
+    'draw_grid_overlay': '.render',
     # targeting
-    "get_grid_target",
-]
+    'get_grid_target': '.targeting',
+}
+
+def __getattr__(name):
+    if name in _LAZY_IMPORTS:
+        from importlib import import_module
+        mod = import_module(_LAZY_IMPORTS[name], __name__)
+        val = getattr(mod, name)
+        globals()[name] = val
+        return val
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+__all__ = list(_LAZY_IMPORTS.keys())
