@@ -246,3 +246,67 @@ class DisplayActions:
                 for canvas_obj in mouse_clock.canvases:
                     canvas_obj.freeze()
             print(f"Removed {item} from {mode} {dimension}")
+
+    def mouse_clock_info_add_items(items: list[str]):
+        """Add multiple items based on current edit focus."""
+        mode = get_info_panel_mode()
+        focus = get_info_edit_focus()
+
+        if focus == "colors":
+            dimension = "colors"
+        elif focus == "horizontal":
+            if mode != "grid":
+                print("Horizontal styles only available on grid panel")
+                return
+            dimension = "horizontal_styles"
+        elif focus == "vertical":
+            if mode != "grid":
+                print("Vertical styles only available on grid panel")
+                return
+            dimension = "vertical_styles"
+        else:
+            return
+
+        added = []
+        for item in items:
+            if add_mode_item(mode, dimension, item):
+                added.append(item)
+
+        if added:
+            mouse_clock = get_mouse_clock_instance()
+            if mouse_clock.active:
+                for canvas_obj in mouse_clock.canvases:
+                    canvas_obj.freeze()
+            print(f"Added {', '.join(added)} to {mode} {dimension}")
+
+    def mouse_clock_info_remove_items(items: list[str]):
+        """Remove multiple items based on current edit focus."""
+        mode = get_info_panel_mode()
+        focus = get_info_edit_focus()
+
+        if focus == "colors":
+            dimension = "colors"
+        elif focus == "horizontal":
+            if mode != "grid":
+                print("Horizontal styles only available on grid panel")
+                return
+            dimension = "horizontal_styles"
+        elif focus == "vertical":
+            if mode != "grid":
+                print("Vertical styles only available on grid panel")
+                return
+            dimension = "vertical_styles"
+        else:
+            return
+
+        removed = []
+        for item in items:
+            if remove_mode_item(mode, dimension, item):
+                removed.append(item)
+
+        if removed:
+            mouse_clock = get_mouse_clock_instance()
+            if mouse_clock.active:
+                for canvas_obj in mouse_clock.canvases:
+                    canvas_obj.freeze()
+            print(f"Removed {', '.join(removed)} from {mode} {dimension}")

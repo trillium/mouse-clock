@@ -19,6 +19,10 @@ remove <user.color>: user.mouse_clock_info_remove_color(color)
 add <user.line_style>: user.mouse_clock_info_add_item(line_style)
 remove <user.line_style>: user.mouse_clock_info_remove_item(line_style)
 
+# Batch add/remove for styles (2+ items)
+batch add <user.line_style>+: user.mouse_clock_info_add_items(line_style_list)
+batch remove <user.line_style>+: user.mouse_clock_info_remove_items(line_style_list)
+
 # Explicit horizontal/vertical (still works without setting focus)
 add <user.line_style> horizontal: user.mouse_clock_info_add_horizontal_style(line_style)
 remove <user.line_style> horizontal: user.mouse_clock_info_remove_horizontal_style(line_style)
