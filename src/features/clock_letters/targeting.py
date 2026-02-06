@@ -14,7 +14,8 @@ def get_clock_letters_target(
     screen_rect: Tuple[float, float, float, float],
     letter: str,
     color: str,
-    directions: list = None
+    directions: list = None,
+    target_dash: bool = False
 ) -> Tuple[float, float]:
     """
     Get the (x, y) position for a letter+color target.
@@ -25,6 +26,7 @@ def get_clock_letters_target(
         color: Target color name
         directions: Optional list of offset directions (top, bottom, left, right)
                    Multiple directions combine (e.g., ["top", "left"] = top-left corner)
+        target_dash: If True, target the dash after the specified color column
 
     Returns:
         (x, y) coordinates of the target
@@ -51,8 +53,17 @@ def get_clock_letters_target(
     row_positions = calculate_row_positions(top, bottom, len(letters))
     col_positions = calculate_column_positions(left, right, len(colors))
 
-    x = col_positions[color_idx] if color_idx < len(col_positions) else left
     y = row_positions[letter_idx] if letter_idx < len(row_positions) else top
+
+    if target_dash:
+        # Target the dash after this color column (midpoint to next column)
+        if color_idx < len(col_positions) - 1:
+            x = (col_positions[color_idx] + col_positions[color_idx + 1]) / 2
+        else:
+            # Last column has no dash after it, target the column itself
+            x = col_positions[color_idx] if color_idx < len(col_positions) else left
+    else:
+        x = col_positions[color_idx] if color_idx < len(col_positions) else left
 
     # Apply directional offsets (can combine multiple)
     if directions:

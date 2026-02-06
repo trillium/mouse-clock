@@ -86,12 +86,20 @@ def styled_target(match) -> str:
     return result
 
 
-@mod.capture(rule="<user.styled_target>+")
+@mod.capture(rule="<user.styled_target>+ [dash]")
 def letters_colors(match) -> list[str]:
-    """Capture any number of styled targets.
+    """Capture any number of styled targets, with optional 'dash' suffix for targeting.
 
     Each target is optionally preceded by a line style.
-    Example: "dash air red" -> ["dashed:a", "red"]
-    Example: "dash air dot red" -> ["dashed:a", "dotted:red"]
+    'dash' at the end targets the dash separator after the last color.
+    Example: "dash air red" -> ["dashed:a", "red"] (line style)
+    Example: "air red dash" -> ["a", "red", "dash"] (dash targeting)
     """
-    return list(match.styled_target_list)
+    result = list(match.styled_target_list)
+    # Check if 'dash' was captured at the end (for dash targeting)
+    try:
+        if match.dash:
+            result.append("dash")
+    except AttributeError:
+        pass
+    return result

@@ -53,6 +53,7 @@ def parse_voice_inputs(words: List[str]) -> dict:
     letters_list = []
     colors_list = []
     directions_list = []
+    styles_list = []  # For "dash", "solid", etc.
     unknowns_list = []
 
     i = 0
@@ -92,7 +93,7 @@ def parse_voice_inputs(words: List[str]) -> dict:
                 for _ in range(multiplier - 1):
                     colors_list.append(last_color)
 
-        elif val in config.CLOCK_LETTERS:
+        elif val in config.ALL_LETTERS:
             letters_list.append(val)
         elif val == "mouse":
             # "mouse" means center point
@@ -102,6 +103,9 @@ def parse_voice_inputs(words: List[str]) -> dict:
             colors_list.append("half")
         elif val in config.COLOR_MAP:
             colors_list.append(val)
+        elif val == "dash":
+            # "dash" means target the dash separator after the color
+            styles_list.append("dash")
         elif val:  # Only add non-empty unknowns
             unknowns_list.append(val)
 
@@ -111,5 +115,6 @@ def parse_voice_inputs(words: List[str]) -> dict:
         "letters": letters_list,
         "colors": colors_list,
         "directions": directions_list,
+        "styles": styles_list,
         "unknowns": unknowns_list
     }

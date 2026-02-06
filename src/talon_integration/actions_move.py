@@ -6,7 +6,8 @@ from typing import List
 
 from talon import Module, ctrl
 
-from .instance import ctx_tags, get_mouse_clock_instance
+from .instance import get_mouse_clock_instance
+from .actions_core import set_mouse_clock_tags
 from .adapter import DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS
 
 mod = Module()
@@ -33,6 +34,8 @@ class MoveActions:
             letters = typed_expressions['letters']
             colors = typed_expressions['colors']
             directions = typed_expressions.get('directions', [])
+            styles = typed_expressions.get('styles', [])
+            target_dash = 'dash' in styles
 
             if not letters or not colors:
                 log_warning("[clock_letters] Need both letter and color for targeting")
@@ -45,7 +48,7 @@ class MoveActions:
             for letter in letters:
                 for color in colors:
                     # Pass all directions to apply them cumulatively
-                    x, y = get_clock_letters_target(screen_rect, letter, color, directions)
+                    x, y = get_clock_letters_target(screen_rect, letter, color, directions, target_dash)
                     points.append((x, y))
 
             if not points:
@@ -208,7 +211,7 @@ class MoveActions:
         tags = ["user.mouse_clock_showing"]
         if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
             tags.append("user.mouse_clock_info_mode")
-        ctx_tags.tags = tags
+        set_mouse_clock_tags(tags)
 
         # Store as original command for potential reversal
         mouse_clock.core.original_command = (letters, colors)
