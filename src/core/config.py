@@ -66,10 +66,10 @@ from pathlib import Path
 _SETTINGS_FILE = Path(__file__).parent.parent / "settings.json"
 
 # All available line styles
+# Disabled: morse, barb, spike, saw (asymmetric), zig, wave
 ALL_LINE_STYLES = [
-    "solid", "dash", "dot", "tick", "blip", "long", "morse",
-    "twin", "chain", "wave", "zig", "barb", "rail",
-    "cross", "link", "bead", "spike", "hash", "saw",
+    "solid", "dash", "dot", "tick", "blip", "long",
+    "twin", "chain", "rail", "cross", "link", "bead", "hash",
 ]
 
 # All available color names (excluding "center" which is a special position)

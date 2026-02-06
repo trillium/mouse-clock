@@ -20,11 +20,8 @@ from talon.skia import Paint, Rect
 LineStyle = Literal[
     # Simple dash/gap patterns
     "solid", "line", "dash", "dot", "tick", "blip", "long",
-    # Multi-segment pattern
-    "morse",
-    # Structural styles
-    "twin", "chain", "wave", "zig", "barb", "rail",
-    "cross", "link", "bead", "spike", "hash", "saw",
+    # Structural styles (disabled: morse, barb, spike, saw, zig, wave)
+    "twin", "chain", "rail", "cross", "link", "bead", "hash",
 ]
 
 # Simple dash/gap patterns: (dash_length, gap_length)

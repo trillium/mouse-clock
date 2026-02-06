@@ -280,18 +280,19 @@ def _draw_saw(canvas, start: Tuple[float, float], end: Tuple[float, float], thic
         pos += tooth_width
 
 # Mapping of structural styles to their drawing functions
+# Disabled: morse, barb, spike, saw (asymmetric), zig, wave
 STRUCTURAL_STYLES: Dict[str, Callable] = {
-    "morse": lambda c, s, e, _: _draw_morse(c, s, e),
+    # "morse": lambda c, s, e, _: _draw_morse(c, s, e),  # asymmetric
     "twin": _draw_twin,
     "chain": _draw_chain,
-    "wave": _draw_wave,
-    "zig": _draw_zig,
-    "barb": _draw_barb,
+    # "wave": _draw_wave,  # disabled
+    # "zig": _draw_zig,  # disabled
+    # "barb": _draw_barb,  # asymmetric
     "rail": _draw_rail,
     "cross": _draw_cross,
     "link": _draw_link,
     "bead": _draw_bead,
-    "spike": _draw_spike,
+    # "spike": _draw_spike,  # asymmetric
     "hash": _draw_hash,
-    "saw": _draw_saw,
+    # "saw": _draw_saw,  # asymmetric
 }
