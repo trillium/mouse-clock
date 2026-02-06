@@ -27,6 +27,7 @@ from .data import (
     SECTION_GAP,
     TEXT_COLOR,
 )
+from .contrast import relative_luminance, parse_hex_color
 
 # Color for inactive/disabled items
 INACTIVE_COLOR = "666666ff"
@@ -69,6 +70,17 @@ CIRCLES_COMMANDS = [
 # Shared Drawing Helpers
 # =============================================================================
 
+def _get_contrast_text_color(color_hex: str) -> str:
+    """Return black or white text color based on background luminance."""
+    try:
+        r, g, b, _ = parse_hex_color(color_hex)
+        lum = relative_luminance(r, g, b)
+        # Use black text on light backgrounds, white on dark
+        return "000000ff" if lum > 0.5 else "ffffffff"
+    except (ValueError, IndexError):
+        return TEXT_COLOR
+
+
 def draw_colors_section(canvas, x: float, y: float, mode: str, header: str) -> float:
     """Draw a colors section for a mode. Returns final y position."""
     active_colors = get_mode_config(mode, "colors")
@@ -80,8 +92,9 @@ def draw_colors_section(canvas, x: float, y: float, mode: str, header: str) -> f
 
     for color_name, color_hex in COLORS:
         is_active = color_name in active_colors
-        text_color = TEXT_COLOR if is_active else INACTIVE_COLOR
         swatch_color = color_hex if is_active else "333333ff"
+        # Use contrast-aware text color based on swatch brightness
+        text_color = _get_contrast_text_color(swatch_color) if is_active else INACTIVE_COLOR
 
         indicator = "+" if is_active else "-"
         indicator_color = ACTIVE_INDICATOR if is_active else INACTIVE_COLOR
