@@ -65,6 +65,7 @@ clock mark <user.text>:
 clock circles: user.mouse_clock_mode_circles()
 clock boxes: user.mouse_clock_mode_boxes()
 clock grid: user.mouse_clock_mode_grid()
+clock letters: user.mouse_clock_mode_clock_letters()
 clock info: user.mouse_clock_mode_info()
 clock display next: user.mouse_clock_cycle_mode()
 clock display (previous | last): user.mouse_clock_cycle_mode_previous()
