@@ -65,11 +65,21 @@ class MouseClockTalonAdapter:
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings."""
         if mode in (DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_INFO, DISPLAY_MODE_CLOCK_LETTERS):
+            old_mode = self._display_mode
             self._display_mode = mode
             set_setting("display_mode", mode)
             log_info(f"Display mode set to: {mode}")
-            # Refresh display if active
+            # Handle animation state changes
             if self.active:
+                if mode == DISPLAY_MODE_INFO:
+                    # Stop pulsing for info mode
+                    self._fade_animator._pulsing = False
+                    self._alpha = 255
+                elif old_mode == DISPLAY_MODE_INFO:
+                    # Restart pulsing when leaving info mode
+                    self._fade_animator.alpha = 255
+                    self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
+                # Refresh display
                 for canvas_obj in self.canvases:
                     canvas_obj.freeze()
 
@@ -177,11 +187,14 @@ class MouseClockTalonAdapter:
             canvas_obj.freeze()
         self.active = True
         set_overlay_active("mouse_clock")
-        # Start pulsing animation: fade down to 0, pause, fade back up
-        # Slow fade out (4s), quick fade in (1s), 2s pause at transparent
-        self._fade_animator.alpha = 255
-        self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
-        print(f"[DEBUG show] done, active={self.active}, starting pulse")
+        # Start pulsing animation (skip for info mode - static display)
+        if self._display_mode != DISPLAY_MODE_INFO:
+            # Slow fade out (4s), quick fade in (1s), 2s pause at transparent
+            self._fade_animator.alpha = 255
+            self._fade_animator.pulse(min_alpha=80, max_alpha=255, fade_out_ms=4000, fade_in_ms=1000, delay_at_min_ms=2000)
+            print(f"[DEBUG show] done, active={self.active}, starting pulse")
+        else:
+            print(f"[DEBUG show] done, active={self.active}, info mode - no pulse")
 
     def close(self):
         """Close the mouse clock with fade out animation."""
