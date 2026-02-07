@@ -274,7 +274,7 @@ class Actions:
     def clock_ring_hide():
         """Hide the clock ring and hats info panel"""
         _hide()
-        from .test_svg_render import _hide as _hats_hide
+        from .hats_info import _hide as _hats_hide
         _hats_hide()
 
     def clock_ring_select(color: str, shape: str):
@@ -282,7 +282,7 @@ class Actions:
         offset = _shape_positions.get((color, shape))
         if not offset:
             # Fall through to hats info panel
-            from .test_svg_render import _select as _hats_select
+            from .hats_info import _select as _hats_select
             if _hats_select(color, shape):
                 return
             return
