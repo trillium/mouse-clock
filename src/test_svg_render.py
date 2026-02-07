@@ -17,7 +17,7 @@ _shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
 _SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
 
 
-from .rendering.shapes import HAT_NAMES
+from .core.constants import HAT_NAMES
 
 
 def _load_svg_paths():

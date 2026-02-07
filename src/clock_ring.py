@@ -85,7 +85,7 @@ def _load_svg_paths():
 
     "default" is returned first, then the rest alphabetically.
     """
-    from .rendering.shapes import HAT_NAMES
+    from .core.constants import HAT_NAMES
 
     results = []
     default_entry = None

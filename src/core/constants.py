@@ -60,3 +60,20 @@ DEFAULT_DOT_RADIUS = 5
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS]
+
+# Cursorless hat shapes: SVG filename stem -> one-syllable spoken form
+HAT_NAMES = {
+    "bolt": "bolt",
+    "crosshairs": "cross",
+    "curve": "curve",
+    "default": "dot",
+    "ex": "ex",
+    "eye": "eye",
+    "fox": "fox",
+    "frame": "frame",
+    "hole": "hole",
+    "play": "play",
+    "wing": "wing",
+}
+HAT_SHAPES = [name for name in HAT_NAMES.values() if name != "dot"]
+HAT_SHAPE_LIST = {v: v for v in HAT_NAMES.values()}
