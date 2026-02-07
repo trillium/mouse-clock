@@ -10,7 +10,7 @@ HAT_NAMES = {
     "bolt": "bolt",
     "crosshairs": "cross",
     "curve": "curve",
-    "default": "default",
+    "default": "dot",
     "ex": "ex",
     "eye": "eye",
     "fox": "fox",
@@ -20,8 +20,8 @@ HAT_NAMES = {
     "wing": "wing",
 }
 
-# Just the spoken forms (excluding "default" which has no distinct shape name)
-HAT_SHAPES = [name for name in HAT_NAMES.values() if name != "default"]
+# Just the spoken forms (excluding "dot"/default which is the base hat shape)
+HAT_SHAPES = [name for name in HAT_NAMES.values() if name != "dot"]
 
 # Spoken form -> spoken form, suitable for a talon-list
 HAT_SHAPE_LIST = {v: v for v in HAT_NAMES.values()}

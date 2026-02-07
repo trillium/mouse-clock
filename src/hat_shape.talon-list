@@ -3,7 +3,7 @@ list: user.hat_shape
 bolt: bolt
 cross: cross
 curve: curve
-default: default
+dot: dot
 ex: ex
 eye: eye
 fox: fox
