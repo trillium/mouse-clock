@@ -1,6 +1,14 @@
 tag: user.use_mouse_clock
 and tag: user.mouse_clock_this_mode
 -
+# Step 1/8 toward target (bare "this")
+this:
+    user.mouse_clock_this_step()
+
+# Repeated "this <target>" - step if same, new line if different
+this <user.letters_colors>+:
+    user.mouse_clock_this_repeat(letters_colors)
+
 # Shift ray center to color position(s)
 <user.letters_colors>+:
     user.mouse_clock_this_shift(letters_colors)

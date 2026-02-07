@@ -1,4 +1,4 @@
-_V = "0.0.5"; print(f"[v{_V}] {__name__}")
+_V = "0.0.8"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """
@@ -312,12 +312,16 @@ class MoveActions:
                 cx, cy = mouse_clock.calculate_mouse_position(letters, [color_name])
             color_targets[color_name] = (cx, cy)
 
-        # Store geometry for color switching
+        # Store geometry for color switching and repeat detection
+        import math
+        orig_dist = math.sqrt((end_x - start_x)**2 + (end_y - start_y)**2)
         mouse_clock._this_line_data = {
             'target': (end_x, end_y),
             'colors': all_colors,
             'color_targets': color_targets,
-            'current_color': colors_input[0],  # The color user specified
+            'current_color': colors_input[0],
+            'original_input': list(letters_colors),  # For repeat detection
+            'step_size': orig_dist / 8.0,  # 8 steps to reach target
         }
 
         # Build and set lines
@@ -367,6 +371,57 @@ class MoveActions:
         # Rebuild fan from this color's endpoint as new start, same target
         _set_this_lines(mouse_clock, new_start, data)
         log_info(f"[this shift] Start moved to {color_name} at ({new_start[0]:.0f}, {new_start[1]:.0f})")
+
+    def mouse_clock_this_step():
+        """Step 1/8 of original distance toward the target."""
+        import math
+        mouse_clock = _get_instance()
+
+        if not mouse_clock._this_line_data:
+            log_warning("[this step] No active lines")
+            return
+
+        data = mouse_clock._this_line_data
+        target = data['target']
+        step_size = data.get('step_size', 0)
+        if step_size == 0:
+            return
+
+        mouse_x, mouse_y = ctrl.mouse_pos()
+        dx = target[0] - mouse_x
+        dy = target[1] - mouse_y
+        dist = math.sqrt(dx * dx + dy * dy)
+        if dist == 0:
+            return
+
+        # Move toward target by step_size, but don't overshoot
+        move = min(step_size, dist)
+        new_x = mouse_x + (dx / dist) * move
+        new_y = mouse_y + (dy / dist) * move
+        ctrl.mouse_move(new_x, new_y)
+
+        # Rebuild fan from new position
+        _set_this_lines(mouse_clock, (new_x, new_y), data)
+        log_info(f"[this step] Stepped {move:.0f}px toward target, {dist - move:.0f}px remaining")
+
+    def mouse_clock_this_repeat(letters_colors: List[str]):
+        """If same target as current, step toward it. Otherwise create new line."""
+        from talon import actions
+        mouse_clock = _get_instance()
+
+        if not mouse_clock._this_line_data:
+            actions.user.mouse_clock_this_line(letters_colors)
+            return
+
+        original = mouse_clock._this_line_data.get('original_input', [])
+        incoming = list(letters_colors)
+        log_debug(f"[this repeat] incoming={incoming} (types={[type(x).__name__ for x in incoming]})")
+        log_debug(f"[this repeat] original={original} (types={[type(x).__name__ for x in original]})")
+        log_debug(f"[this repeat] match={incoming == original}")
+        if incoming == original:
+            actions.user.mouse_clock_this_step()
+        else:
+            actions.user.mouse_clock_this_line(letters_colors)
 
     def mouse_clock_clear_this_line():
         """Clear the 'this' lines and return to previous mode."""
