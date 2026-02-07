@@ -1,5 +1,5 @@
-_V = "0.0.3"; print(f"[v{_V}] {__name__}")
-"""Build parallel offset lines for 'this' mode targeting."""
+_V = "0.0.5"; print(f"[v{_V}] {__name__}")
+"""Build fan lines for 'this' mode targeting."""
 
 import math
 from typing import List, Tuple, Optional
@@ -14,10 +14,12 @@ def build_parallel_lines(
     colors: List[str],
     spacing: float = 15.0,
 ) -> Optional[List[Line]]:
-    """Build parallel lines from start toward target, offset perpendicular to direction.
+    """Build fan lines from shared start to spread-out endpoints.
 
-    Colors are always in fixed positions centered around gray.
-    The color array midpoint aligns with gray — positions never shift.
+    All lines share the same start point. Endpoints are offset
+    perpendicular to the direction, creating a fan shape.
+
+    Colors are in fixed positions centered around gray.
 
     Returns a list of (start, end, color_name) tuples:
       - lines[0] is always the gray center indicator
@@ -38,7 +40,7 @@ def build_parallel_lines(
     dx /= length
     dy /= length
 
-    # Perpendicular vector for offsets
+    # Perpendicular vector for offsets (applied only at endpoints)
     perp_x, perp_y = -dy, dx
 
     n = len(colors)
@@ -48,13 +50,11 @@ def build_parallel_lines(
     # Gray line FIRST (center indicator, drawn underneath)
     lines.append((start, target, "gray"))
 
-    # Color lines centered around gray, with a gap at offset 0 for gray.
-    # For odd n the middle color would land on gray; shift apart by half-spacing.
+    # Color lines: different start points, all converge to same endpoint
     center = (n - 1) / 2.0
     for i, color_name in enumerate(colors):
         slot = i - center
         if n % 2 == 1:
-            # Push negative half left, positive half right to leave gap for gray
             if slot >= 0:
                 slot += 0.5
             else:
@@ -62,8 +62,6 @@ def build_parallel_lines(
         offset = slot * spacing
         s_x = start_x + perp_x * offset
         s_y = start_y + perp_y * offset
-        e_x = target_x + perp_x * offset
-        e_y = target_y + perp_y * offset
-        lines.append(((s_x, s_y), (e_x, e_y), color_name))
+        lines.append(((s_x, s_y), target, color_name))
 
     return lines
