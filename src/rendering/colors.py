@@ -1,31 +1,16 @@
 """
-Centralized color management for mouse clock overlay systems.
+Color utilities for mouse clock overlay rendering.
 
-Provides a color registry and utilities for looking up, modifying,
-and computing colors used across all rendering components.
+Color definitions live in core/constants.py (single source of truth).
+This module re-exports them and provides color manipulation utilities.
 """
 
 from typing import Tuple
 
+from ..core.constants import COLORS, DISPLAY_COLORS  # noqa: F401 — re-export DISPLAY_COLORS
 
-# Color registry mapping names to 8-digit RGBA hex values
-COLOR_REGISTRY = {
-    "red": "ff0000ff",
-    "blue": "0000ffff",
-    "green": "00ff00ff",
-    "yellow": "ffd700ff",
-    "purple": "800080ff",
-    "pink": "ff00ffff",
-    "center": "000000ff",
-    "black": "000000ff",
-    "white": "ffffffff",
-    "teal": "008080ff",
-    "gray": "9999995f",
-    "light_green": "00ff007f",
-}
-
-# Colors shown in info panels and pie chart (excludes internal-only colors like gray, light_green)
-DISPLAY_COLORS = ["black", "red", "blue", "green", "yellow", "purple", "pink", "white", "teal"]
+# Derived from COLORS: lowercase-keyed registry for rendering lookups
+COLOR_REGISTRY = {k.lower(): v for k, v in COLORS.items()}
 
 
 def get_color(name: str) -> str:

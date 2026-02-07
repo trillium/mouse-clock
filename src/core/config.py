@@ -25,7 +25,7 @@ ALL_LINE_STYLES = [
 ]
 
 # All available color names (excluding "center" which is a special position)
-ALL_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
+ALL_COLORS = list(DISPLAY_COLORS)
 
 # All available letters (full alphabet for clock_letters mode)
 ALL_LETTERS = list("abcdefghijklmnopqrstuvwxyz")

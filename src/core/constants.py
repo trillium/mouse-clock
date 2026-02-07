@@ -30,7 +30,7 @@ COLORS = {
     "BLUE": "0000ffff",        # Blue ring color
     "PINK": "ff00ffff",        # Pink ring color
     "ORANGE": "ffa500ff",      # Orange color (unused currently)
-    "YELLOW": "FFD700ff",      # Gold-like bright yellow
+    "YELLOW": "ffd700ff",      # Gold-like bright yellow
     "PURPLE": "800080ff",      # Classic purple
     "CENTER": "000000ff",      # Center color (black)
 }
@@ -47,6 +47,9 @@ COLOR_INACTIVE = COLORS["BLACK"]
 COLOR_LIST = [COLORS[color.upper()] for color in COLOR_NAMES.split() if color.upper() in COLORS]
 COLOR_MAP = {color: COLORS[color.upper()] for color in COLOR_NAMES.split()}
 COLOR_POS = {color.lower(): index for index, color in enumerate(COLOR_MAP.keys())}
+
+# Colors shown in info panels and pie chart (excludes internal-only colors like gray, light_green, center)
+DISPLAY_COLORS = ["black", "red", "blue", "green", "yellow", "purple", "pink", "white", "teal"]
 
 # Screen dimensions fallback
 DEFAULT_SCREEN_WIDTH = 1920
