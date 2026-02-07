@@ -8,9 +8,10 @@ import math
 import os
 import xml.etree.ElementTree as ET
 
-from talon import Context, Module, ui, ctrl, cron
+from talon import Context, Module, ui, ctrl, cron, skia
 from talon.canvas import Canvas
 from talon.skia import Path
+from talon.ui import Point2d
 
 mod = Module()
 mod.list("hat_shape", desc="Cursorless hat shape spoken forms")
@@ -78,11 +79,33 @@ def _on_draw(c):
     spacing = _get_ring_spacing()
     ring_gap = shape_h + 6 + spacing  # radial spacing between rings
 
+    # Pre-compute number of rings to get max radius for background
+    first_dist = shape_h + 4 + spacing
+    remaining = len(svg_paths)
+    r = 1
+    num_rings = 0
+    while remaining > 0:
+        remaining -= min(r, remaining)
+        num_rings += 1
+        r += 1
+    max_dist = first_dist + (num_rings - 1) * ring_gap
+
+    # Draw dark radial gradient background behind the pie
+    bg_radius = max_dist + shape_h * 3
+    c.paint.style = c.paint.Style.FILL
+    c.paint.shader = skia.Shader.radial_gradient(
+        Point2d(mx, my), bg_radius,
+        ["00000000", "000000b2", "000000b2", "00000000"],
+        [0.0, 0.12, 0.88, 1.0],
+    )
+    c.draw_circle(mx, my, bg_radius)
+    c.paint.shader = None
+
     # Draw concentric rings of hat shapes
     # Ring 1: 1 per color, Ring 2: 2 per color, Ring 3: 3 per color, etc.
     shape_idx = 0
     ring_num = 1
-    dist = shape_h + 4 + spacing  # first ring distance from center
+    dist = first_dist
 
     while shape_idx < len(svg_paths):
         shapes_this_ring = min(ring_num, len(svg_paths) - shape_idx)
