@@ -1,4 +1,4 @@
-_V = "0.0.2"; print(f"[v{_V}] {__name__}")
+_V = "0.0.3"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """
@@ -327,12 +327,16 @@ class MoveActions:
         mouse_clock.set_mode(DISPLAY_MODE_THIS, set_mouse_clock_tags)
 
     def mouse_clock_this_shift(letters_colors: List[str]):
-        """Shift the center/gray line to a color's target position."""
+        """Shift the start point to a color's current line position and redraw."""
         log_action("this_shift", input=letters_colors)
         mouse_clock = _get_instance()
 
         if not mouse_clock._this_line_data:
             log_warning("[this] No active lines to shift")
+            return
+
+        if not mouse_clock._this_lines:
+            log_warning("[this] No rendered lines to shift from")
             return
 
         # Parse to extract just colors
@@ -344,33 +348,25 @@ class MoveActions:
             return
 
         data = mouse_clock._this_line_data
-        color_targets = data['color_targets']
-        log_debug(f"[this] Shifting to {colors}")
+        all_colors = data['colors']
+        color_name = colors[0].lower()
+        log_debug(f"[this] Shifting start to {color_name}")
 
-        # Find target positions for the specified colors
-        targets = []
-        for color in colors:
-            color_lower = color.lower()
-            if color_lower in color_targets:
-                targets.append(color_targets[color_lower])
-
-        if not targets:
-            log_warning(f"[this shift] Color(s) not found: {colors}")
+        # Find this color's index in the color list
+        try:
+            color_index = all_colors.index(color_name)
+        except ValueError:
+            log_warning(f"[this shift] Color not found: {color_name}")
             return
 
-        # Average the target positions
-        avg_x = sum(t[0] for t in targets) / len(targets)
-        avg_y = sum(t[1] for t in targets) / len(targets)
+        # Get that color's current start position from rendered lines
+        # _this_lines[0] = gray, _this_lines[1:] = colors in order
+        color_line = mouse_clock._this_lines[color_index + 1]
+        new_start = color_line[0]
 
-        # Update the main target to this new position
-        data['target'] = (avg_x, avg_y)
-        data['current_color'] = colors[0]
-
-        # Get current start position (from gray line at index 0)
-        if mouse_clock._this_lines:
-            start, _, _ = mouse_clock._this_lines[0]
-            _set_this_lines(mouse_clock, start, data)
-            log_info(f"[this shift] Target moved to {colors} at ({avg_x:.0f}, {avg_y:.0f})")
+        # Rebuild lines from the color's start position, same target
+        _set_this_lines(mouse_clock, new_start, data)
+        log_info(f"[this shift] Start moved to {color_name} at ({new_start[0]:.0f}, {new_start[1]:.0f})")
 
     def mouse_clock_clear_this_line():
         """Clear the 'this' lines and return to previous mode."""

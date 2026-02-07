@@ -1,6 +1,7 @@
 tag: user.use_mouse_clock
 and tag: user.mouse_clock_showing
 and not tag: user.mouse_grid_showing
+and not tag: user.mouse_clock_this_mode
 -
 key(cmd-ctrl-alt-shift-e):
     print("enter mimice SUPER-e")
