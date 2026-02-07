@@ -5,7 +5,7 @@ Mouse clock movement actions - move, opposite, original, recenter_and_move.
 
 from typing import List
 
-from talon import Module, ctrl
+from talon import Module, actions, ctrl
 from .actions_core import set_mouse_clock_tags, clear_mouse_clock_tags
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning, log_debug, log_action, log_state
@@ -406,7 +406,6 @@ class MoveActions:
 
     def mouse_clock_this_repeat(letters_colors: List[str]):
         """If same target as current, step toward it. Otherwise create new line."""
-        from talon import actions
         mouse_clock = _get_instance()
 
         if not mouse_clock._this_line_data:

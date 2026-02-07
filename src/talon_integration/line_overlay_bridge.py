@@ -3,7 +3,7 @@ _V = "0.0.1"; print(f"[v{_V}] {__name__}")
 Talon integration for Lettered Line Overlay.
 """
 
-from talon import Module, Context, canvas, ui
+from talon import Module, Context, canvas, ctrl, ui
 from ..features.line import (
     draw_single_line, draw_all_lines, get_y_for_letter,
     draw_line_with_verticals, get_x_for_color, draw_all_verticals
@@ -144,8 +144,6 @@ def clear_all_lines():
 
 def move_to_line(letter: str):
     """Move cursor to the Y position of a letter band."""
-    from talon import ctrl
-
     width, height = _get_screen_dimensions()
     y = get_y_for_letter(letter, height)
 
@@ -156,8 +154,6 @@ def move_to_line(letter: str):
 
 def move_to_intersection(letter: str, color: str):
     """Move cursor to intersection of horizontal letter and vertical color."""
-    from talon import ctrl
-
     width, height = _get_screen_dimensions()
     y = get_y_for_letter(letter, height)
     x = get_x_for_color(color, width)
