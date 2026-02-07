@@ -801,8 +801,6 @@ This document lists all functions in the codebase organized by file.
 
 ---
 
----
-
 ## src/features/clock_letters/config.py
 
 ### get_text_color
@@ -843,8 +841,6 @@ This document lists all functions in the codebase organized by file.
 
 ### get_clock_letters_target
 **Get the (x, y) position for a letter+color target.**
-
----
 
 ---
 
