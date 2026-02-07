@@ -5,8 +5,7 @@ Provides guard functions and decorators to ensure actions only
 fire when the appropriate overlay is active.
 """
 
-from typing import Callable, Optional, Set
-from functools import wraps
+from typing import Optional, Set
 
 
 class OverlayStateManager:
@@ -97,64 +96,3 @@ def get_active_overlay() -> Optional[str]:
     """Get name of current active overlay."""
     return _state_manager.get_active_overlay()
 
-
-def require_overlay(overlay_name: str = None):
-    """
-    Decorator that only runs function if overlay is active.
-
-    Args:
-        overlay_name: Specific overlay required. If None, any overlay suffices.
-
-    Returns:
-        Decorator function
-
-    Example:
-        @require_overlay("mouse_clock")
-        def on_pop_sound():
-            # Only runs if mouse_clock overlay is active
-            pass
-
-        @require_overlay()
-        def on_hiss_sound():
-            # Runs if any overlay is active
-            pass
-    """
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if overlay_name is not None:
-                if not is_overlay_active(overlay_name):
-                    return None
-            else:
-                if not any_overlay_active():
-                    return None
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
-def require_no_overlay():
-    """
-    Decorator that only runs function if NO overlay is active.
-
-    Useful for actions that should only work when overlays are hidden.
-
-    Example:
-        @require_no_overlay()
-        def activate_clock():
-            # Only runs if no overlay is currently showing
-            pass
-    """
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if any_overlay_active():
-                return None
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
-def get_state_manager() -> OverlayStateManager:
-    """Get the global OverlayStateManager instance."""
-    return _state_manager

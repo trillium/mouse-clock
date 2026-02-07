@@ -9,7 +9,7 @@ from typing import List
 from talon import ctrl, ui
 
 from ..core import config
-from ..core.config import get_setting, set_setting, _auto_save
+from ..core.config import get_setting, set_setting
 from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
 from ..input.guards import set_overlay_active, set_overlay_inactive
@@ -72,8 +72,7 @@ class MouseClockTalonAdapter:
 
         old_mode = self._display_mode
         self._display_mode = mode
-        set_setting("display_mode", mode)
-        _auto_save()
+        set_setting("display_mode", mode, persist=True)
 
         log_mode_change(old_mode, mode)
 

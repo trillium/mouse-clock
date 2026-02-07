@@ -1,12 +1,11 @@
 """Hats info panel - renders cursorless hat SVGs with mouse clock colors."""
 
-import os
-import xml.etree.ElementTree as ET
-
 from talon import Context, Module, ui, ctrl, cron
 from talon.canvas import Canvas
 from talon.skia import Path, RoundRect
 from talon.ui import Rect
+
+from .rendering.svg_loader import load_svg_paths
 
 mod = Module()
 _ctx_tags = Context()
@@ -14,33 +13,10 @@ _ctx_tags = Context()
 _canvas = None
 _poll_job = None
 _shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
-_SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
-
-
-from .core.constants import HAT_NAMES
-
-
-def _load_svg_paths():
-    """Parse SVG files and return (name, path_data) tuples."""
-    results = []
-    for fname in sorted(os.listdir(_SVG_DIR)):
-        if not fname.endswith(".svg"):
-            continue
-        tree = ET.parse(os.path.join(_SVG_DIR, fname))
-        root = tree.getroot()
-        ns = {"svg": "http://www.w3.org/2000/svg"}
-        key = fname.replace(".svg", "")
-        display_name = HAT_NAMES.get(key, key)
-        for path_el in root.findall(".//svg:path", ns):
-            d = path_el.get("d", "")
-            fill_rule = path_el.get("fill-rule", "nonzero")
-            if d:
-                results.append((display_name, d, fill_rule))
-    return results
 
 
 def _on_draw(c):
-    svg_paths = _load_svg_paths()
+    svg_paths = load_svg_paths()
     if not svg_paths:
         c.paint.color = "ff0000"
         c.paint.textsize = 24

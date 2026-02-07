@@ -66,15 +66,18 @@ def get_setting(name: str, default: Any = None) -> Any:
     return default
 
 
-def set_setting(name: str, value: Any):
+def set_setting(name: str, value: Any, persist: bool = False):
     """
     Update a setting at runtime.
 
     Args:
         name: Setting name
         value: New value
+        persist: If True, save settings to disk after updating
     """
     _settings[name] = value
+    if persist:
+        _auto_save()
 
 
 def reset_setting(name: str):

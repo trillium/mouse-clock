@@ -5,8 +5,6 @@ dark backdrop for readability.
 """
 
 import math
-import os
-import xml.etree.ElementTree as ET
 
 from talon import Context, Module, ui, ctrl, skia
 from talon.canvas import Canvas
@@ -14,6 +12,7 @@ from talon.skia import Path
 from talon.ui import Point2d
 
 from .rendering.animation import FadeAnimator
+from .rendering.svg_loader import load_svg_paths
 
 mod = Module()
 mod.list("hat_shape", desc="Cursorless hat shape spoken forms")
@@ -37,39 +36,6 @@ SVG_SCALE = 0.75
 _SPACING_STEP = 1
 SVG_W = 12  # viewBox width
 SVG_H = 9   # viewBox height
-_SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
-
-
-def _load_svg_paths():
-    """Parse SVG files, returning (spoken_name, path_data, fill_rule) tuples.
-
-    "default" is returned first, then the rest alphabetically.
-    """
-    from .core.constants import HAT_NAMES
-
-    results = []
-    default_entry = None
-    for fname in sorted(os.listdir(_SVG_DIR)):
-        if not fname.endswith(".svg"):
-            continue
-        tree = ET.parse(os.path.join(_SVG_DIR, fname))
-        root = tree.getroot()
-        ns = {"svg": "http://www.w3.org/2000/svg"}
-        key = fname.replace(".svg", "")
-        spoken_name = HAT_NAMES.get(key, key)
-        for path_el in root.findall(".//svg:path", ns):
-            d = path_el.get("d", "")
-            fill_rule = path_el.get("fill-rule", "nonzero")
-            if d:
-                entry = (spoken_name, d, fill_rule)
-                if key == "default":
-                    default_entry = entry
-                else:
-                    results.append(entry)
-    # Default first
-    if default_entry:
-        results.insert(0, default_entry)
-    return results
 
 
 def _on_draw(c):
@@ -79,7 +45,7 @@ def _on_draw(c):
     if not colors:
         return
 
-    svg_paths = _load_svg_paths()
+    svg_paths = load_svg_paths(default_first=True)
     _shape_positions.clear()
 
     mx, my = ctrl.mouse_pos()
@@ -174,9 +140,8 @@ def _get_ring_spacing():
 
 
 def _set_ring_spacing(value):
-    from .core.config import set_setting, _auto_save
-    set_setting("clock_ring_ring_spacing", value)
-    _auto_save()
+    from .core.config import set_setting
+    set_setting("clock_ring_ring_spacing", value, persist=True)
 
 
 def _show():
