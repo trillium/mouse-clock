@@ -28,7 +28,6 @@ _event_count = 0
 FILTERS = [
     "mouse_clock",
     "clock_letters",
-    "grid_move",
     "display_mode",
     "canvas",
 ]

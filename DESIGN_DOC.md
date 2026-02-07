@@ -197,11 +197,11 @@ Based on the codebase analysis, the following updates and clarifications apply t
   - No "edge" command implemented yet.
   - No feedback mechanism or calibration features in current code.
   - Averaging clamps to outermost ring if needed, but not explicitly handled in code.
-  - Boxes and info display modes were removed during cleanup (Feb 2026). Three modes remain: circles, grid, clock_letters.
+  - Boxes, info, and grid display modes were removed during cleanup (Feb 2026). Two modes remain: circles and clock_letters.
 
 - **Modular Structure**:
   - Core logic in `src/core/` (mouse_clock.py, config.py, animation.py).
   - Geometry in `src/core/geometry/` (angles, averaging, coordinates, intersections).
-  - Features in `src/features/` (grid, clock_letters).
+  - Features in `src/features/` (clock_letters).
   - Rendering in `src/rendering/` (canvas, animation, drawing primitives).
   - Talon integration in `src/talon_integration/` (adapter, actions, talon files).

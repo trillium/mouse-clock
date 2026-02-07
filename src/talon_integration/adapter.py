@@ -18,13 +18,11 @@ from ..rendering.animation import FadeAnimator
 
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 
 # Map modes to their required tags
 MODE_TAGS = {
     DISPLAY_MODE_CIRCLES: ["user.mouse_clock_showing"],
-    DISPLAY_MODE_GRID: ["user.mouse_clock_showing"],
     DISPLAY_MODE_CLOCK_LETTERS: ["user.mouse_clock_showing"],
 }
 

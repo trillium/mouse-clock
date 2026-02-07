@@ -25,7 +25,6 @@ mouse_clock_always.talon
 mouse_clock_active.talon
   └─ tag: user.use_mouse_clock
      AND tag: user.mouse_clock_showing
-     AND NOT tag: user.mouse_grid_showing
      (Only when clock is visible)
 
 mode_config.talon
@@ -43,10 +42,9 @@ Defined in `adapter.py`:
 | Constant | Mode | Description |
 |----------|------|-------------|
 | `DISPLAY_MODE_CIRCLES` | circles | Concentric colored circles |
-| `DISPLAY_MODE_GRID` | grid | Letter rows + color columns |
 | `DISPLAY_MODE_CLOCK_LETTERS` | clock_letters | Letters at clock positions |
 
-Rotation order: circles → grid → clock_letters → (repeat)
+Rotation order: circles → clock_letters → (repeat)
 
 ---
 
@@ -145,7 +143,7 @@ Rotation order: circles → grid → clock_letters → (repeat)
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ RESULT: Letters displayed in colored grid                                    │
+│ RESULT: Letters displayed at clock positions                                 │
 │ STATE: _display_mode="clock_letters"                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -223,14 +221,11 @@ Rotation order: circles → grid → clock_letters → (repeat)
 | `actions_core.py` | activate(), close(), toggle(), radius actions |
 | `actions_move.py` | Movement logic, repeat detection, opposite |
 | `actions_display.py` | Mode switching, display cycling |
-| `actions_grid.py` | Grid-specific targeting actions |
-
 ### Rendering Files
 
 | File | Purpose |
 |------|---------|
 | `features/clock_letters/render.py` | Clock letters overlay drawing |
-| `features/grid/render.py` | Grid overlay drawing |
 | `rendering/canvas.py` | Circles mode drawing |
 | `rendering/animation.py` | FadeAnimator for fade effects |
 
@@ -261,9 +256,9 @@ Rotation order: circles → grid → clock_letters → (repeat)
 │  tags=[user.mouse_clock_showing, ...]                │
 │  draw() called per frame                              │
 │                                                       │
-│  ┌─────────┬─────────┬─────────┐                     │
-│  │ circles │  grid   │ letters │                     │
-│  └─────────┴─────────┴─────────┘                     │
+│  ┌─────────┬─────────┐                               │
+│  │ circles │ letters │                               │
+│  └─────────┴─────────┘                               │
 │        (mode switching via set_mode)                  │
 └──────────────────────────┬───────────────────────────┘
                            │ close()
@@ -291,7 +286,6 @@ Rotation order: circles → grid → clock_letters → (repeat)
 | `mouse clock` | Refresh/activate clock |
 | `clock off` | Close clock |
 | `clock circles` | Switch to circles mode |
-| `clock grid` | Switch to grid mode |
 | `clock letters` | Switch to clock letters mode |
 | `clock display next` | Cycle to next mode |
 | `clock display previous` | Cycle to previous mode |

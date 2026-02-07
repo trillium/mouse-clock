@@ -23,7 +23,6 @@ _SETTINGS_FILE = Path(__file__).parent.parent / "settings.json"
 # Disabled: morse, barb, spike, saw (asymmetric), zig, wave
 ALL_LINE_STYLES = [
     "solid", "dash", "dot", "tick", "blip", "long",
-    "twin", "chain", "rail", "cross", "link", "bead", "hash",
 ]
 
 # All available color names (excluding "center" which is a special position)
@@ -186,7 +185,7 @@ def get_active_letters() -> list:
 # Per-Display-Mode Configuration
 # =============================================================================
 
-CONFIGURABLE_MODES = ["circles", "grid", "clock_letters"]
+CONFIGURABLE_MODES = ["circles", "clock_letters"]
 
 # Map dimension names to their global getter and validation set
 _DIMENSION_INFO = {

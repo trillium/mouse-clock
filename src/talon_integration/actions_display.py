@@ -10,11 +10,10 @@ mod = Module()
 
 # Display mode constants (inlined to avoid importing adapter.py at module level)
 DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 
 # Display modes in rotation order
-DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_GRID, DISPLAY_MODE_CLOCK_LETTERS]
+DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS]
 
 
 def _get_instance():
@@ -41,10 +40,6 @@ class DisplayActions:
     def mouse_clock_mode_circles():
         """Switch to circles display mode."""
         _set_mode_and_refresh(DISPLAY_MODE_CIRCLES)
-
-    def mouse_clock_mode_grid():
-        """Switch to grid display mode (letters + colors)."""
-        _set_mode_and_refresh(DISPLAY_MODE_GRID)
 
     def mouse_clock_mode_clock_letters():
         """Switch to clock letters display mode (letters in colors)."""

@@ -98,7 +98,7 @@ def _on_draw(c):
                 cy = my + dist * math.sin(angle_rad)
 
                 shape_name, d, fill_rule = svg_paths[shape_idx + k]
-                _shape_positions[(name, shape_name)] = (cx, cy)
+                _shape_positions[(name, shape_name)] = (cx - mx, cy - my)
                 shape_path = Path.from_svg(d)
                 if fill_rule == "evenodd":
                     shape_path.fill_type = Path.FillType.EVENODD
@@ -185,18 +185,15 @@ class Actions:
 
     def color_pie_select(color: str, shape: str):
         """Move mouse to the specified color+shape position on the pie or info panel"""
-        global _poll_job
-        pos = _shape_positions.get((color, shape))
-        if not pos:
+        offset = _shape_positions.get((color, shape))
+        if not offset:
             # Fall through to hats info panel
             from .test_svg_render import _select as _hats_select
             if _hats_select(color, shape):
                 return
             return
-        if _poll_job:
-            cron.cancel(_poll_job)
-            _poll_job = None
-        ctrl.mouse_move(pos[0], pos[1])
+        mx, my = ctrl.mouse_pos()
+        ctrl.mouse_move(mx + offset[0], my + offset[1])
         if _canvas:
             _canvas.freeze()
 

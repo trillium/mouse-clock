@@ -98,7 +98,7 @@ def _on_draw(c):
             path = Path.from_svg(d)
             if fill_rule == "evenodd":
                 path.fill_type = Path.FillType.EVENODD
-            _shape_positions[(color_name, name)] = (shape_x + svg_w * scale / 2, y + svg_h * scale / 2)
+            _shape_positions[(color_name, name)] = (shape_x + svg_w * scale / 2 - mx, y + svg_h * scale / 2 - my)
             c.save()
             c.translate(shape_x, y)
             c.scale(scale, scale)
@@ -160,14 +160,11 @@ def _hide():
 
 def _select(color: str, shape: str):
     """Move mouse to a color+shape position on the info panel."""
-    global _poll_job
-    pos = _shape_positions.get((color, shape))
-    if not pos:
+    offset = _shape_positions.get((color, shape))
+    if not offset:
         return False
-    if _poll_job:
-        cron.cancel(_poll_job)
-        _poll_job = None
-    ctrl.mouse_move(pos[0], pos[1])
+    mx, my = ctrl.mouse_pos()
+    ctrl.mouse_move(mx + offset[0], my + offset[1])
     if _canvas:
         _canvas.freeze()
     return True

@@ -14,7 +14,6 @@ mod = Module()
 
 # Inlined to avoid importing adapter.py at module level
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
-DISPLAY_MODE_GRID = "grid"
 
 
 def _get_instance():
@@ -30,7 +29,7 @@ class MoveActions:
         If the same command is repeated, recenter the clock at the current position
         and apply the command again, effectively moving in that direction.
 
-        In clock_letters mode, uses grid-style targeting (letter+color -> position).
+        In clock_letters mode, uses letter+color targeting to find position.
         """
         mouse_clock = _get_instance()
 

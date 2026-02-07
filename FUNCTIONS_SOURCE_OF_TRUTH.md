@@ -33,9 +33,6 @@ This document lists all functions in the codebase organized by file.
 ### get_active_colors
 **Get the list of currently active color names.**
 
-### get_active_styles
-**Get the list of currently active line style names.**
-
 ### get_active_letters
 **Get the list of currently active letters.**
 
@@ -588,44 +585,6 @@ This document lists all functions in the codebase organized by file.
 
 ---
 
-## src/rendering/drawing/line_styles.py
-
-### _draw_twin
-**Draw two parallel lines.**
-
-### _draw_chain
-**Draw linked circles.**
-
-### _draw_wave
-**Draw a sine wave line.**
-
-### _draw_zig
-**Draw a zigzag line.**
-
-### _draw_barb
-**Draw line with angled ticks/barbs.**
-
-### _draw_rail
-**Draw railroad/ladder style.**
-
-### _draw_cross
-**Draw X marks along the line.**
-
-### _draw_link
-**Draw interlocking loops (disabled, draws dashed line instead).**
-
-### _draw_bead
-**Draw beads connected by thin lines.**
-
-### _draw_spike
-**Draw flat line with periodic spikes (heartbeat).**
-
-### _draw_hash
-**Draw # marks along the line.**
-
-### _draw_saw
-**Draw asymmetric sawtooth pattern.**
-
 ---
 
 ## src/rendering/drawing/composite.py
@@ -685,119 +644,6 @@ This document lists all functions in the codebase organized by file.
 
 ### get_origin
 **Get spiral origin.**
-
----
-
-## src/features/grid/state.py
-
-### get_column_offset
-**Get current horizontal offset for columns.**
-
-### get_target_offset
-**Get target horizontal offset for columns.**
-
-### set_column_offset
-**Set horizontal offset for columns (immediate, no animation).**
-
-### shift_columns_left
-**Shift columns left by amount pixels (sets target for animation).**
-
-### shift_columns_right
-**Shift columns right by amount pixels (sets target for animation).**
-
-### reset_column_offset
-**Reset column offset to center.**
-
-### reset_grid_state
-**Reset all grid state including toggles.**
-
-### end_hiss_session
-**Call when hiss stops (gap detected) to toggle direction for next session.**
-
-### end_shush_session
-**Call when shush stops (gap detected) to toggle mode for next session.**
-
-### grid_hiss
-**Handle hiss in grid mode - shifts columns in current direction.**
-
-### grid_shush
-**Handle shush in grid mode - widens or narrows spacing.**
-
-### get_hiss_direction
-**Get current hiss direction as string.**
-
-### get_shush_mode
-**Get current shush mode as string.**
-
-### update_offset_animation
-**Interpolate offset toward target.**
-
----
-
-## src/features/grid/config.py
-
-### get_text_color
-**Get the text color for grid labels.**
-
-### get_text_bg_color
-**Get the background color for grid labels.**
-
-### get_grid_colors
-**Get the list of active colors for grid columns.**
-
-### get_grid_styles
-**Get the list of active line styles for the grid (legacy, uses horizontal).**
-
-### get_horizontal_styles
-**Get the list of active styles for horizontal (letter) lines.**
-
-### get_vertical_styles
-**Get the list of active styles for vertical (color) lines.**
-
-### get_grid_letters
-**Get the list of active letters for grid rows.**
-
-### get_column_spacing
-**Get spacing between color columns in pixels.**
-
----
-
-## src/features/grid/layout.py
-
-### get_visible_letters
-**Get letters that fit on screen given spacing.**
-
-### calculate_row_positions
-**Calculate Y positions for each letter row.**
-
-### calculate_column_positions
-**Calculate X positions for each color column, distributed evenly across screen.**
-
----
-
-## src/features/grid/render.py
-
-### _apply_alpha
-**Apply current fade alpha to a color.**
-
-### draw_grid_overlay
-**Draw the letter/color grid overlay.**
-
-### _draw_row_lines
-**Draw horizontal lines with labels.**
-
-### _draw_column_lines
-**Draw vertical lines with labels.**
-
-### _draw_intersections
-**Draw markers at grid intersections.**
-
----
-
-## src/features/grid/targeting.py
-
-### get_grid_target
-**Get the (x, y) position for a letter+color+style target.**
 
 ---
 
@@ -932,14 +778,8 @@ This document lists all functions in the codebase organized by file.
 ### mouse
 **Capture the word mouse.**
 
-### line_style
-**Capture a line style (solid, dashed, dotted).**
-
-### styled_target
-**Capture an optional line style followed by a letter or color.**
-
 ### letters_colors
-**Capture any number of styled targets.**
+**Capture any number of letter or color targets.**
 
 ---
 
@@ -980,7 +820,7 @@ This document lists all functions in the codebase organized by file.
 ## src/talon_integration/actions_move.py
 
 ### mouse_clock_move_multiple
-**Move the mouse to the intersection(s) of letters and colors. In clock_letters mode, uses grid-style targeting.**
+**Move the mouse to the intersection(s) of letters and colors.**
 
 ### mouse_clock_move_opposite
 **Move the mouse in the opposite direction of the original command.**
@@ -1004,9 +844,6 @@ This document lists all functions in the codebase organized by file.
 ### mouse_clock_mode_circles
 **Switch to circles display mode.**
 
-### mouse_clock_mode_grid
-**Switch to grid display mode (letters + colors).**
-
 ### mouse_clock_mode_clock_letters
 **Switch to clock letters display mode (letters in colors).**
 
@@ -1018,22 +855,6 @@ This document lists all functions in the codebase organized by file.
 
 ### mouse_clock_cycle_mode_previous
 **Cycle to previous display mode.**
-
----
-
-## src/talon_integration/actions_grid.py
-
-### _get_target
-**Get target position based on current display mode.**
-
-### grid_move_to
-**Move mouse to grid intersection (letter + color + style).**
-
-### grid_move_to_full
-**Move mouse to grid intersection with separate horizontal/vertical styles.**
-
-### grid_move_simple
-**Move mouse to grid intersection (letter + color, default styles).**
 
 ---
 

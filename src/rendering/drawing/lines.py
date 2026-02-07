@@ -21,8 +21,6 @@ from talon.skia import Paint, Rect
 LineStyle = Literal[
     # Simple dash/gap patterns
     "solid", "line", "dash", "dot", "tick", "blip", "long",
-    # Structural styles (disabled: morse, barb, spike, saw, zig, wave)
-    "twin", "chain", "rail", "cross", "link", "bead", "hash",
 ]
 
 # Simple dash/gap patterns: (dash_length, gap_length)
@@ -116,10 +114,6 @@ def _draw_morse(canvas, start: Tuple[float, float], end: Tuple[float, float]):
         pattern_idx = (pattern_idx + 1) % len(MORSE_PATTERN)
 
 
-# Structural styles are in line_styles.py to keep this file short
-from .line_styles import STRUCTURAL_STYLES
-
-
 # =============================================================================
 # PUBLIC API
 # =============================================================================
@@ -141,9 +135,7 @@ def draw_line(
         end: End point (x, y)
         color: 8-digit RGBA hex color
         thickness: Line width in pixels
-        line_style: Style name (line, dash, dot, tick, blip, long, morse,
-                    twin, chain, wave, zig, barb, rail, cross, link,
-                    bead, spike, hash, saw)
+        line_style: Style name (solid, line, dash, dot, tick, blip, long)
     """
     paint = canvas.paint
     paint.color = color
@@ -157,9 +149,6 @@ def draw_line(
             canvas.draw_line(start[0], start[1], end[0], end[1])
         else:
             _draw_simple_pattern(canvas, start, end, pattern[0], pattern[1])
-    # Handle structural styles
-    elif line_style in STRUCTURAL_STYLES:
-        STRUCTURAL_STYLES[line_style](canvas, start, end, thickness)
     else:
         # Fallback to solid line
         canvas.draw_line(start[0], start[1], end[0], end[1])
