@@ -65,5 +65,6 @@
     "y",
     "z"
   ],
-  "display_mode": "clock_letters"
+  "display_mode": "clock_letters",
+  "color_pie_ring_spacing": 2.0
 }
