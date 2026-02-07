@@ -80,10 +80,14 @@ class FadeAnimator:
         # Start with fade to min (slow)
         self._animate(target=min_alpha, duration=self._fade_out_duration, on_complete=_at_min)
 
-    def stop_pulse(self):
-        """Stop pulsing and fade to full opacity."""
+    def stop(self):
+        """Stop all animation immediately. Does not change alpha."""
         self._pulsing = False
         self._cancel()
+
+    def stop_pulse(self):
+        """Stop pulsing and fade to full opacity."""
+        self.stop()
         self.fade_in(duration_ms=200)
 
     def set_alpha(self, alpha: int):

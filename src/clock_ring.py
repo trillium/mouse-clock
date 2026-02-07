@@ -6,13 +6,14 @@ dark backdrop for readability.
 
 import math
 import os
-import time
 import xml.etree.ElementTree as ET
 
-from talon import Context, Module, ui, ctrl, cron, skia
+from talon import Context, Module, ui, ctrl, skia
 from talon.canvas import Canvas
 from talon.skia import Path
 from talon.ui import Point2d
+
+from .rendering.animation import FadeAnimator
 
 mod = Module()
 mod.list("hat_shape", desc="Cursorless hat shape spoken forms")
@@ -20,64 +21,23 @@ mod.tag("clock_ring_showing", desc="Color pie chart is visible")
 
 _ctx_tags = Context()
 _canvas = None
-_poll_job = None
 _shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
 
-# Fade state machine — single-timer driven
-_fade_alpha = 255       # current alpha 0-255
-_fade_state = "idle"    # "fade_out", "delay", "fade_in"
-_fade_start_time = 0.0
-_fade_start_alpha = 255
-_fade_target_alpha = 0
-_fade_duration_ms = 4000
+
+def _on_fade_update(alpha: int):
+    """Callback from FadeAnimator — freeze canvas to trigger redraw."""
+    if _canvas:
+        _canvas.freeze()
+
+
+_fade = FadeAnimator(on_update=_on_fade_update)
+_fade.alpha = 255
 
 SVG_SCALE = 0.75
 _SPACING_STEP = 1
 SVG_W = 12  # viewBox width
 SVG_H = 9   # viewBox height
 _SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
-
-
-def _fade_tick():
-    """Update fade alpha, then freeze canvas. Single 16ms timer for everything."""
-    global _fade_alpha, _fade_state, _fade_start_time, _fade_start_alpha
-    global _fade_target_alpha, _fade_duration_ms
-
-    if _fade_state in ("fade_out", "fade_in"):
-        elapsed = (time.time() - _fade_start_time) * 1000
-        progress = min(elapsed / _fade_duration_ms, 1.0)
-        _fade_alpha = int(_fade_start_alpha + (_fade_target_alpha - _fade_start_alpha) * progress)
-
-        if progress >= 1.0:
-            _fade_alpha = _fade_target_alpha
-            if _fade_state == "fade_out":
-                # Transition to delay at min
-                from .core.config import get_setting
-                _fade_state = "delay"
-                _fade_start_time = time.time()
-                _fade_duration_ms = int(get_setting("clock_ring_fade_delay_ms", 2000))
-            else:
-                # fade_in complete → start fade_out
-                from .core.config import get_setting
-                _fade_state = "fade_out"
-                _fade_start_time = time.time()
-                _fade_start_alpha = _fade_alpha
-                _fade_target_alpha = 0
-                _fade_duration_ms = int(get_setting("clock_ring_fade_out_ms", 4000))
-
-    elif _fade_state == "delay":
-        elapsed = (time.time() - _fade_start_time) * 1000
-        if elapsed >= _fade_duration_ms:
-            # Delay complete → start fade_in
-            from .core.config import get_setting
-            _fade_state = "fade_in"
-            _fade_start_time = time.time()
-            _fade_start_alpha = _fade_alpha
-            _fade_target_alpha = 255
-            _fade_duration_ms = int(get_setting("clock_ring_fade_in_ms", 1000))
-
-    if _canvas:
-        _canvas.freeze()
 
 
 def _load_svg_paths():
@@ -141,12 +101,12 @@ def _on_draw(c):
         r += 1
     max_dist = first_dist + (num_rings - 1) * ring_gap
 
-    # Fade: bg and icon opacity driven by _fade_alpha
+    # Fade: bg and icon opacity driven by FadeAnimator
     from .core.config import get_setting
     bg_max = get_setting("clock_ring_fade_bg_max", 0.7)
     bg_min = get_setting("clock_ring_fade_bg_min", 0.1)
     icon_min = get_setting("clock_ring_fade_icon_min", 0.3)
-    t = _fade_alpha / 255.0  # 1.0 = full, 0.0 = faded
+    t = _fade.alpha / 255.0  # 1.0 = full, 0.0 = faded
     bg_alpha = int((bg_min + t * (bg_max - bg_min)) * 255)
     icon_alpha = int((icon_min + t * (1.0 - icon_min)) * 255)
 
@@ -220,36 +180,32 @@ def _set_ring_spacing(value):
 
 
 def _show():
-    global _canvas, _poll_job
-    global _fade_alpha, _fade_state, _fade_start_time, _fade_start_alpha
-    global _fade_target_alpha, _fade_duration_ms
+    global _canvas
     _hide()
 
-    # Init fade state machine
     from .core.config import get_setting
-    _fade_alpha = 255
-    _fade_state = "fade_out"
-    _fade_start_time = time.time()
-    _fade_start_alpha = 255
-    _fade_target_alpha = 0
-    _fade_duration_ms = int(get_setting("clock_ring_fade_out_ms", 4000))
 
     screen = ui.main_screen()
     _canvas = Canvas.from_screen(screen)
     _canvas.register("draw", _on_draw)
     _canvas.freeze()
-    _poll_job = cron.interval("16ms", _fade_tick)
+
+    _fade.alpha = 255
+    _fade.pulse(
+        min_alpha=0,
+        max_alpha=255,
+        fade_out_ms=int(get_setting("clock_ring_fade_out_ms", 4000)),
+        fade_in_ms=int(get_setting("clock_ring_fade_in_ms", 1000)),
+        delay_at_min_ms=int(get_setting("clock_ring_fade_delay_ms", 2000)),
+    )
     _ctx_tags.tags = ["user.clock_ring_showing"]
 
 
 def _hide():
-    global _canvas, _poll_job, _fade_alpha, _fade_state
+    global _canvas
     _ctx_tags.tags = []
-    _fade_state = "idle"
-    _fade_alpha = 255
-    if _poll_job:
-        cron.cancel(_poll_job)
-        _poll_job = None
+    _fade.stop()
+    _fade.alpha = 255
     if _canvas:
         try:
             _canvas.unregister("draw", _on_draw)
