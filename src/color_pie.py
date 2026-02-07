@@ -20,7 +20,14 @@ mod.tag("color_pie_showing", desc="Color pie chart is visible")
 _ctx_tags = Context()
 _canvas = None
 _poll_job = None
+_fade_animator = None
+_fade_alpha = 255  # 255 = full, 0 = faded
 _shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
+
+
+def _on_fade_update(alpha):
+    global _fade_alpha
+    _fade_alpha = alpha
 
 SVG_SCALE = 0.75
 _SPACING_STEP = 1
@@ -90,12 +97,18 @@ def _on_draw(c):
         r += 1
     max_dist = first_dist + (num_rings - 1) * ring_gap
 
+    # Fade: bg 70%→0%, icons 100%→30%
+    t = _fade_alpha / 255.0  # 1.0 = full, 0.0 = faded
+    bg_alpha = int((0.1 + t * 0.6) * 255)  # 25→178 (10%→70%)
+    icon_alpha = int(77 + t * 178)  # 77→255 (30%→100%)
+
     # Draw dark radial gradient background behind the pie
     bg_radius = max_dist + shape_h * 3
+    bg_hex = f"000000{bg_alpha:02x}"
     c.paint.style = c.paint.Style.FILL
     c.paint.shader = skia.Shader.radial_gradient(
         Point2d(mx, my), bg_radius,
-        ["00000000", "000000b2", "000000b2", "00000000"],
+        ["00000000", bg_hex, bg_hex, "00000000"],
         [0.0, 0.12, 0.88, 1.0],
     )
     c.draw_circle(mx, my, bg_radius)
@@ -131,12 +144,13 @@ def _on_draw(c):
                 c.scale(sc, sc)
 
                 c.paint.style = c.paint.Style.FILL
-                c.paint.color = hex_val
+                c.paint.color = f"{hex_val}{icon_alpha:02x}"
                 c.draw_path(shape_path)
 
                 c.paint.style = c.paint.Style.STROKE
                 c.paint.stroke_width = 0.4
-                c.paint.color = "ffffff" if name in ("black",) else "000000"
+                stroke_base = "ffffff" if name in ("black",) else "000000"
+                c.paint.color = f"{stroke_base}{icon_alpha:02x}"
                 c.draw_path(shape_path)
 
                 c.restore()
@@ -163,8 +177,15 @@ def _set_ring_spacing(value):
 
 
 def _show():
-    global _canvas, _poll_job
+    global _canvas, _poll_job, _fade_animator, _fade_alpha
+    from .rendering.animation import FadeAnimator
     _hide()
+    _fade_alpha = 255
+    _fade_animator = FadeAnimator(on_update=_on_fade_update)
+    _fade_animator.set_alpha(255)
+    _fade_animator.pulse(min_alpha=0, max_alpha=255,
+                         fade_out_ms=4000, fade_in_ms=1000,
+                         delay_at_min_ms=2000)
     screen = ui.main_screen()
     _canvas = Canvas.from_screen(screen)
     _canvas.register("draw", _on_draw)
@@ -174,8 +195,12 @@ def _show():
 
 
 def _hide():
-    global _canvas, _poll_job
+    global _canvas, _poll_job, _fade_animator, _fade_alpha
     _ctx_tags.tags = []
+    if _fade_animator:
+        _fade_animator._cancel()
+        _fade_animator = None
+    _fade_alpha = 255
     if _poll_job:
         cron.cancel(_poll_job)
         _poll_job = None
