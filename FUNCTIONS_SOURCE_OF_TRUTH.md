@@ -54,30 +54,6 @@ This document lists all functions in the codebase organized by file.
 ### reset_mode_config
 **Delete the per-mode override, restoring fallback to global.**
 
-### get_info_panel_mode
-**Get the currently displayed info panel mode.**
-
-### get_info_edit_focus
-**Get the current edit focus (colors, horizontal, or vertical).**
-
-### set_info_edit_focus
-**Set the edit focus for add/remove commands.**
-
-### set_info_panel_mode
-**Set which mode's info panel to display.**
-
-### cycle_info_panel_next
-**Cycle to the next info panel mode. Returns the new mode.**
-
-### cycle_info_panel_previous
-**Cycle to the previous info panel mode. Returns the new mode.**
-
-### get_info_panel_index
-**Get the 1-based index of the current info panel (for display).**
-
-### get_info_panel_total
-**Get the total number of info panels.**
-
 ---
 
 ## src/core/mouse_clock.py
@@ -828,55 +804,6 @@ This document lists all functions in the codebase organized by file.
 
 ---
 
-## src/features/box/config.py
-
-### get_box_count
-**Get number of concentric boxes.**
-
-### get_box_spacing
-**Get spacing between boxes in pixels.**
-
-### get_progression_mode
-**Get size progression mode: 'linear' or 'geometric'.**
-
-### calculate_box_sizes
-**Calculate sizes for each concentric box.**
-
-### get_box_colors
-**Get colors for each box.**
-
----
-
-## src/features/box/targeting.py
-
-### get_size_for_color
-**Get the size of the box for a given color.**
-
-### get_target_position
-**Compute intersection point for targeting.**
-
-### get_target_from_letter
-**Compute intersection for color + letter targeting.**
-
----
-
-## src/features/box/render.py
-
-### draw_concentric_boxes
-**Draw concentric box overlay.**
-
-### get_ray_length
-**Get length for directional rays.**
-
-### draw_directional_rays
-**Draw 12 clock-hour directional rays.**
-
-### draw_intersection_markers
-**Draw markers at ray-box intersections.**
-
-### draw_boxes_with_guides
-**Draw concentric boxes with directional guides.**
-
 ---
 
 ## src/features/clock_letters/config.py
@@ -921,57 +848,6 @@ This document lists all functions in the codebase organized by file.
 **Get the (x, y) position for a letter+color target.**
 
 ---
-
-## src/features/info/contrast.py
-
-### parse_hex_color
-**Parse an 8-digit RGBA hex string to (r, g, b, a) floats in 0-1 range.**
-
-### blend_alpha
-**Alpha-composite foreground over background, returning opaque (r, g, b).**
-
-### _linearize
-**Convert sRGB channel value (0-1) to linear RGB.**
-
-### relative_luminance
-**Calculate WCAG relative luminance from linear sRGB values (0-1).**
-
-### contrast_ratio
-**Calculate WCAG contrast ratio between two opaque RGB colors.**
-
-### check_aa
-**Check if a foreground/background pair passes WCAG AA.**
-
----
-
-## src/features/info/render.py
-
-### _get_contrast_text_color
-**Return black or white text color based on background luminance.**
-
-### draw_colors_section
-**Draw a colors section for a mode. Returns final y position.**
-
-### draw_styles_section
-**Draw a styles section. Returns final y position.**
-
-### draw_letters_section
-**Draw the letters/clock face section. Returns final y position.**
-
-### draw_commands_section
-**Draw a commands section. Returns final y position.**
-
-### draw_grid_panel
-**Draw the Grid mode info panel.**
-
-### draw_boxes_panel
-**Draw the Boxes mode info panel.**
-
-### draw_circles_panel
-**Draw the Circles (clock) mode info panel.**
-
-### draw_info_overlay
-**Draw the info overlay for the current panel mode.**
 
 ---
 
@@ -1126,23 +1002,14 @@ This document lists all functions in the codebase organized by file.
 
 ## src/talon_integration/actions_display.py
 
-### _update_info_tag
-**Update ctx_tags.tags to include/exclude info mode tag.**
-
 ### _set_mode_and_refresh
-**Set display mode, update tags, and activate clock if not showing.**
+**Set display mode and activate clock if not showing.**
 
 ### mouse_clock_mode_circles
 **Switch to circles display mode.**
 
-### mouse_clock_mode_boxes
-**Switch to boxes display mode.**
-
 ### mouse_clock_mode_grid
 **Switch to grid display mode (letters + colors).**
-
-### mouse_clock_mode_info
-**Switch to info/help display mode.**
 
 ### mouse_clock_mode_clock_letters
 **Switch to clock letters display mode (letters in colors).**
@@ -1155,45 +1022,6 @@ This document lists all functions in the codebase organized by file.
 
 ### mouse_clock_cycle_mode_previous
 **Cycle to previous display mode.**
-
-### mouse_clock_info_panel_next
-**Cycle to next info panel (grid -> boxes -> circles).**
-
-### mouse_clock_info_panel_previous
-**Cycle to previous info panel.**
-
-### mouse_clock_info_add_color
-**Add a color to the currently viewed info panel's mode.**
-
-### mouse_clock_info_remove_color
-**Remove a color from the currently viewed info panel's mode.**
-
-### mouse_clock_info_add_horizontal_style
-**Add a style to horizontal lines (only works when viewing grid panel).**
-
-### mouse_clock_info_remove_horizontal_style
-**Remove a style from horizontal lines (only works when viewing grid panel).**
-
-### mouse_clock_info_add_vertical_style
-**Add a style to vertical lines (only works when viewing grid panel).**
-
-### mouse_clock_info_remove_vertical_style
-**Remove a style from vertical lines (only works when viewing grid panel).**
-
-### mouse_clock_info_set_focus
-**Set the edit focus (colors, horizontal, or vertical).**
-
-### mouse_clock_info_add_item
-**Add item based on current edit focus.**
-
-### mouse_clock_info_remove_item
-**Remove item based on current edit focus.**
-
-### mouse_clock_info_add_items
-**Add multiple items based on current edit focus.**
-
-### mouse_clock_info_remove_items
-**Remove multiple items based on current edit focus.**
 
 ---
 

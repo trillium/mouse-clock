@@ -14,7 +14,6 @@ Mouse Clock is a voice-controlled mouse positioning overlay for Talon. This docu
 |-----|---------|
 | `user.use_mouse_clock` | Enables the mouse clock plugin (set externally) |
 | `user.mouse_clock_showing` | Set when overlay is visible |
-| `user.mouse_clock_info_mode` | Set when info panel mode is active |
 
 ### Context Activation
 
@@ -29,15 +28,10 @@ mouse_clock_active.talon
      AND NOT tag: user.mouse_grid_showing
      (Only when clock is visible)
 
-info_mode.talon
-  └─ tag: user.use_mouse_clock
-     AND tag: user.mouse_clock_info_mode
-     (Only in info panel mode)
-
-grid_mode.talon
+mode_config.talon
   └─ tag: user.use_mouse_clock
      AND tag: user.mouse_clock_showing
-     (Grid targeting when visible)
+     (Mode-specific configuration when visible)
 ```
 
 ---
@@ -49,12 +43,10 @@ Defined in `adapter.py`:
 | Constant | Mode | Description |
 |----------|------|-------------|
 | `DISPLAY_MODE_CIRCLES` | circles | Concentric colored circles |
-| `DISPLAY_MODE_BOXES` | boxes | Concentric colored boxes |
 | `DISPLAY_MODE_GRID` | grid | Letter rows + color columns |
 | `DISPLAY_MODE_CLOCK_LETTERS` | clock_letters | Letters at clock positions |
-| `DISPLAY_MODE_INFO` | info | Config/help panel |
 
-Rotation order: circles → boxes → grid → clock_letters → info → (repeat)
+Rotation order: circles → grid → clock_letters → (repeat)
 
 ---
 
@@ -126,7 +118,6 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 │        adapter.setup() → adapter.show()                                      │
 │        ctx_tags.tags = [showing]                                            │
 │      else:                                                                   │
-│        _update_info_tag() → remove info_mode tag if present                 │
 │        canvas.freeze() → triggers redraw                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -221,8 +212,7 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 |------|---------|---------|
 | `mouse_clock_always.talon` | `tag: user.use_mouse_clock` | Always-active commands (activate, mode switch, close) |
 | `mouse_clock_active.talon` | `+ tag: user.mouse_clock_showing` | Movement, clicks, radius adjustment |
-| `info_mode.talon` | `+ tag: user.mouse_clock_info_mode` | Info panel editing commands |
-| `grid_mode.talon` | `+ tag: user.mouse_clock_showing` | Grid intersection targeting |
+| `mode_config.talon` | `+ tag: user.mouse_clock_showing` | Mode-specific configuration |
 
 ### Python Files
 
@@ -232,7 +222,7 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 | `adapter.py` | Canvas management, display state, draw callback |
 | `actions_core.py` | activate(), close(), toggle(), radius actions |
 | `actions_move.py` | Movement logic, repeat detection, opposite |
-| `actions_display.py` | Mode switching, info panel cycling |
+| `actions_display.py` | Mode switching, display cycling |
 | `actions_grid.py` | Grid-specific targeting actions |
 
 ### Rendering Files
@@ -241,8 +231,6 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 |------|---------|
 | `features/clock_letters/render.py` | Clock letters overlay drawing |
 | `features/grid/render.py` | Grid overlay drawing |
-| `features/box/render.py` | Concentric boxes drawing |
-| `features/info/render.py` | Info panel drawing |
 | `rendering/canvas.py` | Circles mode drawing |
 | `rendering/animation.py` | FadeAnimator for fade effects |
 
@@ -273,10 +261,10 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 │  tags=[user.mouse_clock_showing, ...]                │
 │  draw() called per frame                              │
 │                                                       │
-│  ┌─────────┬─────────┬─────────┬─────────┬─────────┐ │
-│  │ circles │  boxes  │  grid   │ letters │  info   │ │
-│  └─────────┴─────────┴─────────┴─────────┴─────────┘ │
-│              (mode switching via set_display_mode)    │
+│  ┌─────────┬─────────┬─────────┐                     │
+│  │ circles │  grid   │ letters │                     │
+│  └─────────┴─────────┴─────────┘                     │
+│        (mode switching via set_mode)                  │
 └──────────────────────────┬───────────────────────────┘
                            │ close()
                            ▼
@@ -303,10 +291,8 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 | `mouse clock` | Refresh/activate clock |
 | `clock off` | Close clock |
 | `clock circles` | Switch to circles mode |
-| `clock boxes` | Switch to boxes mode |
 | `clock grid` | Switch to grid mode |
 | `clock letters` | Switch to clock letters mode |
-| `clock info` | Switch to info panel |
 | `clock display next` | Cycle to next mode |
 | `clock display previous` | Cycle to previous mode |
 
@@ -320,15 +306,6 @@ Rotation order: circles → boxes → grid → clock_letters → info → (repea
 | `touch` | Left click + close |
 | `righty` | Right click + close |
 | `reverse` | Move opposite direction |
-
-### In Info Mode
-
-| Command | Action |
-|---------|--------|
-| `next panel` / `previous panel` | Cycle info panels |
-| `set colors` / `set horizontal` / `set vertical` | Set edit focus |
-| `add <color>` / `remove <color>` | Edit colors |
-| `add <style>` / `remove <style>` | Edit styles |
 
 ---
 
