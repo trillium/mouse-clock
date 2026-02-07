@@ -118,8 +118,8 @@ def load_settings(file_path: str) -> bool:
                 loaded = json.load(f)
                 _settings.update(loaded)
             return True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"mouse-clock: failed to load settings from {file_path}: {e}")
     return False
 
 
@@ -139,8 +139,8 @@ def save_settings(file_path: str) -> bool:
         with open(path, 'w') as f:
             json.dump(_settings, f, indent=2)
         return True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"mouse-clock: failed to save settings to {file_path}: {e}")
     return False
 
 

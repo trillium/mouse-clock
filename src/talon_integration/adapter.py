@@ -175,7 +175,7 @@ class MouseClockTalonAdapter:
         """Close the mouse clock instantly."""
         log_state("close", active=self.active, canvases=len(self.canvases))
         # Stop any animations
-        self._fade_animator._pulsing = False
+        self._fade_animator.stop_pulse()
 
         # If we have canvases, close them immediately
         if self.canvases:
@@ -225,10 +225,6 @@ class MouseClockTalonAdapter:
 
     def recenter(self):
         """Recenter the clock at the current mouse position and redraw."""
-        # Get current mouse position
-        current_x, current_y = ctrl.mouse_pos()
-
-        # Recenter the clock at current position
         self.get_mouse_position()
 
         # If there was a last command, recalculate and move to the same relative position
