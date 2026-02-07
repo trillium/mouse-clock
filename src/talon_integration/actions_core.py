@@ -97,8 +97,3 @@ class CoreActions:
         mouse_clock = get_mouse_clock_instance()
         mouse_clock.recenter()
 
-    def mouse_clock_scoot(num: int, letter_list: str):
-        """Shift the whole clock a direction"""
-        from ..core.logger import log_info
-        # Note: This was a stub in the original code
-        log_info(f"[scoot] {num} {letter_list}")

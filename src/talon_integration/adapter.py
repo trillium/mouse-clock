@@ -84,10 +84,6 @@ class MouseClockTalonAdapter:
         # Refresh display
         self.refresh_canvases()
 
-    def set_display_mode(self, mode: str):
-        """Set display mode and save to settings. Legacy method - prefer set_mode()."""
-        self.set_mode(mode)
-
     def get_mouse_position(self) -> tuple[float, float]:
         """Get current mouse position from Talon and update core."""
         mouse_x, mouse_y = ctrl.mouse_pos()
