@@ -1,0 +1,167 @@
+"""Hats info panel - renders cursorless hat SVGs with mouse clock colors."""
+
+import os
+import xml.etree.ElementTree as ET
+
+from talon import Module, ui, ctrl, cron
+from talon.canvas import Canvas
+from talon.skia import Path, RoundRect
+from talon.ui import Rect
+
+mod = Module()
+
+_canvas = None
+_poll_job = None
+_SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
+
+
+HAT_NAMES = {
+    "bolt": "bolt",
+    "crosshairs": "cross",
+    "curve": "curve",
+    "default": "default",
+    "ex": "ex",
+    "eye": "eye",
+    "fox": "fox",
+    "frame": "frame",
+    "hole": "hole",
+    "play": "play",
+    "wing": "wing",
+}
+
+
+def _load_svg_paths():
+    """Parse SVG files and return (name, path_data) tuples."""
+    results = []
+    for fname in sorted(os.listdir(_SVG_DIR)):
+        if not fname.endswith(".svg"):
+            continue
+        tree = ET.parse(os.path.join(_SVG_DIR, fname))
+        root = tree.getroot()
+        ns = {"svg": "http://www.w3.org/2000/svg"}
+        key = fname.replace(".svg", "")
+        display_name = HAT_NAMES.get(key, key)
+        for path_el in root.findall(".//svg:path", ns):
+            d = path_el.get("d", "")
+            fill_rule = path_el.get("fill-rule", "nonzero")
+            if d:
+                results.append((display_name, d, fill_rule))
+    return results
+
+
+def _on_draw(c):
+    svg_paths = _load_svg_paths()
+    if not svg_paths:
+        c.paint.color = "ff0000"
+        c.paint.textsize = 24
+        c.draw_text("No SVGs found", 100, 100)
+        return
+
+    scale = 0.75
+    svg_w = 12
+    svg_h = 9
+    spacing = 10
+    row_gap = 20
+
+    from .rendering.colors import COLOR_REGISTRY
+    colors = [(name, hex_val[:6]) for name, hex_val in COLOR_REGISTRY.items() if name != "center"]
+
+    mx, my = ctrl.mouse_pos()
+    start_x = mx + 20
+    start_y = my + 20
+    scatter_step = 12
+    header_height = 20
+
+    # Draw staggered color names at the top
+    for col_i, (color_name, color_hex) in enumerate(colors):
+        col_x = start_x + col_i * (svg_w * scale + spacing)
+        scatter_y = start_y + (col_i % 3) * scatter_step
+        c.paint.textsize = 11
+        c.paint.style = c.paint.Style.FILL
+        text_w, _ = c.paint.measure_text(color_name)
+        c.paint.color = "222222cc"
+        c.draw_rrect(RoundRect.from_rect(
+            Rect(col_x - 2, scatter_y - 1, text_w + 4, 13),
+            x=2, y=2,
+        ))
+        c.paint.color = color_hex
+        c.draw_text(color_name, col_x, scatter_y + 10)
+
+    # Shapes start below the header area (3 scatter rows + gap)
+    shapes_y = start_y + 3 * scatter_step + 8
+
+    for row_i, (name, d, fill_rule) in enumerate(svg_paths):
+        y = shapes_y + row_i * (svg_h * scale + row_gap)
+
+        # Draw one shape per color along the line
+        shape_x = start_x
+        for col_i, (color_name, color_hex) in enumerate(colors):
+            path = Path.from_svg(d)
+            if fill_rule == "evenodd":
+                path.fill_type = Path.FillType.EVENODD
+            c.save()
+            c.translate(shape_x, y)
+            c.scale(scale, scale)
+            c.paint.color = color_hex
+            c.paint.style = c.paint.Style.FILL
+            c.draw_path(path)
+            # Stroke outline
+            c.paint.color = "ffffff" if color_name in ("black", "center") else "000000"
+            c.paint.style = c.paint.Style.STROKE
+            c.paint.stroke_width = 0.4
+            c.draw_path(path)
+            c.restore()
+            shape_x += svg_w * scale + spacing
+
+        # Label after shapes
+        c.paint.textsize = 14
+        c.paint.style = c.paint.Style.FILL
+        text_w, _ = c.paint.measure_text(name)
+        c.paint.color = "222222cc"
+        c.draw_rrect(RoundRect.from_rect(
+            Rect(shape_x - 4, y - 2, text_w + 8, 16),
+            x=3, y=3,
+        ))
+        c.paint.color = "00ddff"
+        c.draw_text(name, shape_x, y + 11)
+
+
+
+def _poll_mouse():
+    if _canvas:
+        _canvas.freeze()
+
+
+def _show():
+    global _canvas, _poll_job
+    _hide()
+    screen = ui.main_screen()
+    _canvas = Canvas.from_screen(screen)
+    _canvas.register("draw", _on_draw)
+    _canvas.freeze()
+    _poll_job = cron.interval("16ms", _poll_mouse)
+
+
+def _hide():
+    global _canvas, _poll_job
+    if _poll_job:
+        cron.cancel(_poll_job)
+        _poll_job = None
+    if _canvas:
+        try:
+            _canvas.unregister("draw", _on_draw)
+        except Exception:
+            pass
+        _canvas.close()
+        _canvas = None
+
+
+@mod.action_class
+class Actions:
+    def hats_info_show():
+        """Show the hats info panel"""
+        _show()
+
+    def hats_info_hide():
+        """Hide the hats info panel"""
+        _hide()
