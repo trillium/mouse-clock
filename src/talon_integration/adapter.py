@@ -20,7 +20,7 @@ from ..features.box import draw_concentric_boxes
 from ..features.grid import draw_grid_overlay, update_offset_animation
 from ..features.clock_letters import draw_clock_letters_overlay
 from ..rendering.animation import FadeAnimator
-from ..rendering.drawing import draw_line, draw_dot
+from ..rendering.drawing import draw_line, draw_dot, draw_circle
 from .debug_overlay import draw_debug_info
 # NOTE: draw_info_overlay imported lazily in draw() to avoid module load order issues
 
@@ -349,11 +349,11 @@ class MouseClockTalonAdapter:
         # Color lines on top (thin)
         for start, end, color in self._this_lines[1:]:
             draw_line(canvas_obj, start, end, color, thickness=1)
-        # Dots at start/end of the gray center line
+        # Circle outlines at start/end of the gray center line
         gray_start = self._this_lines[0][0]
         gray_end = self._this_lines[0][1]
-        draw_dot(canvas_obj, gray_start, 4, "ffffffff")  # White start dot
-        draw_dot(canvas_obj, gray_end, 6, "ffffffff")    # White target dot
+        draw_circle(canvas_obj, gray_start, 4, "ffffffff", thickness=1)
+        draw_circle(canvas_obj, gray_end, 6, "ffffffff", thickness=1)
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""

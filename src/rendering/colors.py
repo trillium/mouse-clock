@@ -17,7 +17,6 @@ COLOR_REGISTRY = {
     "yellow": "ffd700ff",
     "purple": "800080ff",
     "pink": "ff00ffff",
-    "gold": "ffa500ff",
     "center": "000000ff",
     "black": "000000ff",
     "white": "ffffffff",
@@ -28,6 +27,9 @@ COLOR_REGISTRY = {
 
 # Ordered list for ring/box indexing (center is index 0)
 COLOR_ORDER = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
+
+# Colors shown in info panels and pie chart (excludes internal-only colors like gray, light_green)
+DISPLAY_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
 
 
 def get_color(name: str) -> str:

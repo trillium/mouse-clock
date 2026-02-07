@@ -15,19 +15,7 @@ _poll_job = None
 _SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
 
 
-HAT_NAMES = {
-    "bolt": "bolt",
-    "crosshairs": "cross",
-    "curve": "curve",
-    "default": "default",
-    "ex": "ex",
-    "eye": "eye",
-    "fox": "fox",
-    "frame": "frame",
-    "hole": "hole",
-    "play": "play",
-    "wing": "wing",
-}
+from .rendering.shapes import HAT_NAMES
 
 
 def _load_svg_paths():
@@ -63,8 +51,8 @@ def _on_draw(c):
     spacing = 10
     row_gap = 20
 
-    from .rendering.colors import COLOR_REGISTRY
-    colors = [(name, hex_val[:6]) for name, hex_val in COLOR_REGISTRY.items() if name != "center"]
+    from .rendering.colors import COLOR_REGISTRY, DISPLAY_COLORS
+    colors = [(name, COLOR_REGISTRY[name][:6]) for name in DISPLAY_COLORS]
 
     mx, my = ctrl.mouse_pos()
     start_x = mx + 20

@@ -404,6 +404,39 @@ class MoveActions:
         _set_this_lines(mouse_clock, (new_x, new_y), data)
         log_info(f"[this step] Stepped {move:.0f}px toward target, {dist - move:.0f}px remaining")
 
+    def mouse_clock_this_reverse():
+        """Step 1/8 of original distance away from the target."""
+        import math
+        mouse_clock = _get_instance()
+
+        if not mouse_clock._this_line_data:
+            log_warning("[this reverse] No active lines")
+            return
+
+        data = mouse_clock._this_line_data
+        target = data['target']
+        step_size = data.get('step_size', 0)
+        if step_size == 0:
+            return
+
+        mouse_x, mouse_y = ctrl.mouse_pos()
+        dx = target[0] - mouse_x
+        dy = target[1] - mouse_y
+        dist = math.sqrt(dx * dx + dy * dy)
+        if dist == 0:
+            return
+
+        # Move away from target by 1/3 of step_size (1/24 of original distance)
+        reverse_step = step_size / 3.0
+        new_x = mouse_x - (dx / dist) * reverse_step
+        new_y = mouse_y - (dy / dist) * reverse_step
+        ctrl.mouse_move(new_x, new_y)
+
+        # Rebuild fan from new position
+        _set_this_lines(mouse_clock, (new_x, new_y), data)
+        new_dist = dist + reverse_step
+        log_info(f"[this reverse] Stepped {reverse_step:.0f}px away from target, {new_dist:.0f}px remaining")
+
     def mouse_clock_this_repeat(letters_colors: List[str]):
         """If same target as current, step toward it. Otherwise create new line."""
         mouse_clock = _get_instance()

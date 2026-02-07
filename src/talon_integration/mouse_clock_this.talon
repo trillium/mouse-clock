@@ -9,6 +9,10 @@ this:
 this <user.letters_colors>+:
     user.mouse_clock_this_repeat(letters_colors)
 
+# Step 1/8 away from target
+reverse:
+    user.mouse_clock_this_reverse()
+
 # Shift ray center to color position(s)
 <user.letters_colors>+:
     user.mouse_clock_this_shift(letters_colors)
