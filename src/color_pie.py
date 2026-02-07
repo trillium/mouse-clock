@@ -97,10 +97,14 @@ def _on_draw(c):
         r += 1
     max_dist = first_dist + (num_rings - 1) * ring_gap
 
-    # Fade: bg 70%→0%, icons 100%→30%
+    # Fade: bg and icon opacity driven by _fade_alpha
+    from .core.config import get_setting
+    bg_max = get_setting("color_pie_fade_bg_max", 0.7)
+    bg_min = get_setting("color_pie_fade_bg_min", 0.1)
+    icon_min = get_setting("color_pie_fade_icon_min", 0.3)
     t = _fade_alpha / 255.0  # 1.0 = full, 0.0 = faded
-    bg_alpha = int((0.1 + t * 0.6) * 255)  # 25→178 (10%→70%)
-    icon_alpha = int(77 + t * 178)  # 77→255 (30%→100%)
+    bg_alpha = int((bg_min + t * (bg_max - bg_min)) * 255)
+    icon_alpha = int((icon_min + t * (1.0 - icon_min)) * 255)
 
     # Draw dark radial gradient background behind the pie
     bg_radius = max_dist + shape_h * 3
@@ -183,9 +187,13 @@ def _show():
     _fade_alpha = 255
     _fade_animator = FadeAnimator(on_update=_on_fade_update)
     _fade_animator.set_alpha(255)
-    _fade_animator.pulse(min_alpha=0, max_alpha=255,
-                         fade_out_ms=4000, fade_in_ms=1000,
-                         delay_at_min_ms=2000)
+    from .core.config import get_setting
+    _fade_animator.pulse(
+        min_alpha=0, max_alpha=255,
+        fade_out_ms=int(get_setting("color_pie_fade_out_ms", 4000)),
+        fade_in_ms=int(get_setting("color_pie_fade_in_ms", 1000)),
+        delay_at_min_ms=int(get_setting("color_pie_fade_delay_ms", 2000)),
+    )
     screen = ui.main_screen()
     _canvas = Canvas.from_screen(screen)
     _canvas.register("draw", _on_draw)
