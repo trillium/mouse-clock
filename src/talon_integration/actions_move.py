@@ -5,53 +5,21 @@ Mouse clock movement actions - move, opposite, original, recenter_and_move.
 
 from typing import List
 
-from talon import Module, actions, ctrl
-from .actions_core import set_mouse_clock_tags, clear_mouse_clock_tags
+from talon import Module, ctrl
+from .actions_core import set_mouse_clock_tags
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
-from ..core.logger import log_info, log_warning, log_debug, log_action, log_state
+from ..core.logger import log_info, log_warning
 from ..features.clock_letters.targeting import get_clock_letters_target
-from ..features.clock_letters.config import get_clock_letters_colors
-from ..features.grid.targeting import get_grid_target
-from ..features.grid.config import get_grid_colors
-from ..rendering.colors import get_color
-from ..core.geometry.parallel_lines import build_parallel_lines
-
 mod = Module()
 
 # Inlined to avoid importing adapter.py at module level
-DISPLAY_MODE_INFO = "info"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 DISPLAY_MODE_GRID = "grid"
-DISPLAY_MODE_THIS = "this"
 
 
 def _get_instance():
     from .instance import get_mouse_clock_instance
     return get_mouse_clock_instance()
-
-
-def _set_this_lines(mouse_clock, start, data):
-    """Build parallel lines from geometry and set them on the adapter.
-
-    Bridges pure geometry (build_parallel_lines) with adapter state.
-    Converts color names to hex for rendering.
-    """
-    target = data['target']
-    colors = data['colors']
-
-    lines = build_parallel_lines(start, target, colors)
-    if lines is None:
-        log_warning("[this] Zero length line")
-        return
-
-    # Convert color names to hex for rendering (gray -> hex, color names -> hex)
-    render_lines = []
-    for line_start, line_end, color_name in lines:
-        color_hex = "888888ff" if color_name == "gray" else get_color(color_name)
-        render_lines.append((line_start, line_end, color_hex))
-
-    mouse_clock.set_this_lines(render_lines)
-    log_info(f"[this] {len(render_lines)} parallel lines from ({start[0]:.0f}, {start[1]:.0f})")
 
 
 @mod.action_class
@@ -245,219 +213,8 @@ class MoveActions:
         log_info(f"[move_and_activate] After setup - center: ({mouse_clock.core.center_x}, {mouse_clock.core.center_y})")
         mouse_clock.show()
         mouse_clock.clear_state()
-        # Set tags based on current display mode
-        tags = ["user.mouse_clock_showing"]
-        if mouse_clock.get_display_mode() == DISPLAY_MODE_INFO:
-            tags.append("user.mouse_clock_info_mode")
-        set_mouse_clock_tags(tags)
+        set_mouse_clock_tags(["user.mouse_clock_showing"])
 
         # Store as original command for potential reversal
         mouse_clock.core.original_command = (letters, colors)
 
-    def mouse_clock_this_line(letters_colors: List[str]):
-        """Draw parallel colored lines from current position to target."""
-        import math
-        mouse_clock = _get_instance()
-
-        # Get current mouse position as start
-        start_x, start_y = ctrl.mouse_pos()
-
-        # Parse target
-        typed_expressions = parse_voice_inputs(letters_colors)
-        letters = typed_expressions['letters']
-        colors_input = typed_expressions['colors']
-        directions = typed_expressions.get('directions', [])
-        styles = typed_expressions.get('styles', [])
-        target_dash = 'dash' in styles
-
-        if not letters or not colors_input:
-            log_warning("[this] Need both letter and color for line target")
-            return
-
-        screen_rect = mouse_clock.get_screen_rect()
-
-        # Calculate target based on display mode
-        mode = mouse_clock.get_display_mode()
-        if mode == DISPLAY_MODE_CLOCK_LETTERS:
-            end_x, end_y = get_clock_letters_target(
-                screen_rect, letters[0], colors_input[0], directions, target_dash
-            )
-            all_colors = get_clock_letters_colors()
-        elif mode == DISPLAY_MODE_GRID:
-            h_style = styles[0] if styles else None
-            v_style = styles[1] if len(styles) > 1 else None
-            end_x, end_y = get_grid_target(
-                screen_rect, letters[0], colors_input[0], h_style, v_style
-            )
-            all_colors = get_grid_colors()
-        else:
-            # For circles/boxes mode, calculate from clock position
-            end_x, end_y = mouse_clock.calculate_mouse_position(letters, colors_input)
-            all_colors = ["red", "blue", "green", "yellow", "purple", "pink"]
-
-        # Calculate target position for each color (same letter, different color)
-        color_targets = {}
-        for color_name in all_colors:
-            if mode == DISPLAY_MODE_CLOCK_LETTERS:
-                cx, cy = get_clock_letters_target(
-                    screen_rect, letters[0], color_name, directions, target_dash
-                )
-            elif mode == DISPLAY_MODE_GRID:
-                h_style = styles[0] if styles else None
-                v_style = styles[1] if len(styles) > 1 else None
-                cx, cy = get_grid_target(
-                    screen_rect, letters[0], color_name, h_style, v_style
-                )
-            else:
-                cx, cy = mouse_clock.calculate_mouse_position(letters, [color_name])
-            color_targets[color_name] = (cx, cy)
-
-        # Store geometry for color switching and repeat detection
-        import math
-        orig_dist = math.sqrt((end_x - start_x)**2 + (end_y - start_y)**2)
-        mouse_clock._this_line_data = {
-            'target': (end_x, end_y),
-            'colors': all_colors,
-            'color_targets': color_targets,
-            'current_color': colors_input[0],
-            'original_input': list(letters_colors),  # For repeat detection
-            'step_size': orig_dist / 8.0,  # 8 steps to reach target
-        }
-
-        # Build and set lines
-        _set_this_lines(mouse_clock, (start_x, start_y), mouse_clock._this_line_data)
-
-        # Switch to "this" mode using unified mode system
-        mouse_clock.set_mode(DISPLAY_MODE_THIS, set_mouse_clock_tags)
-
-    def mouse_clock_this_shift(letters_colors: List[str]):
-        """Shift the start point to a color's current line position and redraw."""
-        log_action("this_shift", input=letters_colors)
-        mouse_clock = _get_instance()
-
-        if not mouse_clock._this_line_data:
-            log_warning("[this] No active lines to shift")
-            return
-
-        if not mouse_clock._this_lines:
-            log_warning("[this] No rendered lines to shift from")
-            return
-
-        # Parse to extract just colors
-        typed_expressions = parse_voice_inputs(letters_colors)
-        colors = typed_expressions['colors']
-
-        if not colors:
-            log_warning("[this] No colors specified")
-            return
-
-        data = mouse_clock._this_line_data
-        all_colors = data['colors']
-        color_name = colors[0].lower()
-        log_debug(f"[this] Shifting start to {color_name}")
-
-        # Find this color's index in the color list
-        try:
-            color_index = all_colors.index(color_name)
-        except ValueError:
-            log_warning(f"[this shift] Color not found: {color_name}")
-            return
-
-        # Get that color's endpoint (the spread-out end near cursor)
-        # _this_lines[0] = gray, _this_lines[1:] = colors in order
-        color_line = mouse_clock._this_lines[color_index + 1]
-        new_start = color_line[1]  # endpoint = spread end
-
-        # Rebuild fan from this color's endpoint as new start, same target
-        _set_this_lines(mouse_clock, new_start, data)
-        log_info(f"[this shift] Start moved to {color_name} at ({new_start[0]:.0f}, {new_start[1]:.0f})")
-
-    def mouse_clock_this_step():
-        """Step 1/8 of original distance toward the target."""
-        import math
-        mouse_clock = _get_instance()
-
-        if not mouse_clock._this_line_data:
-            log_warning("[this step] No active lines")
-            return
-
-        data = mouse_clock._this_line_data
-        target = data['target']
-        step_size = data.get('step_size', 0)
-        if step_size == 0:
-            return
-
-        mouse_x, mouse_y = ctrl.mouse_pos()
-        dx = target[0] - mouse_x
-        dy = target[1] - mouse_y
-        dist = math.sqrt(dx * dx + dy * dy)
-        if dist == 0:
-            return
-
-        # Move toward target by step_size, but don't overshoot
-        move = min(step_size, dist)
-        new_x = mouse_x + (dx / dist) * move
-        new_y = mouse_y + (dy / dist) * move
-        ctrl.mouse_move(new_x, new_y)
-
-        # Rebuild fan from new position
-        _set_this_lines(mouse_clock, (new_x, new_y), data)
-        log_info(f"[this step] Stepped {move:.0f}px toward target, {dist - move:.0f}px remaining")
-
-    def mouse_clock_this_reverse():
-        """Step 1/8 of original distance away from the target."""
-        import math
-        mouse_clock = _get_instance()
-
-        if not mouse_clock._this_line_data:
-            log_warning("[this reverse] No active lines")
-            return
-
-        data = mouse_clock._this_line_data
-        target = data['target']
-        step_size = data.get('step_size', 0)
-        if step_size == 0:
-            return
-
-        mouse_x, mouse_y = ctrl.mouse_pos()
-        dx = target[0] - mouse_x
-        dy = target[1] - mouse_y
-        dist = math.sqrt(dx * dx + dy * dy)
-        if dist == 0:
-            return
-
-        # Move away from target by 1/3 of step_size (1/24 of original distance)
-        reverse_step = step_size / 3.0
-        new_x = mouse_x - (dx / dist) * reverse_step
-        new_y = mouse_y - (dy / dist) * reverse_step
-        ctrl.mouse_move(new_x, new_y)
-
-        # Rebuild fan from new position
-        _set_this_lines(mouse_clock, (new_x, new_y), data)
-        new_dist = dist + reverse_step
-        log_info(f"[this reverse] Stepped {reverse_step:.0f}px away from target, {new_dist:.0f}px remaining")
-
-    def mouse_clock_this_repeat(letters_colors: List[str]):
-        """If same target as current, step toward it. Otherwise create new line."""
-        mouse_clock = _get_instance()
-
-        if not mouse_clock._this_line_data:
-            actions.user.mouse_clock_this_line(letters_colors)
-            return
-
-        original = mouse_clock._this_line_data.get('original_input', [])
-        incoming = list(letters_colors)
-        log_debug(f"[this repeat] incoming={incoming} (types={[type(x).__name__ for x in incoming]})")
-        log_debug(f"[this repeat] original={original} (types={[type(x).__name__ for x in original]})")
-        log_debug(f"[this repeat] match={incoming == original}")
-        if incoming == original:
-            actions.user.mouse_clock_this_step()
-        else:
-            actions.user.mouse_clock_this_line(letters_colors)
-
-    def mouse_clock_clear_this_line():
-        """Clear the 'this' lines and return to previous mode."""
-        mouse_clock = _get_instance()
-        previous_mode = mouse_clock.get_previous_mode()
-        mouse_clock.set_mode(previous_mode, set_mouse_clock_tags)
-        log_info(f"[this] Exited to {previous_mode}")

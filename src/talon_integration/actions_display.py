@@ -5,15 +5,6 @@ Mouse clock display mode actions.
 
 from talon import Module
 from .actions_core import set_mouse_clock_tags, ctx_tags
-from ..core.config import (
-    cycle_info_panel_next,
-    cycle_info_panel_previous,
-    get_info_panel_mode,
-    get_info_edit_focus,
-    set_info_edit_focus,
-    add_mode_item,
-    remove_mode_item,
-)
 
 mod = Module()
 
@@ -21,11 +12,10 @@ mod = Module()
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_GRID = "grid"
-DISPLAY_MODE_INFO = "info"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 
 # Display modes in rotation order
-DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_INFO]
+DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_BOXES, DISPLAY_MODE_GRID, DISPLAY_MODE_CLOCK_LETTERS]
 
 
 def _get_instance():
@@ -60,10 +50,6 @@ class DisplayActions:
     def mouse_clock_mode_grid():
         """Switch to grid display mode (letters + colors)."""
         _set_mode_and_refresh(DISPLAY_MODE_GRID)
-
-    def mouse_clock_mode_info():
-        """Switch to info/help display mode."""
-        _set_mode_and_refresh(DISPLAY_MODE_INFO)
 
     def mouse_clock_mode_clock_letters():
         """Switch to clock letters display mode (letters in colors)."""
@@ -101,207 +87,3 @@ class DisplayActions:
         _set_mode_and_refresh(prev_mode)
         print(f"Display mode: {prev_mode}")
 
-    def mouse_clock_info_panel_next():
-        """Cycle to next info panel (grid -> boxes -> circles)."""
-        new_mode = cycle_info_panel_next()
-        mouse_clock = _get_instance()
-        if mouse_clock.active:
-            for canvas_obj in mouse_clock.canvases:
-                canvas_obj.freeze()
-        print(f"Info panel: {new_mode}")
-
-    def mouse_clock_info_panel_previous():
-        """Cycle to previous info panel."""
-        new_mode = cycle_info_panel_previous()
-        mouse_clock = _get_instance()
-        if mouse_clock.active:
-            for canvas_obj in mouse_clock.canvases:
-                canvas_obj.freeze()
-        print(f"Info panel: {new_mode}")
-
-    def mouse_clock_info_add_color(color: str):
-        """Add a color to the currently viewed info panel's mode."""
-        mode = get_info_panel_mode()
-        if add_mode_item(mode, "colors", color):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Added {color} to {mode} colors")
-
-    def mouse_clock_info_remove_color(color: str):
-        """Remove a color from the currently viewed info panel's mode."""
-        mode = get_info_panel_mode()
-        if remove_mode_item(mode, "colors", color):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Removed {color} from {mode} colors")
-
-    def mouse_clock_info_add_horizontal_style(style: str):
-        """Add a style to horizontal lines (only works when viewing grid panel)."""
-        mode = get_info_panel_mode()
-        if mode == "grid" and add_mode_item(mode, "horizontal_styles", style):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Added {style} to horizontal styles")
-
-    def mouse_clock_info_remove_horizontal_style(style: str):
-        """Remove a style from horizontal lines (only works when viewing grid panel)."""
-        mode = get_info_panel_mode()
-        if mode == "grid" and remove_mode_item(mode, "horizontal_styles", style):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Removed {style} from horizontal styles")
-
-    def mouse_clock_info_add_vertical_style(style: str):
-        """Add a style to vertical lines (only works when viewing grid panel)."""
-        mode = get_info_panel_mode()
-        if mode == "grid" and add_mode_item(mode, "vertical_styles", style):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Added {style} to vertical styles")
-
-    def mouse_clock_info_remove_vertical_style(style: str):
-        """Remove a style from vertical lines (only works when viewing grid panel)."""
-        mode = get_info_panel_mode()
-        if mode == "grid" and remove_mode_item(mode, "vertical_styles", style):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Removed {style} from vertical styles")
-
-    def mouse_clock_info_set_focus(focus: str):
-        """Set the edit focus (colors, horizontal, or vertical)."""
-        set_info_edit_focus(focus)
-        mouse_clock = _get_instance()
-        if mouse_clock.active:
-            for canvas_obj in mouse_clock.canvases:
-                canvas_obj.freeze()
-        print(f"Edit focus: {focus}")
-
-    def mouse_clock_info_add_item(item: str):
-        """Add item based on current edit focus."""
-        mode = get_info_panel_mode()
-        focus = get_info_edit_focus()
-
-        if focus == "colors":
-            dimension = "colors"
-        elif focus == "horizontal":
-            if mode != "grid":
-                print("Horizontal styles only available on grid panel")
-                return
-            dimension = "horizontal_styles"
-        elif focus == "vertical":
-            if mode != "grid":
-                print("Vertical styles only available on grid panel")
-                return
-            dimension = "vertical_styles"
-        else:
-            return
-
-        if add_mode_item(mode, dimension, item):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Added {item} to {mode} {dimension}")
-
-    def mouse_clock_info_remove_item(item: str):
-        """Remove item based on current edit focus."""
-        mode = get_info_panel_mode()
-        focus = get_info_edit_focus()
-
-        if focus == "colors":
-            dimension = "colors"
-        elif focus == "horizontal":
-            if mode != "grid":
-                print("Horizontal styles only available on grid panel")
-                return
-            dimension = "horizontal_styles"
-        elif focus == "vertical":
-            if mode != "grid":
-                print("Vertical styles only available on grid panel")
-                return
-            dimension = "vertical_styles"
-        else:
-            return
-
-        if remove_mode_item(mode, dimension, item):
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Removed {item} from {mode} {dimension}")
-
-    def mouse_clock_info_add_items(items: list[str]):
-        """Add multiple items based on current edit focus."""
-        mode = get_info_panel_mode()
-        focus = get_info_edit_focus()
-
-        if focus == "colors":
-            dimension = "colors"
-        elif focus == "horizontal":
-            if mode != "grid":
-                print("Horizontal styles only available on grid panel")
-                return
-            dimension = "horizontal_styles"
-        elif focus == "vertical":
-            if mode != "grid":
-                print("Vertical styles only available on grid panel")
-                return
-            dimension = "vertical_styles"
-        else:
-            return
-
-        added = []
-        for item in items:
-            if add_mode_item(mode, dimension, item):
-                added.append(item)
-
-        if added:
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Added {', '.join(added)} to {mode} {dimension}")
-
-    def mouse_clock_info_remove_items(items: list[str]):
-        """Remove multiple items based on current edit focus."""
-        mode = get_info_panel_mode()
-        focus = get_info_edit_focus()
-
-        if focus == "colors":
-            dimension = "colors"
-        elif focus == "horizontal":
-            if mode != "grid":
-                print("Horizontal styles only available on grid panel")
-                return
-            dimension = "horizontal_styles"
-        elif focus == "vertical":
-            if mode != "grid":
-                print("Vertical styles only available on grid panel")
-                return
-            dimension = "vertical_styles"
-        else:
-            return
-
-        removed = []
-        for item in items:
-            if remove_mode_item(mode, dimension, item):
-                removed.append(item)
-
-        if removed:
-            mouse_clock = _get_instance()
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
-            print(f"Removed {', '.join(removed)} from {mode} {dimension}")

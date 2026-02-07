@@ -238,9 +238,6 @@ def get_active_letters() -> list:
 
 CONFIGURABLE_MODES = ["circles", "boxes", "grid", "clock_letters"]
 
-# Info panel modes (which mode's config/commands to display)
-INFO_PANEL_MODES = ["grid", "boxes", "circles"]
-
 # Map dimension names to their global getter and validation set
 _DIMENSION_INFO = {
     "colors": {"global_key": "active_colors", "all_items": ALL_COLORS},
@@ -344,73 +341,3 @@ def reset_mode_config(mode: str, dimension: str):
         _auto_save()
 
 
-# =============================================================================
-# Info Panel State
-# =============================================================================
-
-# Edit focus modes for the info panel
-INFO_EDIT_FOCUSES = ["colors", "horizontal", "vertical"]
-
-
-def get_info_panel_mode() -> str:
-    """Get the currently displayed info panel mode."""
-    return get_setting("info_panel_mode", INFO_PANEL_MODES[0])
-
-
-def get_info_edit_focus() -> str:
-    """Get the current edit focus (colors, horizontal, or vertical)."""
-    return get_setting("info_edit_focus", "colors")
-
-
-def set_info_edit_focus(focus: str):
-    """Set the edit focus for add/remove commands."""
-    if focus in INFO_EDIT_FOCUSES:
-        set_setting("info_edit_focus", focus)
-        # Don't auto-save - this is session state, not persistent config
-
-
-def set_info_panel_mode(mode: str):
-    """Set which mode's info panel to display."""
-    if mode in INFO_PANEL_MODES:
-        set_setting("info_panel_mode", mode)
-        _auto_save()
-
-
-def cycle_info_panel_next() -> str:
-    """Cycle to the next info panel mode. Returns the new mode."""
-    current = get_info_panel_mode()
-    try:
-        idx = INFO_PANEL_MODES.index(current)
-        next_idx = (idx + 1) % len(INFO_PANEL_MODES)
-    except ValueError:
-        next_idx = 0
-    new_mode = INFO_PANEL_MODES[next_idx]
-    set_info_panel_mode(new_mode)
-    return new_mode
-
-
-def cycle_info_panel_previous() -> str:
-    """Cycle to the previous info panel mode. Returns the new mode."""
-    current = get_info_panel_mode()
-    try:
-        idx = INFO_PANEL_MODES.index(current)
-        prev_idx = (idx - 1) % len(INFO_PANEL_MODES)
-    except ValueError:
-        prev_idx = 0
-    new_mode = INFO_PANEL_MODES[prev_idx]
-    set_info_panel_mode(new_mode)
-    return new_mode
-
-
-def get_info_panel_index() -> int:
-    """Get the 1-based index of the current info panel (for display)."""
-    current = get_info_panel_mode()
-    try:
-        return INFO_PANEL_MODES.index(current) + 1
-    except ValueError:
-        return 1
-
-
-def get_info_panel_total() -> int:
-    """Get the total number of info panels."""
-    return len(INFO_PANEL_MODES)

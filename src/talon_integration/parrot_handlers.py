@@ -142,37 +142,10 @@ def _execute_toggle_action():
 
 def _execute_mouse_clock_action(action: str):
     """Execute mouse clock specific action."""
-    import math
     from .instance import get_mouse_clock_instance
-    from .adapter import DISPLAY_MODE_GRID, DISPLAY_MODE_THIS
+    from .adapter import DISPLAY_MODE_GRID
 
     mc = get_mouse_clock_instance()
-
-    # In "this" mode, hiss moves toward target, shush moves away
-    if mc.get_display_mode() == DISPLAY_MODE_THIS:
-        if action in ("widen", "narrow") and mc._this_line_data:
-            target = mc._this_line_data['target']
-            mouse_x, mouse_y = ctrl.mouse_pos()
-            dx = target[0] - mouse_x
-            dy = target[1] - mouse_y
-            dist = math.sqrt(dx * dx + dy * dy)
-            if dist == 0:
-                return
-            dx /= dist
-            dy /= dist
-            increment = mc.core._animator.get_dynamic_increment()
-            # Hiss: toward target, Shush: away from target
-            sign = 1 if action == "widen" else -1
-            new_x = mouse_x + dx * increment * sign
-            new_y = mouse_y + dy * increment * sign
-            ctrl.mouse_move(new_x, new_y)
-            # Rebuild fan from new cursor position
-            from .actions_move import _set_this_lines
-            _set_this_lines(mc, (new_x, new_y), mc._this_line_data)
-        elif action == "click":
-            actions.user.mouse_clock_close()
-            ctrl.mouse_click()
-        return
 
     # In grid mode, hiss/shush have toggle behavior
     if mc.get_display_mode() == DISPLAY_MODE_GRID:

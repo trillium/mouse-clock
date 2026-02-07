@@ -1,7 +1,6 @@
 tag: user.use_mouse_clock
 and tag: user.mouse_clock_showing
 and not tag: user.mouse_grid_showing
-and not tag: user.mouse_clock_this_mode
 -
 key(cmd-ctrl-alt-shift-e):
     print("enter mimice SUPER-e")
@@ -43,10 +42,6 @@ clock it <user.letters_colors>+:
 # Reverse command - moves opposite direction of last command
 reverse:
     user.mouse_clock_move_opposite()
-
-# Draw a line from current position to target (switches to this mode)
-this <user.letters_colors>+:
-    user.mouse_clock_this_line(letters_colors)
 
 # Touch commands
 ^touch <user.letters_colors>+$:
@@ -137,6 +132,5 @@ clock letters: user.mouse_clock_mode_clock_letters()
 key(cmd-ctrl-alt-shift-e):
     user.mouse_clock_mode_clock_letters()
 
-clock info: user.mouse_clock_mode_info()
 clock display next: user.mouse_clock_cycle_mode()
 clock display (previous | last): user.mouse_clock_cycle_mode_previous()

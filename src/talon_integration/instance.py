@@ -15,8 +15,6 @@ from talon import Context, Module
 mod = Module()
 mod.tag("use_mouse_clock", desc="Tag enables using mouse clock")
 mod.tag("mouse_clock_showing", desc="Tag indicates whether the mouse clock is showing")
-mod.tag("mouse_clock_info_mode", desc="Tag indicates info panel is active (for command overrides)")
-mod.tag("mouse_clock_this_mode", desc="Tag indicates 'this' ray mode is active")
 
 # Context for lists (requires use_mouse_clock)
 ctx = Context()
