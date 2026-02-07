@@ -12,7 +12,7 @@ from ...rendering.colors import get_color, with_alpha
 from ...rendering.drawing import draw_text, draw_rect
 from .config import get_text_color, get_text_bg_color, get_clock_letters_colors, get_clock_letters_letters
 from .layout import calculate_row_positions, calculate_column_positions
-from ..info.contrast import parse_hex_color, relative_luminance
+from ...rendering.colors import parse_hex_color, relative_luminance
 from ..shared.alpha import apply_alpha, set_alpha
 
 

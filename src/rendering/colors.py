@@ -6,7 +6,7 @@ Provides a color registry and utilities for looking up, modifying,
 and computing colors used across all rendering components.
 """
 
-from typing import Optional
+from typing import Optional, Tuple
 
 
 # Color registry mapping names to 8-digit RGBA hex values
@@ -115,6 +115,29 @@ def with_alpha(color_hex: str, alpha: int) -> str:
         raise ValueError(f"Expected 8-digit hex, got '{color_hex}'")
     rgb = color_hex[:6]
     return f"{rgb}{alpha:02x}"
+
+
+def parse_hex_color(hex_str: str) -> Tuple[float, float, float, float]:
+    """Parse an 8-digit RGBA hex string to (r, g, b, a) floats in 0-1 range."""
+    if len(hex_str) != 8:
+        raise ValueError(f"Expected 8-char RGBA hex string, got '{hex_str}'")
+    r = int(hex_str[0:2], 16) / 255.0
+    g = int(hex_str[2:4], 16) / 255.0
+    b = int(hex_str[4:6], 16) / 255.0
+    a = int(hex_str[6:8], 16) / 255.0
+    return (r, g, b, a)
+
+
+def _linearize(c: float) -> float:
+    """Convert sRGB channel value (0-1) to linear RGB."""
+    if c <= 0.04045:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def relative_luminance(r: float, g: float, b: float) -> float:
+    """Calculate WCAG relative luminance from sRGB values (0-1)."""
+    return 0.2126 * _linearize(r) + 0.7152 * _linearize(g) + 0.0722 * _linearize(b)
 
 
 def contrasting_color(color_hex: str) -> str:
