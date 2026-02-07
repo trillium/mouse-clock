@@ -21,18 +21,18 @@ COLOR_NAMES = "center red blue green yellow purple pink black white teal"
 # Color hex values (8-digit RGBA format for Talon/Skia)
 COLORS = {
     "GRAY": "9999995f",        # Background color
-    "GREEN": "00ff00ff",       # Text color
-    "RED": "ff0000ff",         # Dot and active grid color
+    "GREEN": "36b33fff",       # Cursorless green
+    "RED": "e02d28ff",         # Cursorless red
     "LIGHT_GREEN": "00ff007f", # Cross color
-    "BLACK": "000000ff",       # Black
-    "WHITE": "ffffffff",       # White
-    "TEAL": "008080ff",        # Teal
-    "BLUE": "0000ffff",        # Blue ring color
-    "PINK": "ff00ffff",        # Pink ring color
+    "BLACK": "000000ff",       # Cursorless userColor1
+    "WHITE": "ffffffff",       # Cursorless userColor3
+    "TEAL": "00d1d1ff",        # Cursorless userColor4
+    "BLUE": "089ad3ff",        # Cursorless blue
+    "PINK": "e06caaff",        # Cursorless pink
     "ORANGE": "ffa500ff",      # Orange color (unused currently)
-    "YELLOW": "ffd700ff",      # Gold-like bright yellow
-    "PURPLE": "800080ff",      # Classic purple
-    "CENTER": "000000ff",      # Center color (black)
+    "YELLOW": "e5c02cff",      # Cursorless yellow
+    "PURPLE": "8e44adff",      # Cursorless userColor2
+    "CENTER": "b9b6cdff",      # Cursorless default
 }
 
 # Semantic color aliases

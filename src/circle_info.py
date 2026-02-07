@@ -26,6 +26,13 @@ _prompt_job = None
 _show_error = False  # flash red circle on wrong answer
 _error_job = None
 _mode = "game"  # "game" or "learn"
+_learn_count = 0  # how many targets shown in learn mode
+_learn_queue = []  # pre-built sequence for first 10 learn items
+_weights = {}  # {(color, shape): float} — spaced repetition weights
+_LEARN_INTRO_COUNT = 10
+_LEARN_STREAK_TARGET = 20
+_streak = 0  # consecutive correct answers after intro
+_done = False  # user completed the session
 
 # Base dimensions matching clock_ring proportions
 _BASE_SC = 0.75
@@ -96,6 +103,16 @@ def _on_draw(c):
 
 def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     """Learn mode: one large shape centered with text below."""
+    # Done screen
+    if _done:
+        c.paint.style = c.paint.Style.FILL
+        c.paint.textsize = 36
+        c.paint.color = "00ff00ff"
+        text = "Done!"
+        tw, _ = c.paint.measure_text(text)
+        c.draw_text(text, center_x - tw / 2, center_y)
+        return
+
     if not _current_target:
         return
 
@@ -133,7 +150,7 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     c.draw_path(shape_path)
 
     c.paint.style = c.paint.Style.STROKE
-    c.paint.stroke_width = 0.4
+    c.paint.stroke_width = 0.2
     stroke_base = "ffffff" if color_name in ("black",) else "000000"
     c.paint.color = stroke_base
     c.draw_path(shape_path)
@@ -152,6 +169,18 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     c.paint.textsize = 28
     if _show_prompt:
         _draw_prompt_text(c, center_x, text_y, color_name, shape_name, color_hex)
+
+    # Progress counter below text
+    c.paint.style = c.paint.Style.FILL
+    c.paint.textsize = 16
+    c.paint.color = "ffffff88"
+    in_intro = _learn_count <= _LEARN_INTRO_COUNT
+    if in_intro:
+        progress = f"{_learn_count}/{_LEARN_INTRO_COUNT}"
+    else:
+        progress = f"{_streak}/{_LEARN_STREAK_TARGET}"
+    pw, _ = c.paint.measure_text(progress)
+    c.draw_text(progress, center_x - pw / 2, text_y + 50)
 
 
 def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
@@ -244,7 +273,7 @@ def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
                 c.draw_path(shape_path)
 
                 c.paint.style = c.paint.Style.STROKE
-                c.paint.stroke_width = 0.4
+                c.paint.stroke_width = 0.2
                 stroke_base = "ffffff" if name in ("black",) else "000000"
                 c.paint.color = f"{stroke_base}{alpha}"
                 c.draw_path(shape_path)
@@ -278,24 +307,62 @@ def _reveal_prompt():
 
 
 def _pick_target():
-    global _current_target, _show_prompt, _prompt_job
+    global _current_target, _show_prompt, _prompt_job, _learn_count
     if _prompt_job:
         cron.cancel(_prompt_job)
     _show_prompt = False
+
+    if _mode == "learn":
+        _learn_count += 1
+
+    # During learn intro: pull from pre-built queue
+    if _mode == "learn" and _learn_queue:
+        _current_target = _learn_queue.pop(0)
+        _show_prompt = True
+        return
+
+    # Otherwise: weighted random selection
     from .rendering.colors import DISPLAY_COLORS
     svg_paths = load_svg_paths(default_first=True)
     if not svg_paths or not DISPLAY_COLORS:
         return
-    color = random.choice(DISPLAY_COLORS)
-    shape = random.choice(svg_paths)[0]  # spoken name
-    _current_target = (color, shape)
-    _prompt_job = cron.after("2s", _reveal_prompt)
+    shape_names = [s[0] for s in svg_paths]
+    combos = [(col, sh) for col in DISPLAY_COLORS for sh in shape_names]
+    weights = [_weights.get(k, 1.0) for k in combos]
+    _current_target = random.choices(combos, weights=weights, k=1)[0]
+    _prompt_job = cron.after("3s", _reveal_prompt)
+
+
+def _build_learn_queue():
+    """Build first 10 items ensuring every color and every shape appears."""
+    from .rendering.colors import DISPLAY_COLORS
+    shape_names = [s[0] for s in load_svg_paths(default_first=True)]
+    if not DISPLAY_COLORS or not shape_names:
+        return []
+
+    colors = list(DISPLAY_COLORS)
+    shapes = list(shape_names)
+    random.shuffle(colors)
+    random.shuffle(shapes)
+
+    queue = []
+    # Pair up colors and shapes to maximize coverage
+    for i in range(_LEARN_INTRO_COUNT):
+        color = colors[i % len(colors)]
+        shape = shapes[i % len(shapes)]
+        queue.append((color, shape))
+    random.shuffle(queue)
+    return queue
 
 
 def _show(mode="game"):
-    global _canvas, _poll_job, _highlight, _mode
+    global _canvas, _poll_job, _highlight, _mode, _learn_count, _learn_queue, _streak, _done
     _hide()
     _mode = mode
+    _learn_count = 0
+    _streak = 0
+    _done = False
+    _learn_queue = _build_learn_queue() if mode == "learn" else []
     _highlight = (None, None)
     _pick_target()
     screen = ui.main_screen()
@@ -353,15 +420,52 @@ def _clear_error():
         _canvas.freeze()
 
 
+def _show_error_persistent():
+    """Show red error state — stays until user says the correct answer."""
+    global _show_error, _show_prompt
+    _show_error = True
+    _show_prompt = True  # reveal the answer so they can correct
+    if _error_job:
+        cron.cancel(_error_job)
+    if _canvas:
+        _canvas.freeze()
+
+
+def _adjust_weight(combo, delta):
+    """Adjust spaced repetition weight for a combo. Min 0.1."""
+    _weights[combo] = max(0.1, _weights.get(combo, 1.0) + delta)
+
+
 def _select(color: str, shape: str):
     """Highlight a color+shape combo, or advance if it matches the target."""
-    if not _canvas:
+    global _streak, _done, _learn_count, _learn_queue
+    if not _canvas or _done:
         return False
     if _current_target and (color, shape) == _current_target:
+        if _show_error:
+            _clear_error()  # was in error state — correct answer clears it
+        elif not _show_prompt:
+            _adjust_weight(_current_target, -0.3)
+        # Track streak after intro phase
+        if _mode == "learn" and _learn_count > _LEARN_INTRO_COUNT:
+            _streak += 1
+            if _streak >= _LEARN_STREAK_TARGET:
+                _done = True
+                if _canvas:
+                    _canvas.freeze()
+                return True
         _pick_target()
         _set_highlight(None, None)
     else:
-        _flash_error()
+        # Wrong — boost target weight, reset streak, stay on same target
+        if _current_target:
+            _adjust_weight(_current_target, 0.5)
+        if _mode == "learn" and _learn_count <= _LEARN_INTRO_COUNT:
+            _learn_count = 0
+            _learn_queue = _build_learn_queue()
+        elif _mode == "learn":
+            _streak = 0
+        _show_error_persistent()
         _set_highlight(color, shape)
     return True
 
@@ -381,9 +485,16 @@ class Actions:
         _hide()
 
     def circle_info_highlight_color(color: str):
-        """Highlight all shapes of a given color"""
-        _set_highlight(color=color)
+        """Highlight all shapes of a given color (partial = wrong in learn mode)"""
+        if _mode == "learn" and _canvas and _current_target:
+            # Partial command in learn mode counts as wrong
+            _select(color, "")
+        else:
+            _set_highlight(color=color)
 
     def circle_info_highlight_shape(shape: str):
-        """Highlight all instances of a given shape"""
-        _set_highlight(shape=shape)
+        """Highlight all instances of a given shape (partial = wrong in learn mode)"""
+        if _mode == "learn" and _canvas and _current_target:
+            _select("", shape)
+        else:
+            _set_highlight(shape=shape)
