@@ -121,8 +121,8 @@ class TestSetModeConfig:
         config.reset_all_settings()
 
     def test_set_full_list(self):
-        config.set_mode_config("boxes", "colors", ["red", "green"])
-        assert config.get_mode_config("boxes", "colors") == ["red", "green"]
+        config.set_mode_config("grid", "colors", ["red", "green"])
+        assert config.get_mode_config("grid", "colors") == ["red", "green"]
 
     def test_set_empty_list(self):
         config.set_mode_config("circles", "colors", [])

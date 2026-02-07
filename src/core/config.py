@@ -236,7 +236,7 @@ def get_active_letters() -> list:
 # Per-Display-Mode Configuration
 # =============================================================================
 
-CONFIGURABLE_MODES = ["circles", "boxes", "grid", "clock_letters"]
+CONFIGURABLE_MODES = ["circles", "grid", "clock_letters"]
 
 # Map dimension names to their global getter and validation set
 _DIMENSION_INFO = {

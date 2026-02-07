@@ -120,9 +120,6 @@ def execute_action(action: str, amount: int = None):
         _execute_spiral_action(action)
     elif is_overlay_active("mouse_clock"):
         _execute_mouse_clock_action(action)
-    elif is_overlay_active("box_overlay"):
-        print(f"🕐 executing {action} for box_overlay")
-        _execute_box_overlay_action(action)
     else:
         print(f"🕐 no overlay active, ignoring {action}")
 
@@ -131,8 +128,6 @@ def _execute_toggle_action():
     """Toggle the primary overlay visibility."""
     if is_overlay_active("mouse_clock"):
         actions.user.mouse_clock_close()
-    elif is_overlay_active("box_overlay"):
-        actions.user.box_overlay_hide()
     elif is_overlay_active("spiral_nudge"):
         actions.user.spiral_stop()
     else:
@@ -204,21 +199,3 @@ def _execute_spiral_action(action: str):
         actions.user.spiral_reset()
     elif action == "go_back":
         actions.user.spiral_back()
-
-
-def _execute_box_overlay_action(action: str):
-    """Execute box overlay specific action."""
-    if action == "widen":
-        pass  # No widen for boxes
-    elif action == "narrow":
-        pass  # No narrow for boxes
-    elif action == "click":
-        actions.user.box_overlay_hide()
-        ctrl.mouse_click()
-    elif action == "recenter":
-        actions.user.box_overlay_recenter()
-    elif action == "go_back":
-        from ..input.history import pop_position
-        pos = pop_position()
-        if pos:
-            ctrl.mouse_move(pos[0], pos[1])

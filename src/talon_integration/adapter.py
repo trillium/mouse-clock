@@ -16,7 +16,6 @@ from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
 from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
-from ..features.box import draw_concentric_boxes
 from ..features.grid import draw_grid_overlay, update_offset_animation
 from ..features.clock_letters import draw_clock_letters_overlay
 from ..rendering.animation import FadeAnimator
@@ -42,14 +41,12 @@ _cleanup_all_canvases()
 
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_BOXES = "boxes"
 DISPLAY_MODE_GRID = "grid"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
 
 # Map modes to their required tags
 MODE_TAGS = {
     DISPLAY_MODE_CIRCLES: ["user.mouse_clock_showing"],
-    DISPLAY_MODE_BOXES: ["user.mouse_clock_showing"],
     DISPLAY_MODE_GRID: ["user.mouse_clock_showing"],
     DISPLAY_MODE_CLOCK_LETTERS: ["user.mouse_clock_showing"],
 }
@@ -246,9 +243,7 @@ class MouseClockTalonAdapter:
         still_animating = self.core.update_radius_animation()
 
         # Draw based on current mode - single source of truth
-        if self._display_mode == DISPLAY_MODE_BOXES:
-            draw_concentric_boxes(canvas_obj, (self.core.center_x, self.core.center_y), radius=self.core.radius)
-        elif self._display_mode == DISPLAY_MODE_GRID:
+        if self._display_mode == DISPLAY_MODE_GRID:
             rect = canvas_obj.rect
             screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
             lerp = self.core._animator.get_lerp_factor()

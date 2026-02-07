@@ -126,7 +126,6 @@ key(cmd-ctrl-alt-shift-n:up):
 
 # Display mode switching (only when clock is showing)
 clock circles: user.mouse_clock_mode_circles()
-clock boxes: user.mouse_clock_mode_boxes()
 clock grid: user.mouse_clock_mode_grid()
 clock letters: user.mouse_clock_mode_clock_letters()
 key(cmd-ctrl-alt-shift-e):

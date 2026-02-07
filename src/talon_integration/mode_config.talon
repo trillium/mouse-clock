@@ -6,12 +6,6 @@ clock remove <user.color>: user.mouse_clock_config_remove("circles", "colors", c
 clock only <user.color>: user.mouse_clock_config_only("circles", "colors", color)
 clock reset colors: user.mouse_clock_config_reset("circles", "colors")
 
-# Squares (boxes) — colors only
-squares add <user.color>: user.mouse_clock_config_add("boxes", "colors", color)
-squares remove <user.color>: user.mouse_clock_config_remove("boxes", "colors", color)
-squares only <user.color>: user.mouse_clock_config_only("boxes", "colors", color)
-squares reset colors: user.mouse_clock_config_reset("boxes", "colors")
-
 # Grid — colors, horizontal/vertical styles, letters
 grid add <user.color>: user.mouse_clock_config_add("grid", "colors", color)
 grid remove <user.color>: user.mouse_clock_config_remove("grid", "colors", color)

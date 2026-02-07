@@ -2,7 +2,7 @@ _V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Shared utilities for feature modules.
 
-Common functions extracted from grid, clock_letters, and box features.
+Common functions extracted from grid and clock_letters features.
 """
 
 _LAZY_IMPORTS = {
