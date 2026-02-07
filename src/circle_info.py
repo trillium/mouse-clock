@@ -31,8 +31,12 @@ _learn_queue = []  # pre-built sequence for first 10 learn items
 _weights = {}  # {(color, shape): float} — spaced repetition weights
 _LEARN_INTRO_COUNT = 10
 _LEARN_STREAK_TARGET = 20
+_GAME_STREAK_TARGET = 10
 _streak = 0  # consecutive correct answers after intro
 _done = False  # user completed the session
+_show_correct = False  # brief green flash on correct answer
+_correct_job = None
+_dismiss_job = None  # auto-dismiss done screen
 
 # Base dimensions matching clock_ring proportions
 _BASE_SC = 0.75
@@ -105,12 +109,7 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     """Learn mode: one large shape centered with text below."""
     # Done screen
     if _done:
-        c.paint.style = c.paint.Style.FILL
-        c.paint.textsize = 36
-        c.paint.color = "00ff00ff"
-        text = "Done!"
-        tw, _ = c.paint.measure_text(text)
-        c.draw_text(text, center_x - tw / 2, center_y)
+        _draw_done_screen(c, center_x, center_y)
         return
 
     if not _current_target:
@@ -157,11 +156,16 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
 
     c.restore()
 
-    # Error ring around shape area
+    # Error/correct ring around shape area
     if _show_error:
         c.paint.style = c.paint.Style.STROKE
         c.paint.stroke_width = 3
         c.paint.color = "ff0000ff"
+        c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
+    elif _show_correct:
+        c.paint.style = c.paint.Style.STROKE
+        c.paint.stroke_width = 3
+        c.paint.color = "00ff00ff"
         c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
 
     # Text below shape
@@ -183,8 +187,28 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     c.draw_text(progress, center_x - pw / 2, text_y + 50)
 
 
+def _draw_done_screen(c, center_x, center_y):
+    """Shared done screen for both modes."""
+    c.paint.style = c.paint.Style.FILL
+    c.paint.textsize = 36
+    c.paint.color = "00ff00ff"
+    text = "Done!"
+    tw, _ = c.paint.measure_text(text)
+    c.draw_text(text, center_x - tw / 2, center_y)
+    # Hint text
+    c.paint.textsize = 16
+    c.paint.color = "ffffff66"
+    hint = "say \"circle info hide\" to close"
+    hw, _ = c.paint.measure_text(hint)
+    c.draw_text(hint, center_x - hw / 2, center_y + 40)
+
+
 def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
     """Game mode: concentric rings with highlighting."""
+    if _done:
+        _draw_done_screen(c, center_x, center_y)
+        return
+
     _shape_positions.clear()
 
     num_colors = len(colors)
@@ -215,8 +239,15 @@ def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
     # Center circle with prompt text
     center_r = (first_dist - shape_h * 0.8) * 0.9
     c.paint.style = c.paint.Style.STROKE
-    c.paint.stroke_width = 3 if _show_error else 2
-    c.paint.color = "ff0000ff" if _show_error else "ffffffcc"
+    if _show_error:
+        c.paint.stroke_width = 3
+        c.paint.color = "ff0000ff"
+    elif _show_correct:
+        c.paint.stroke_width = 3
+        c.paint.color = "00ff00ff"
+    else:
+        c.paint.stroke_width = 2
+        c.paint.color = "ffffffcc"
     c.draw_circle(center_x, center_y, center_r)
 
     if _current_target and _show_prompt:
@@ -291,6 +322,14 @@ def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
         shape_idx += shapes_this_ring
         ring_num += 1
         dist += ring_gap
+
+    # Progress counter at bottom of background circle
+    c.paint.style = c.paint.Style.FILL
+    c.paint.textsize = 16
+    c.paint.color = "ffffff88"
+    progress = f"{_streak}/{_GAME_STREAK_TARGET}"
+    pw, _ = c.paint.measure_text(progress)
+    c.draw_text(progress, center_x - pw / 2, center_y + bg_radius - 20)
 
 
 def _poll_mouse():
@@ -374,8 +413,15 @@ def _show(mode="game"):
 
 
 def _hide():
-    global _canvas, _poll_job, _prompt_job, _error_job, _show_error
+    global _canvas, _poll_job, _prompt_job, _error_job, _show_error, _correct_job, _show_correct, _dismiss_job
     _ctx_tags.tags = []
+    if _dismiss_job:
+        cron.cancel(_dismiss_job)
+        _dismiss_job = None
+    if _correct_job:
+        cron.cancel(_correct_job)
+        _correct_job = None
+    _show_correct = False
     if _error_job:
         cron.cancel(_error_job)
         _error_job = None
@@ -402,16 +448,6 @@ def _set_highlight(color=None, shape=None):
         _canvas.freeze()
 
 
-def _flash_error():
-    global _show_error, _error_job
-    _show_error = True
-    if _error_job:
-        cron.cancel(_error_job)
-    _error_job = cron.after("500ms", _clear_error)
-    if _canvas:
-        _canvas.freeze()
-
-
 def _clear_error():
     global _show_error, _error_job
     _show_error = False
@@ -420,13 +456,38 @@ def _clear_error():
         _canvas.freeze()
 
 
+def _flash_correct():
+    global _show_correct, _correct_job
+    _show_correct = True
+    if _correct_job:
+        cron.cancel(_correct_job)
+    _correct_job = cron.after("400ms", _clear_correct)
+    if _canvas:
+        _canvas.freeze()
+
+
+def _clear_correct():
+    global _show_correct, _correct_job
+    _show_correct = False
+    _correct_job = None
+    if _canvas:
+        _canvas.freeze()
+
+
+def _auto_dismiss():
+    global _dismiss_job
+    _dismiss_job = None
+    _hide()
+
+
 def _show_error_persistent():
     """Show red error state — stays until user says the correct answer."""
-    global _show_error, _show_prompt
+    global _show_error, _show_prompt, _error_job
     _show_error = True
     _show_prompt = True  # reveal the answer so they can correct
     if _error_job:
         cron.cancel(_error_job)
+        _error_job = None
     if _canvas:
         _canvas.freeze()
 
@@ -438,7 +499,7 @@ def _adjust_weight(combo, delta):
 
 def _select(color: str, shape: str):
     """Highlight a color+shape combo, or advance if it matches the target."""
-    global _streak, _done, _learn_count, _learn_queue
+    global _streak, _done, _learn_count, _learn_queue, _dismiss_job
     if not _canvas or _done:
         return False
     if _current_target and (color, shape) == _current_target:
@@ -446,14 +507,22 @@ def _select(color: str, shape: str):
             _clear_error()  # was in error state — correct answer clears it
         elif not _show_prompt:
             _adjust_weight(_current_target, -0.3)
-        # Track streak after intro phase
+        # Track streak
         if _mode == "learn" and _learn_count > _LEARN_INTRO_COUNT:
             _streak += 1
-            if _streak >= _LEARN_STREAK_TARGET:
-                _done = True
-                if _canvas:
-                    _canvas.freeze()
-                return True
+            target = _LEARN_STREAK_TARGET
+        elif _mode == "game":
+            _streak += 1
+            target = _GAME_STREAK_TARGET
+        else:
+            target = None
+        if target and _streak >= target:
+            _done = True
+            _dismiss_job = cron.after("5s", _auto_dismiss)
+            if _canvas:
+                _canvas.freeze()
+            return True
+        _flash_correct()
         _pick_target()
         _set_highlight(None, None)
     else:
@@ -463,7 +532,7 @@ def _select(color: str, shape: str):
         if _mode == "learn" and _learn_count <= _LEARN_INTRO_COUNT:
             _learn_count = 0
             _learn_queue = _build_learn_queue()
-        elif _mode == "learn":
+        else:
             _streak = 0
         _show_error_persistent()
         _set_highlight(color, shape)
