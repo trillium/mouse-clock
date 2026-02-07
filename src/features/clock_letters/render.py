@@ -60,7 +60,6 @@ def draw_clock_letters_overlay(
 
     colors = get_clock_letters_colors()
     letters = get_clock_letters_letters()
-    # print(f"[clock_letters] colors={colors}, letters={letters}")
 
     if not colors or not letters:
         print("[clock_letters] WARNING: no colors or letters, returning early")
@@ -68,9 +67,6 @@ def draw_clock_letters_overlay(
 
     row_positions = calculate_row_positions(top, bottom, len(letters))
     col_positions = calculate_column_positions(left, right, len(colors))
-    # print(f"[clock_letters] row_positions: first={row_positions[0]:.1f}, last={row_positions[-1]:.1f}")
-    # print(f"[clock_letters] col_positions: first={col_positions[0]:.1f}, last={col_positions[-1]:.1f}")
-    # print(f"[clock_letters] first letter 'a' red at ({col_positions[0]:.1f}, {row_positions[0]:.1f})")
 
     bg_color = apply_alpha(get_text_bg_color(), "clock_letters")
 
@@ -130,4 +126,3 @@ def draw_clock_letters_overlay(
                 anchor="center"
             )
 
-    # print(f"[clock_letters] drew {len(letters)} rows x {len(colors)} cols = {len(letters) * len(colors)} letters")

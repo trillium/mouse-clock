@@ -31,7 +31,6 @@ def draw_grid_overlay(
         alpha: Overall transparency (0-255) for fade effects
     """
     set_alpha("grid", alpha)
-    print(f"[DEBUG render] alpha={alpha}")
 
     left, top, right, bottom = screen_rect
 
@@ -39,8 +38,6 @@ def draw_grid_overlay(
     h_styles = get_horizontal_styles()
     v_styles = get_vertical_styles()
     letters = get_grid_letters()
-
-    print(f"[DEBUG render] Drawing grid with {len(colors)} colors, {len(h_styles)} h_styles, {len(v_styles)} v_styles, {len(letters)} letters")
 
     if swap_axes:
         # Colors on Y, Letters on X

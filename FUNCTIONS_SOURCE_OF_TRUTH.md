@@ -1118,9 +1118,3 @@ This document lists all functions in the codebase organized by file.
 ### _execute_box_overlay_action
 **Execute box overlay specific action.**
 
----
-
-## src/talon_integration/debug_overlay.py
-
-### draw_debug_info
-**Draw debug information overlay on canvas.**

@@ -32,11 +32,7 @@ def _refresh_if_active():
 class ModeConfigActions:
     def mouse_clock_config_add(mode: str, dimension: str, item: str):
         """Add an item to a display mode's configuration."""
-        before = get_mode_config(mode, dimension)
-        print(f"[DEBUG] {mode} {dimension} BEFORE add: {len(before)} items")
         if add_mode_item(mode, dimension, item):
-            after = get_mode_config(mode, dimension)
-            print(f"[DEBUG] {mode} {dimension} AFTER add: {len(after)} items")
             print(f"✓ Added {item} to {mode} {dimension}")
             _refresh_if_active()
         else:
@@ -44,11 +40,7 @@ class ModeConfigActions:
 
     def mouse_clock_config_remove(mode: str, dimension: str, item: str):
         """Remove an item from a display mode's configuration."""
-        before = get_mode_config(mode, dimension)
-        print(f"[DEBUG] {mode} {dimension} BEFORE remove: {len(before)} items - {before}")
         if remove_mode_item(mode, dimension, item):
-            after = get_mode_config(mode, dimension)
-            print(f"[DEBUG] {mode} {dimension} AFTER remove: {len(after)} items - {after}")
             print(f"✓ Removed {item} from {mode} {dimension}")
             _refresh_if_active()
         else:

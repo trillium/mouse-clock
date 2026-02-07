@@ -58,7 +58,6 @@ class DisplayActions:
     def mouse_clock_cycle_mode():
         """Cycle to next display mode."""
         mouse_clock = _get_instance()
-        print(f"[DEBUG cycle_mode] active={mouse_clock.active}, canvases={len(mouse_clock.canvases)}")
         current = mouse_clock.get_display_mode()
         try:
             idx = DISPLAY_MODES.index(current)
@@ -67,7 +66,6 @@ class DisplayActions:
             next_idx = 0
         next_mode = DISPLAY_MODES[next_idx]
         _set_mode_and_refresh(next_mode)
-        print(f"[DEBUG cycle_mode] {current} -> {next_mode}")
 
     def mouse_clock_cycle_mode_previous():
         """Cycle to previous display mode."""

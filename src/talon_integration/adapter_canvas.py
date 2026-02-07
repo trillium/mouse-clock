@@ -23,7 +23,6 @@ def _cleanup_all_canvases():
         except Exception:
             pass
     _all_canvases = []
-    print("[DEBUG] Cleaned up all registered canvases")
 
 
 # Clean up any stale canvases from previous module load
