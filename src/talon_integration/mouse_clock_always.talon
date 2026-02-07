@@ -9,33 +9,9 @@ tag: user.use_mouse_clock
 key(cmd-ctrl-alt-shift-q):
     user.mouse_clock_toggle()
 
-key(cmd-ctrl-alt-shift-b:down):
-    user.boolean_print("Hiss (keyboard)", "start")
-    user.mouse_clock_keyboard_hiss_start()
-
-key(cmd-ctrl-alt-shift-b:up):
-    user.boolean_print("Hiss (keyboard)", "stop")
-    user.mouse_clock_keyboard_hiss_stop()
-
-key(cmd-ctrl-alt-shift-n:down):
-    user.boolean_print("Shush (keyboard)", "start")
-    user.mouse_clock_keyboard_shush_start()
-
-key(cmd-ctrl-alt-shift-n:up):
-    user.boolean_print("Shush (keyboard)", "stop")
-    user.mouse_clock_keyboard_shush_stop()
-
 clock win:
     user.mouse_clock_place_window()
     user.mouse_clock_activate()
-
-# reset <user.letter>+:
-#     user.mouse_clock_reset()
-#     user.mouse_clock_narrow_list(letter_list)
-
-# clock <user.letter>+:
-#     user.mouse_clock_activate()
-#     user.mouse_clock_narrow_list(letter_list)
 
 clock screen [<number>]:
     user.mouse_clock_select_screen(number or 1)
@@ -45,8 +21,6 @@ clock off:
     user.mouse_clock_close()
 
 ^<user.letter>+ clock off$:
-    # mouse_clock_narrow_list(letter_list)
-    # sleep(200ms)
     user.mouse_clock_close()
 
 clock debug:

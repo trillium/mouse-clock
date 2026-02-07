@@ -1,24 +1,15 @@
-_V = "0.0.1"; print(f"[v{_V}] {__name__}")
+_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Parrot sound configuration for MouseClock.
 
 Manages sound-to-action mappings and configuration.
+Supports: pop (click), cluck (toggle), tut (recenter).
 """
 
 from ..core.config import get_setting, set_setting
 
 # Default sound configuration
 DEFAULT_SOUND_CONFIG = {
-    "hiss": {
-        "action": "widen",
-        "amount": 20,
-        "enabled": True,
-    },
-    "shush": {
-        "action": "narrow",
-        "amount": 20,
-        "enabled": True,
-    },
     "pop": {
         "action": "click",
         "enabled": True,
@@ -66,6 +57,3 @@ def reset_sound_config():
     set_sound_config(DEFAULT_SOUND_CONFIG.copy())
 
 
-def reload_sound_config():
-    """Reload sound configuration."""
-    pass  # Currently just a hook for future use

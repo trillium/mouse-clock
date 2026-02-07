@@ -2,7 +2,7 @@ _V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Animation and timing utilities for smooth radius transitions.
 
-Provides exponential acceleration for hiss/shush radius control.
+Provides exponential acceleration for radius control (voice widen/narrow).
 """
 
 import time
@@ -45,8 +45,8 @@ class RadiusAnimator:
     """
     Manages smooth radius animation with exponential acceleration.
 
-    Tracks timing for continuous sound input (hiss/shush) and provides
-    accelerating increment and lerp values.
+    Tracks timing for radius changes and provides accelerating
+    increment and lerp values.
     """
 
     # Configuration - can be tuned
@@ -60,8 +60,6 @@ class RadiusAnimator:
     MIN_RADIUS = 20                 # Minimum radius allowed
     MAX_INCREMENT_PER_EVENT = 40    # Cap per-event increment
     MAX_LERP_FACTOR = .1          # Cap lerp speed (e.g., 0.5)
-
-    print(f"🔄 animation.py loaded - MAX_INCREMENT={MAX_INCREMENT_PER_EVENT}, MAX_LERP={MAX_LERP_FACTOR}")
 
     def __init__(self):
         self._animation_start_time: Optional[float] = None
