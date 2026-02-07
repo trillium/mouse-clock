@@ -6,7 +6,7 @@ dark backdrop for readability.
 
 import math
 
-from talon import Context, Module, ui, ctrl, skia
+from talon import Context, Module, actions, ui, ctrl, skia
 from talon.canvas import Canvas
 from talon.skia import Path
 from talon.ui import Point2d
@@ -193,16 +193,28 @@ class Actions:
         _show()
 
     def clock_ring_hide():
-        """Hide the clock ring and hats info panel"""
+        """Hide the clock ring and all info panels"""
         _hide()
+        from .circle_info import _hide as _circle_hide
+        _circle_hide()
         from .hats_info import _hide as _hats_hide
         _hats_hide()
+
+    def clock_ring_toggle():
+        """Toggle the clock ring on/off"""
+        if "user.clock_ring_showing" in _ctx_tags.tags:
+            actions.user.clock_ring_hide()
+        else:
+            actions.user.clock_ring_show()
 
     def clock_ring_select(color: str, shape: str):
         """Move mouse to the specified color+shape position on the pie or info panel"""
         offset = _shape_positions.get((color, shape))
         if not offset:
-            # Fall through to hats info panel
+            # Fall through to circle info, then hats info panel
+            from .circle_info import _select as _circle_select
+            if _circle_select(color, shape):
+                return
             from .hats_info import _select as _hats_select
             if _hats_select(color, shape):
                 return

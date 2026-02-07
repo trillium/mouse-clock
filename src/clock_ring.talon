@@ -1,2 +1,3 @@
-clock ring show: user.clock_ring_show()
-clock ring hide: user.clock_ring_hide()
+clock ring: user.clock_ring_toggle()
+clock ring (show | on): user.clock_ring_show()
+clock ring (hide | off): user.clock_ring_hide()
