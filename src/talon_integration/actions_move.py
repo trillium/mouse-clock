@@ -1,4 +1,4 @@
-_V = "0.0.4"; print(f"[v{_V}] {__name__}")
+_V = "0.0.5"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """
@@ -359,12 +359,12 @@ class MoveActions:
             log_warning(f"[this shift] Color not found: {color_name}")
             return
 
-        # Get that color's current start position from rendered lines
+        # Get that color's endpoint (the spread-out end near cursor)
         # _this_lines[0] = gray, _this_lines[1:] = colors in order
         color_line = mouse_clock._this_lines[color_index + 1]
-        new_start = color_line[0]
+        new_start = color_line[1]  # endpoint = spread end
 
-        # Rebuild lines from the color's start position, same target
+        # Rebuild fan from this color's endpoint as new start, same target
         _set_this_lines(mouse_clock, new_start, data)
         log_info(f"[this shift] Start moved to {color_name} at ({new_start[0]:.0f}, {new_start[1]:.0f})")
 
