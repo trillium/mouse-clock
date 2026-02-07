@@ -18,11 +18,6 @@ _LAZY_IMPORTS = {
     'draw_text': '.primitives',
     'LineStyle': '.primitives',
     'LINE_STYLE_PATTERNS': '.primitives',
-    # composite
-    'draw_ray': '.composite',
-    'draw_concentric_circles': '.composite',
-    'draw_concentric_rects': '.composite',
-    'draw_clock_rays': '.composite',
 }
 
 def __getattr__(name):

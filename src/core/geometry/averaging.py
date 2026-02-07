@@ -9,29 +9,6 @@ and coordinate points.
 import math
 from typing import List, Tuple
 
-from .angles import to_cartesian, to_angle
-
-
-def average_coordinates(points: List[Tuple[float, float]]) -> Tuple[float, float]:
-    """Average a list of Cartesian coordinates (x, y)."""
-    if not points:
-        return 0.0, 0.0
-    avg_x = sum(x for x, y in points) / len(points)
-    avg_y = sum(y for x, y in points) / len(points)
-    return avg_x, avg_y
-
-
-def average_angles(angles: List[float]) -> float:
-    """
-    Average a list of angles in degrees (360-degree system).
-
-    Uses Cartesian coordinate conversion to handle wraparound correctly
-    (e.g., averaging 350° and 10° gives 0°, not 180°).
-    """
-    cartesian_points = [to_cartesian(angle) for angle in angles]
-    avg_x, avg_y = average_coordinates(cartesian_points)
-    return to_angle(avg_x, avg_y)
-
 
 def calculate_mean(values: List[float]) -> float:
     """

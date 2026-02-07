@@ -6,7 +6,7 @@ Provides a color registry and utilities for looking up, modifying,
 and computing colors used across all rendering components.
 """
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 # Color registry mapping names to 8-digit RGBA hex values
@@ -24,9 +24,6 @@ COLOR_REGISTRY = {
     "gray": "9999995f",
     "light_green": "00ff007f",
 }
-
-# Ordered list for ring/box indexing (center is index 0)
-COLOR_ORDER = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
 
 # Colors shown in info panels and pie chart (excludes internal-only colors like gray, light_green)
 DISPLAY_COLORS = ["black", "red", "blue", "green", "yellow", "purple", "pink", "white", "teal"]
@@ -50,50 +47,6 @@ def get_color(name: str) -> str:
         get_color("CENTER") -> "000000ff"
     """
     return COLOR_REGISTRY[name.lower()]
-
-
-def get_color_index(name: str) -> int:
-    """
-    Get numeric index for a color (for ring/box ordering).
-
-    Args:
-        name: Color name (case insensitive)
-
-    Returns:
-        Index in COLOR_ORDER (0 = center, 1 = red, etc.)
-
-    Raises:
-        ValueError: If color not in ordering
-
-    Examples:
-        get_color_index("center") -> 0
-        get_color_index("red") -> 1
-        get_color_index("blue") -> 2
-    """
-    try:
-        return COLOR_ORDER.index(name.lower())
-    except ValueError:
-        raise ValueError(f"Color '{name}' not in ring/box ordering")
-
-
-def index_to_color(index: int) -> str:
-    """
-    Reverse lookup from index to color name.
-
-    Args:
-        index: Index in COLOR_ORDER
-
-    Returns:
-        Color name
-
-    Raises:
-        IndexError: If index out of range
-
-    Examples:
-        index_to_color(0) -> "center"
-        index_to_color(1) -> "red"
-    """
-    return COLOR_ORDER[index]
 
 
 def with_alpha(color_hex: str, alpha: int) -> str:
@@ -138,31 +91,3 @@ def _linearize(c: float) -> float:
 def relative_luminance(r: float, g: float, b: float) -> float:
     """Calculate WCAG relative luminance from sRGB values (0-1)."""
     return 0.2126 * _linearize(r) + 0.7152 * _linearize(g) + 0.0722 * _linearize(b)
-
-
-def contrasting_color(color_hex: str) -> str:
-    """
-    Return a high-contrast color for text/markers on the given background.
-
-    Uses luminance calculation to determine if white or black provides
-    better contrast.
-
-    Args:
-        color_hex: 8-digit RGBA hex string
-
-    Returns:
-        "ffffffff" (white) or "000000ff" (black)
-
-    Examples:
-        contrasting_color("000000ff") -> "ffffffff"  # White on black
-        contrasting_color("ffffffff") -> "000000ff"  # Black on white
-        contrasting_color("ff0000ff") -> "ffffffff"  # White on red
-    """
-    r = int(color_hex[0:2], 16)
-    g = int(color_hex[2:4], 16)
-    b = int(color_hex[4:6], 16)
-
-    # Relative luminance formula (ITU-R BT.709)
-    luminance = 0.299 * r + 0.587 * g + 0.114 * b
-
-    return "000000ff" if luminance > 128 else "ffffffff"
