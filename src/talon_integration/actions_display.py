@@ -4,15 +4,9 @@ Mouse clock display mode actions.
 
 from talon import Module
 from .actions_core import set_mouse_clock_tags, ctx_tags
+from ..core.constants import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODES
 
 mod = Module()
-
-# Display mode constants (inlined to avoid importing adapter.py at module level)
-DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
-
-# Display modes in rotation order
-DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS]
 
 
 def _get_instance():

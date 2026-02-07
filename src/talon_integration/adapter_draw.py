@@ -12,10 +12,7 @@ from ..core.config import get_mode_config
 from ..rendering.colors import get_color
 from ..rendering.canvas import draw_mouse_clock
 from ..features.clock_letters import draw_clock_letters_overlay
-
-# Display mode constants (inlined for clarity)
-DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS
 
 
 def draw_dispatch(adapter, canvas_obj):

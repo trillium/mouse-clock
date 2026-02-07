@@ -14,10 +14,7 @@ from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
 from ..input.guards import set_overlay_active, set_overlay_inactive
 from ..rendering.animation import FadeAnimator
-
-# Display mode constants
-DISPLAY_MODE_CIRCLES = "circles"
-DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+from ..core.constants import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS
 
 # Map modes to their required tags
 MODE_TAGS = {

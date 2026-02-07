@@ -9,10 +9,9 @@ from .actions_core import set_mouse_clock_tags
 from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning
 from ..features.clock_letters.targeting import get_clock_letters_target
-mod = Module()
+from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS
 
-# Inlined to avoid importing adapter.py at module level
-DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
+mod = Module()
 
 
 def _get_instance():
