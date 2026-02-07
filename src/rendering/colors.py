@@ -29,7 +29,7 @@ COLOR_REGISTRY = {
 COLOR_ORDER = ["center", "red", "blue", "green", "yellow", "purple", "pink"]
 
 # Colors shown in info panels and pie chart (excludes internal-only colors like gray, light_green)
-DISPLAY_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white", "teal"]
+DISPLAY_COLORS = ["black", "red", "blue", "green", "yellow", "purple", "pink", "white", "teal"]
 
 
 def get_color(name: str) -> str:
