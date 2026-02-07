@@ -94,10 +94,7 @@ class MoveActions:
         if is_repeat:
             # Same command repeated - recenter at current position
             mouse_clock.get_mouse_position()
-            # Redraw all canvases with the new center
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
+            mouse_clock.refresh_canvases()
 
         x, y = mouse_clock.calculate_mouse_position(letters, colors, is_repeat=is_repeat)
         mouse_clock.move_mouse(x, y)
@@ -126,10 +123,7 @@ class MoveActions:
             # Repeating reverse - recenter and move away again
             log_info(f"[opposite] Repeating reverse - recentering and moving away")
             mouse_clock.get_mouse_position()
-            # Redraw all canvases with the new center
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
+            mouse_clock.refresh_canvases()
 
         log_info(f"[opposite] Original letters: {orig_letters} -> Opposite: {opposite_letters}")
         log_info(f"[opposite] Colors: {orig_colors}")
@@ -158,10 +152,7 @@ class MoveActions:
             # Repeating original - recenter and move toward again
             log_info(f"[original] Repeating original direction - recentering and moving toward")
             mouse_clock.get_mouse_position()
-            # Redraw all canvases with the new center
-            if mouse_clock.active:
-                for canvas_obj in mouse_clock.canvases:
-                    canvas_obj.freeze()
+            mouse_clock.refresh_canvases()
 
         log_info(f"[original] Moving toward original direction: {orig_letters}")
         log_info(f"[original] Colors: {orig_colors}")

@@ -82,6 +82,12 @@ class MouseClockTalonAdapter:
         """Get current display mode."""
         return self._display_mode
 
+    def refresh_canvases(self):
+        """Trigger a redraw on all canvases."""
+        if self.active:
+            for canvas_obj in self.canvases:
+                canvas_obj.freeze()
+
     def set_mode(self, mode: str, set_tags_fn=None):
         """Set display mode and update tags. Single source of truth for mode changes.
 
@@ -106,9 +112,7 @@ class MouseClockTalonAdapter:
             log_tags(MODE_TAGS[mode])
 
         # Refresh display
-        if self.active:
-            for canvas_obj in self.canvases:
-                canvas_obj.freeze()
+        self.refresh_canvases()
 
     def set_display_mode(self, mode: str):
         """Set display mode and save to settings. Legacy method - prefer set_mode()."""
@@ -192,8 +196,7 @@ class MouseClockTalonAdapter:
         """Called when fade animation updates alpha."""
         self._alpha = alpha
         # Trigger redraw on all canvases
-        for canvas_obj in self.canvases:
-            canvas_obj.freeze()
+        self.refresh_canvases()
 
     def _on_fade_out_complete(self):
         """Called when fade out animation completes."""
@@ -318,7 +321,5 @@ class MouseClockTalonAdapter:
             x, y = self.calculate_mouse_position(letters, colors)
             self.move_mouse(x, y)
 
-        if self.active:
-            # Redraw all canvases with the new center
-            for canvas_obj in self.canvases:
-                canvas_obj.freeze()
+        # Redraw all canvases with the new center
+        self.refresh_canvases()

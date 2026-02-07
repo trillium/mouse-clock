@@ -499,17 +499,14 @@ This document lists all functions in the codebase organized by file.
 ### get_color
 **Look up hex color by name.**
 
-### get_color_index
-**Get numeric index for a color (for ring/box ordering).**
-
-### index_to_color
-**Reverse lookup from index to color name.**
-
 ### with_alpha
 **Modify the alpha channel of a color.**
 
-### contrasting_color
-**Return a high-contrast color for text/markers on the given background.**
+### parse_hex_color
+**Parse an 8-digit RGBA hex string to (r, g, b, a) floats in 0-1 range.**
+
+### relative_luminance
+**Calculate WCAG relative luminance from sRGB values (0-1).**
 
 ---
 
@@ -874,6 +871,9 @@ This document lists all functions in the codebase organized by file.
 
 ### MouseClockTalonAdapter.set_display_mode
 **Set display mode and save to settings.**
+
+### MouseClockTalonAdapter.refresh_canvases
+**Trigger a redraw on all canvases.**
 
 ### MouseClockTalonAdapter.get_mouse_position
 **Get current mouse position from Talon and update core.**

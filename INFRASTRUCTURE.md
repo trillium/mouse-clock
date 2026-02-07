@@ -103,10 +103,9 @@ COLOR_REGISTRY = {
 | Function | Description | Used By |
 |----------|-------------|---------|
 | `get_color(name)` | Look up hex color by name | All systems |
-| `get_color_index(name)` | Get numeric index for a color (for ring/box ordering) | MouseClock, Concentric Box |
-| `index_to_color(index)` | Reverse lookup from index to color name | MouseClock, Concentric Box |
 | `with_alpha(color_hex, alpha)` | Modify alpha channel of a color | All systems (transparency) |
-| `contrasting_color(color_hex)` | Return a high-contrast color for text/markers | Label rendering |
+| `parse_hex_color(hex_str)` | Parse 8-digit RGBA hex to (r, g, b, a) floats | Contrast checks |
+| `relative_luminance(r, g, b)` | WCAG relative luminance from sRGB values | Clock letters rendering |
 
 ---
 

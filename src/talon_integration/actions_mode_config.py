@@ -25,10 +25,7 @@ def _get_instance():
 
 def _refresh_if_active():
     """Refresh the display if the clock is currently active."""
-    mc = _get_instance()
-    if mc.active:
-        for canvas_obj in mc.canvases:
-            canvas_obj.freeze()
+    _get_instance().refresh_canvases()
 
 
 @mod.action_class
