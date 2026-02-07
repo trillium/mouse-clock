@@ -13,9 +13,6 @@ from . import config
 from .logger import log_info, log_separator
 from .animation import RadiusAnimator
 
-# Re-export for backwards compatibility
-from .voice_parsing import flip_letter_to_opposite, parse_voice_inputs
-
 
 class MouseClockCore:
     """
@@ -48,11 +45,6 @@ class MouseClockCore:
         self.last_letters: List[str] = []
         self.last_colors: List[str] = []
         self.original_command: Tuple[List[str], List[str]] = ([], [])
-
-    # For backwards compatibility with debug logging
-    @property
-    def _animation_start_time(self):
-        return self._animator._animation_start_time
 
     def update_center(self, x: float, y: float):
         """Update the center position of the clock."""
@@ -250,10 +242,6 @@ class MouseClockCore:
         lerp_factor = self._animator.get_lerp_factor()
         self.radius += (self.target_radius - self.radius) * lerp_factor
         return True
-
-    def _get_dynamic_increment(self) -> float:
-        """Get dynamic increment (for backwards compatibility with debug logging)."""
-        return self._animator.get_dynamic_increment()
 
     def clear_state(self):
         """Clear the command state."""

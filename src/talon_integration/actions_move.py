@@ -6,7 +6,7 @@ from typing import List
 
 from talon import Module, ctrl
 from .actions_core import set_mouse_clock_tags
-from ..core.mouse_clock import flip_letter_to_opposite, parse_voice_inputs
+from ..core.voice_parsing import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning
 from ..features.clock_letters.targeting import get_clock_letters_target
 from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS

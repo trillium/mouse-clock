@@ -56,15 +56,3 @@ class ParrotActions:
             elif value.lower() == "false":
                 value = False
         set_sound_param(sound, param, value)
-
-
-def register_overlay_active():
-    """Call when mouse clock becomes active."""
-    from ..input.guards import set_overlay_active
-    set_overlay_active("mouse_clock")
-
-
-def register_overlay_inactive():
-    """Call when mouse clock is closed."""
-    from ..input.guards import set_overlay_inactive
-    set_overlay_inactive("mouse_clock")
