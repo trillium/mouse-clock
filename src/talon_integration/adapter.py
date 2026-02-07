@@ -1,43 +1,20 @@
-_V = "0.0.2"; print(f"[v{_V}] {__name__}")
+_V = "0.0.3"; print(f"[v{_V}] {__name__}")
 """
 MouseClockTalonAdapter - Talon-specific wrapper around core mouse clock logic.
 
-Handles canvas management, mouse control, and screen handling.
+Handles mode management, mouse control, show/close, and delegates canvas
+setup to adapter_canvas and draw dispatch to adapter_draw.
 """
 
 from typing import List
-from talon import canvas, ctrl, ui, cron, actions
-from talon.types.point import Point2d
+from talon import ctrl, ui
 
 from ..core import config
-from ..core.config import get_setting, set_setting, get_mode_config, _auto_save
-from ..rendering.colors import get_color
+from ..core.config import get_setting, set_setting, _auto_save
 from ..core.mouse_clock import MouseClockCore
 from ..core.logger import log_info, log_debug, log_mode_change, log_tags, log_state, initialize_logger
-from ..rendering.canvas import draw_mouse_clock
 from ..input.guards import set_overlay_active, set_overlay_inactive
-from ..features.grid import draw_grid_overlay, update_offset_animation
-from ..features.clock_letters import draw_clock_letters_overlay
 from ..rendering.animation import FadeAnimator
-from .debug_overlay import draw_debug_info
-
-# Module-level canvas registry - tracks ALL canvases ever created
-# This allows cleanup of stale canvases after hot reload
-_all_canvases = []
-
-def _cleanup_all_canvases():
-    """Force close all registered canvases. Called on module reload."""
-    global _all_canvases
-    for c in _all_canvases:
-        try:
-            c.close()
-        except Exception:
-            pass
-    _all_canvases = []
-    print("[DEBUG] Cleaned up all registered canvases")
-
-# Clean up any stale canvases from previous module load
-_cleanup_all_canvases()
 
 # Display mode constants
 DISPLAY_MODE_CIRCLES = "circles"
@@ -159,38 +136,8 @@ class MouseClockTalonAdapter:
         Args:
             update_position: If True, read current mouse position. If False, use existing center.
         """
-        if update_position:
-            self.get_mouse_position()
-
-        screens = ui.screens()
-
-        # Close any existing canvases
-        if hasattr(self, 'canvases') and self.canvases:
-            for canvas_obj in self.canvases:
-                canvas_obj.close()
-        self.canvases = []
-
-        # Create a canvas for each screen
-        global _all_canvases
-        for screen in screens:
-            canvas_obj = canvas.Canvas.from_screen(screen)
-            self.canvases.append(canvas_obj)
-            _all_canvases.append(canvas_obj)  # Track in module-level registry
-            if self.active:
-                canvas_obj.register("draw", self.draw)
-                canvas_obj.freeze()
-
-        # For compatibility, set active_canvas and screen to the one under the mouse
-        mouse_point = Point2d(self.core.center_x, self.core.center_y)
-        screen_found = None
-        for screen in screens:
-            if screen.rect.contains(mouse_point):
-                screen_found = screen
-                break
-        if screen_found is None:
-            screen_found = screens[0]
-        self.screen = screen_found
-        self.active_canvas = self.canvases[screens.index(self.screen)]
+        from .adapter_canvas import setup_canvases
+        setup_canvases(self, update_position)
 
     def _on_fade_update(self, alpha: int):
         """Called when fade animation updates alpha."""
@@ -242,36 +189,8 @@ class MouseClockTalonAdapter:
 
     def draw(self, canvas_obj):
         """Draw callback for Talon canvas. Mode determines what is drawn."""
-        # Interpolate radius toward target for smooth animation
-        still_animating = self.core.update_radius_animation()
-
-        # Draw based on current mode - single source of truth
-        if self._display_mode == DISPLAY_MODE_GRID:
-            rect = canvas_obj.rect
-            screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
-            lerp = self.core._animator.get_lerp_factor()
-            grid_animating = update_offset_animation(lerp)
-            still_animating = still_animating or grid_animating
-            draw_grid_overlay(canvas_obj, screen_rect, alpha=self._alpha)
-        elif self._display_mode == DISPLAY_MODE_CLOCK_LETTERS:
-            rect = canvas_obj.rect
-            screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
-            draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=self._alpha)
-        else:
-            # Default: circles
-            draw_mouse_clock(
-                canvas_obj,
-                self.core.center_x,
-                self.core.center_y,
-                self.core.radius,
-                [get_color(c) for c in get_mode_config("circles", "colors")],
-                config.COLOR_ACTIVE,
-                config.COLOR_TEXT
-            )
-
-        # Schedule next frame if animating
-        if still_animating and self.active_canvas:
-            cron.after("16ms", lambda: self.active_canvas.freeze())
+        from .adapter_draw import draw_dispatch
+        draw_dispatch(self, canvas_obj)
 
     def move_mouse(self, x: float, y: float):
         """Move the mouse to the specified position and add to history."""
