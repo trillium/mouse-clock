@@ -178,14 +178,20 @@ class Actions:
         _show()
 
     def color_pie_hide():
-        """Hide the color pie chart"""
+        """Hide the color pie chart and hats info panel"""
         _hide()
+        from .test_svg_render import _hide as _hats_hide
+        _hats_hide()
 
     def color_pie_select(color: str, shape: str):
-        """Move mouse to the specified color+shape position on the pie"""
+        """Move mouse to the specified color+shape position on the pie or info panel"""
         global _poll_job
         pos = _shape_positions.get((color, shape))
         if not pos:
+            # Fall through to hats info panel
+            from .test_svg_render import _select as _hats_select
+            if _hats_select(color, shape):
+                return
             return
         if _poll_job:
             cron.cancel(_poll_job)

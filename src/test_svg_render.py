@@ -3,15 +3,17 @@
 import os
 import xml.etree.ElementTree as ET
 
-from talon import Module, ui, ctrl, cron
+from talon import Context, Module, ui, ctrl, cron
 from talon.canvas import Canvas
 from talon.skia import Path, RoundRect
 from talon.ui import Rect
 
 mod = Module()
+_ctx_tags = Context()
 
 _canvas = None
 _poll_job = None
+_shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
 _SVG_DIR = os.path.join(os.path.dirname(__file__), "svg")
 
 
@@ -53,21 +55,30 @@ def _on_draw(c):
 
     from .rendering.colors import COLOR_REGISTRY, DISPLAY_COLORS
     colors = [(name, COLOR_REGISTRY[name][:6]) for name in DISPLAY_COLORS]
+    _shape_positions.clear()
 
     mx, my = ctrl.mouse_pos()
-    start_x = mx + 20
-    start_y = my + 20
     scatter_step = 12
-    header_height = 20
+    header_height = 3 * scatter_step + 8  # staggered headers + gap
+
+    # Calculate total grid dimensions to center on mouse
+    col_step = svg_w * scale + spacing
+    row_step = svg_h * scale + row_gap
+    total_w = len(colors) * col_step
+    total_h = header_height + len(svg_paths) * row_step
+
+    start_x = mx - total_w / 2
+    start_y = my - total_h / 2
 
     # Draw staggered color names at the top
     for col_i, (color_name, color_hex) in enumerate(colors):
-        col_x = start_x + col_i * (svg_w * scale + spacing)
+        col_x = start_x + col_i * col_step
         scatter_y = start_y + (col_i % 3) * scatter_step
         c.paint.textsize = 11
         c.paint.style = c.paint.Style.FILL
         text_w, _ = c.paint.measure_text(color_name)
-        c.paint.color = "222222cc"
+        bg_color = "ddddddcc" if color_name == "black" else "222222cc"
+        c.paint.color = bg_color
         c.draw_rrect(RoundRect.from_rect(
             Rect(col_x - 2, scatter_y - 1, text_w + 4, 13),
             x=2, y=2,
@@ -75,8 +86,8 @@ def _on_draw(c):
         c.paint.color = color_hex
         c.draw_text(color_name, col_x, scatter_y + 10)
 
-    # Shapes start below the header area (3 scatter rows + gap)
-    shapes_y = start_y + 3 * scatter_step + 8
+    # Shapes start below the header area
+    shapes_y = start_y + header_height
 
     for row_i, (name, d, fill_rule) in enumerate(svg_paths):
         y = shapes_y + row_i * (svg_h * scale + row_gap)
@@ -87,6 +98,7 @@ def _on_draw(c):
             path = Path.from_svg(d)
             if fill_rule == "evenodd":
                 path.fill_type = Path.FillType.EVENODD
+            _shape_positions[(color_name, name)] = (shape_x + svg_w * scale / 2, y + svg_h * scale / 2)
             c.save()
             c.translate(shape_x, y)
             c.scale(scale, scale)
@@ -128,10 +140,12 @@ def _show():
     _canvas.register("draw", _on_draw)
     _canvas.freeze()
     _poll_job = cron.interval("16ms", _poll_mouse)
+    _ctx_tags.tags = ["user.color_pie_showing"]
 
 
 def _hide():
     global _canvas, _poll_job
+    _ctx_tags.tags = []
     if _poll_job:
         cron.cancel(_poll_job)
         _poll_job = None
@@ -142,6 +156,21 @@ def _hide():
             pass
         _canvas.close()
         _canvas = None
+
+
+def _select(color: str, shape: str):
+    """Move mouse to a color+shape position on the info panel."""
+    global _poll_job
+    pos = _shape_positions.get((color, shape))
+    if not pos:
+        return False
+    if _poll_job:
+        cron.cancel(_poll_job)
+        _poll_job = None
+    ctrl.mouse_move(pos[0], pos[1])
+    if _canvas:
+        _canvas.freeze()
+    return True
 
 
 @mod.action_class
