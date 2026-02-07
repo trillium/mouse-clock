@@ -23,7 +23,7 @@ def _get_limiter(sound: str):
     from ..core.config import get_setting
 
     if sound not in _rate_limiters:
-        debounce_ms = get_setting("debounce_interval_ms", 25)
+        debounce_ms = get_setting("debounce_interval_ms", 150)
         _rate_limiters[sound] = RateLimiter(debounce_ms)
     return _rate_limiters[sound]
 

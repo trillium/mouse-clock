@@ -1,6 +1,5 @@
 tag: user.use_mouse_clock
 and tag: user.mouse_clock_showing
-and not tag: user.mouse_grid_showing
 -
 [clock] widen [clock]:
     user.mouse_clock_widen()
