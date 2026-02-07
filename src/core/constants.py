@@ -42,6 +42,8 @@ COLOR_DOT = COLORS["RED"]
 COLOR_CROSS = COLORS["LIGHT_GREEN"]
 COLOR_ACTIVE = COLORS["RED"]
 COLOR_INACTIVE = COLORS["BLACK"]
+DEFAULT_TEXT_COLOR = COLORS["GREEN"]
+DEFAULT_TEXT_BG_COLOR = "000000aa"  # Semi-transparent black
 
 # Color lists and mappings
 COLOR_LIST = [COLORS[color.upper()] for color in COLOR_NAMES.split() if color.upper() in COLORS]

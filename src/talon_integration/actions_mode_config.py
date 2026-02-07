@@ -5,6 +5,7 @@ Allows adding/removing colors, styles, and letters for individual display modes.
 """
 
 from talon import Module
+from .instance import get_mouse_clock_instance
 from ..core.config import (
     CONFIGURABLE_MODES,
     get_mode_config,
@@ -17,14 +18,9 @@ from ..core.config import (
 mod = Module()
 
 
-def _get_instance():
-    from .instance import get_mouse_clock_instance
-    return get_mouse_clock_instance()
-
-
 def _refresh_if_active():
     """Refresh the display if the clock is currently active."""
-    _get_instance().refresh_canvases()
+    get_mouse_clock_instance().refresh_canvases()
 
 
 @mod.action_class

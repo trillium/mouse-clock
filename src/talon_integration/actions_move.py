@@ -6,17 +6,13 @@ from typing import List
 
 from talon import Module, ctrl
 from .actions_core import set_mouse_clock_tags
+from .instance import get_mouse_clock_instance
 from ..core.voice_parsing import flip_letter_to_opposite, parse_voice_inputs
 from ..core.logger import log_info, log_warning
 from ..features.clock_letters.targeting import get_clock_letters_target
 from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS
 
 mod = Module()
-
-
-def _get_instance():
-    from .instance import get_mouse_clock_instance
-    return get_mouse_clock_instance()
 
 
 @mod.action_class
@@ -29,7 +25,7 @@ class MoveActions:
 
         In clock_letters mode, uses letter+color targeting to find position.
         """
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
 
         # Check if in clock_letters mode - use different targeting
         if mouse_clock.get_display_mode() == DISPLAY_MODE_CLOCK_LETTERS:
@@ -98,7 +94,7 @@ class MoveActions:
 
     def mouse_clock_move_opposite():
         """Move the mouse in the opposite direction of the original command."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
 
         if not mouse_clock.core.original_command or mouse_clock.core.original_command == ([], []):
             log_warning("[opposite] No original command to reverse")
@@ -130,7 +126,7 @@ class MoveActions:
 
     def mouse_clock_move_original():
         """Move the mouse in the original direction (opposite of reverse)."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
 
         if not mouse_clock.core.original_command or mouse_clock.core.original_command == ([], []):
             log_warning("[original] No original command to move toward")
@@ -159,7 +155,7 @@ class MoveActions:
 
     def mouse_clock_recenter_and_move(letters_colors: List[str]):
         """Recenter clock at current position, then move to specified location"""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         mouse_clock.recenter()
         typed_expressions = parse_voice_inputs(letters_colors)
         letters = typed_expressions['letters']
@@ -169,7 +165,7 @@ class MoveActions:
 
     def mouse_clock_move_and_activate(letters_colors: List[str]):
         """Move mouse to position (with clock off), then activate clock at new position."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         typed_expressions = parse_voice_inputs(letters_colors)
         letters = typed_expressions['letters']
         colors = typed_expressions['colors']

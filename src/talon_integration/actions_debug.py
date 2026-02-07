@@ -3,13 +3,9 @@ Mouse clock debug and logging actions.
 """
 
 from talon import Module, actions, ctrl
+from .instance import get_mouse_clock_instance
 
 mod = Module()
-
-
-def _get_instance():
-    from .instance import get_mouse_clock_instance
-    return get_mouse_clock_instance()
 
 
 @mod.action_class
@@ -17,7 +13,7 @@ class DebugActions:
     def mouse_clock_debug_position():
         """Print current mouse position and debug info to log file."""
         from ..core.logger import log_info, log_separator
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         current_x, current_y = ctrl.mouse_pos()
         screen_rect = mouse_clock.get_screen_rect()
 

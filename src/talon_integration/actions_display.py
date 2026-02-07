@@ -4,19 +4,15 @@ Mouse clock display mode actions.
 
 from talon import Module
 from .actions_core import set_mouse_clock_tags, ctx_tags
+from .instance import get_mouse_clock_instance
 from ..core.constants import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODES
 
 mod = Module()
 
 
-def _get_instance():
-    from .instance import get_mouse_clock_instance
-    return get_mouse_clock_instance()
-
-
 def _set_mode_and_refresh(mode: str):
     """Set display mode using unified mode system."""
-    mouse_clock = _get_instance()
+    mouse_clock = get_mouse_clock_instance()
 
     # Activate clock if not already showing
     if not mouse_clock.active:
@@ -40,12 +36,12 @@ class DisplayActions:
 
     def mouse_clock_get_mode() -> str:
         """Get current display mode."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         return mouse_clock.get_display_mode()
 
     def mouse_clock_cycle_mode():
         """Cycle to next display mode."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         current = mouse_clock.get_display_mode()
         try:
             idx = DISPLAY_MODES.index(current)
@@ -57,7 +53,7 @@ class DisplayActions:
 
     def mouse_clock_cycle_mode_previous():
         """Cycle to previous display mode."""
-        mouse_clock = _get_instance()
+        mouse_clock = get_mouse_clock_instance()
         current = mouse_clock.get_display_mode()
         try:
             idx = DISPLAY_MODES.index(current)

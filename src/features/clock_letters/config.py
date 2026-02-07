@@ -6,7 +6,7 @@ Gets active letters and colors from mode config.
 
 from typing import List
 from ...core.config import get_mode_config, get_setting
-from ..shared.config import DEFAULT_TEXT_COLOR, DEFAULT_TEXT_BG_COLOR
+from ...core.constants import DEFAULT_TEXT_COLOR, DEFAULT_TEXT_BG_COLOR
 
 
 def get_text_color() -> str:
