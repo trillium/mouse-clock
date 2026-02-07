@@ -59,10 +59,11 @@ class CoreActions:
         actions.user.mouse_clock_activate()
 
     def mouse_clock_close():
-        """Close the mouse clock"""
+        """Close the mouse clock and color pie"""
         clear_mouse_clock_tags()
         mouse_clock = _get_instance()
         mouse_clock.close()
+        actions.user.color_pie_hide()
 
     def mouse_clock_toggle():
         """Toggle mouse clock on/off"""

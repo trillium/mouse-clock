@@ -27,6 +27,8 @@ clock it <user.letters_colors>+:
 
 ^<user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
+    user.mouse_clock_close()
+    user.color_pie_show()
 
 ^clock <user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
