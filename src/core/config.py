@@ -34,14 +34,12 @@ ALL_LETTERS = list("abcdefghijklmnopqrstuvwxyz")
 # Default settings registry
 _DEFAULTS: Dict[str, Any] = {
     "default_radius": DEFAULT_RADIUS,
-    "radius_increment": RADIUS_INCREMENT,
     "min_radius": MIN_RADIUS,
     "debounce_interval_ms": 150,
     "spiral_step_size": 10,
     "spiral_max_radius": 100,
     "line_thickness": DEFAULT_STROKE_WIDTH,
     "dot_radius": DEFAULT_DOT_RADIUS,
-    "dashed_line_pattern": [5, 3],
     "active_colors": list(ALL_COLORS),
     "active_styles": list(ALL_LINE_STYLES),
     "active_letters": list(ALL_LETTERS),
