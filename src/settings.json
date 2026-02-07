@@ -54,11 +54,11 @@
     "z"
   ],
   "display_mode": "clock_letters",
-  "color_pie_ring_spacing": 0.0,
-  "color_pie_fade_out_ms": 4000,
-  "color_pie_fade_in_ms": 1000,
-  "color_pie_fade_delay_ms": 2000,
-  "color_pie_fade_bg_max": 0.7,
-  "color_pie_fade_bg_min": 0.1,
-  "color_pie_fade_icon_min": 0.3
+  "clock_ring_ring_spacing": 16.0,
+  "clock_ring_fade_out_ms": 4000,
+  "clock_ring_fade_in_ms": 1000,
+  "clock_ring_fade_delay_ms": 2000,
+  "clock_ring_fade_bg_max": 0.7,
+  "clock_ring_fade_bg_min": 0.1,
+  "clock_ring_fade_icon_min": 0.3
 }

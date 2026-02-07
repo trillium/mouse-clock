@@ -140,7 +140,7 @@ def _show():
     _canvas.register("draw", _on_draw)
     _canvas.freeze()
     _poll_job = cron.interval("16ms", _poll_mouse)
-    _ctx_tags.tags = ["user.color_pie_showing"]
+    _ctx_tags.tags = ["user.clock_ring_showing"]
 
 
 def _hide():

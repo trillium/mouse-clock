@@ -2,10 +2,6 @@ tag: user.use_mouse_clock
 and tag: user.mouse_clock_showing
 and not tag: user.mouse_grid_showing
 -
-key(cmd-ctrl-alt-shift-e):
-    print("enter mimice SUPER-e")
-    mimic('widen')
-
 [clock] widen [clock]:
     user.mouse_clock_widen()
 
@@ -27,7 +23,7 @@ clock it <user.letters_colors>+:
 ^<user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
     user.mouse_clock_close()
-    user.color_pie_show()
+    user.clock_ring_show()
 
 ^clock <user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
@@ -108,25 +104,8 @@ right drag | righty drag:
     # Close the mouse clock if active
     user.mouse_clock_close()
 
-key(cmd-ctrl-alt-shift-b:down):
-    user.boolean_print("Hiss (keyboard)", "start")
-    user.mouse_clock_keyboard_hiss_start()
-
-key(cmd-ctrl-alt-shift-b:up):
-    user.boolean_print("Hiss (keyboard)", "stop")
-    user.mouse_clock_keyboard_hiss_stop()
-
-key(cmd-ctrl-alt-shift-n:down):
-    user.boolean_print("Shush (keyboard)", "start")
-    user.mouse_clock_keyboard_shush_start()
-
-key(cmd-ctrl-alt-shift-n:up):
-    user.boolean_print("Shush (keyboard)", "stop")
-    user.mouse_clock_keyboard_shush_stop()
-
 # Display mode switching (only when clock is showing)
 clock circles: user.mouse_clock_mode_circles()
-clock grid: user.mouse_clock_mode_grid()
 clock letters: user.mouse_clock_mode_clock_letters()
 key(cmd-ctrl-alt-shift-e):
     user.mouse_clock_mode_clock_letters()

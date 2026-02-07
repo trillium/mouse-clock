@@ -1,7 +1,7 @@
-"""Color pie chart - renders mouse clock colors as a pie circle following the cursor.
+"""Clock ring - renders cursorless hat shapes in concentric rings around the cursor.
 
-Each pie slice shows a color, with cursorless hat shapes radiating outward
-along that slice's direction, rendered in that color.
+Each ring segment shows shapes in a color, radiating outward with a fading
+dark backdrop for readability.
 """
 
 import math
@@ -16,7 +16,7 @@ from talon.ui import Point2d
 
 mod = Module()
 mod.list("hat_shape", desc="Cursorless hat shape spoken forms")
-mod.tag("color_pie_showing", desc="Color pie chart is visible")
+mod.tag("clock_ring_showing", desc="Color pie chart is visible")
 
 _ctx_tags = Context()
 _canvas = None
@@ -55,7 +55,7 @@ def _fade_tick():
                 from .core.config import get_setting
                 _fade_state = "delay"
                 _fade_start_time = time.time()
-                _fade_duration_ms = int(get_setting("color_pie_fade_delay_ms", 2000))
+                _fade_duration_ms = int(get_setting("clock_ring_fade_delay_ms", 2000))
             else:
                 # fade_in complete → start fade_out
                 from .core.config import get_setting
@@ -63,7 +63,7 @@ def _fade_tick():
                 _fade_start_time = time.time()
                 _fade_start_alpha = _fade_alpha
                 _fade_target_alpha = 0
-                _fade_duration_ms = int(get_setting("color_pie_fade_out_ms", 4000))
+                _fade_duration_ms = int(get_setting("clock_ring_fade_out_ms", 4000))
 
     elif _fade_state == "delay":
         elapsed = (time.time() - _fade_start_time) * 1000
@@ -74,7 +74,7 @@ def _fade_tick():
             _fade_start_time = time.time()
             _fade_start_alpha = _fade_alpha
             _fade_target_alpha = 255
-            _fade_duration_ms = int(get_setting("color_pie_fade_in_ms", 1000))
+            _fade_duration_ms = int(get_setting("clock_ring_fade_in_ms", 1000))
 
     if _canvas:
         _canvas.freeze()
@@ -143,9 +143,9 @@ def _on_draw(c):
 
     # Fade: bg and icon opacity driven by _fade_alpha
     from .core.config import get_setting
-    bg_max = get_setting("color_pie_fade_bg_max", 0.7)
-    bg_min = get_setting("color_pie_fade_bg_min", 0.1)
-    icon_min = get_setting("color_pie_fade_icon_min", 0.3)
+    bg_max = get_setting("clock_ring_fade_bg_max", 0.7)
+    bg_min = get_setting("clock_ring_fade_bg_min", 0.1)
+    icon_min = get_setting("clock_ring_fade_icon_min", 0.3)
     t = _fade_alpha / 255.0  # 1.0 = full, 0.0 = faded
     bg_alpha = int((bg_min + t * (bg_max - bg_min)) * 255)
     icon_alpha = int((icon_min + t * (1.0 - icon_min)) * 255)
@@ -210,12 +210,12 @@ def _on_draw(c):
 
 def _get_ring_spacing():
     from .core.config import get_setting
-    return get_setting("color_pie_ring_spacing", 0.0)
+    return get_setting("clock_ring_ring_spacing", 0.0)
 
 
 def _set_ring_spacing(value):
     from .core.config import set_setting, _auto_save
-    set_setting("color_pie_ring_spacing", value)
+    set_setting("clock_ring_ring_spacing", value)
     _auto_save()
 
 
@@ -232,14 +232,14 @@ def _show():
     _fade_start_time = time.time()
     _fade_start_alpha = 255
     _fade_target_alpha = 0
-    _fade_duration_ms = int(get_setting("color_pie_fade_out_ms", 4000))
+    _fade_duration_ms = int(get_setting("clock_ring_fade_out_ms", 4000))
 
     screen = ui.main_screen()
     _canvas = Canvas.from_screen(screen)
     _canvas.register("draw", _on_draw)
     _canvas.freeze()
     _poll_job = cron.interval("16ms", _fade_tick)
-    _ctx_tags.tags = ["user.color_pie_showing"]
+    _ctx_tags.tags = ["user.clock_ring_showing"]
 
 
 def _hide():
@@ -267,17 +267,17 @@ def hat_shape(match) -> str:
 
 @mod.action_class
 class Actions:
-    def color_pie_show():
-        """Show the color pie chart"""
+    def clock_ring_show():
+        """Show the clock ring"""
         _show()
 
-    def color_pie_hide():
-        """Hide the color pie chart and hats info panel"""
+    def clock_ring_hide():
+        """Hide the clock ring and hats info panel"""
         _hide()
         from .test_svg_render import _hide as _hats_hide
         _hats_hide()
 
-    def color_pie_select(color: str, shape: str):
+    def clock_ring_select(color: str, shape: str):
         """Move mouse to the specified color+shape position on the pie or info panel"""
         offset = _shape_positions.get((color, shape))
         if not offset:
@@ -291,13 +291,13 @@ class Actions:
         if _canvas:
             _canvas.freeze()
 
-    def color_pie_widen(steps: int = 1):
+    def clock_ring_widen(steps: int = 1):
         """Increase spacing between rings"""
         _set_ring_spacing(_get_ring_spacing() + _SPACING_STEP * steps)
         if _canvas:
             _canvas.freeze()
 
-    def color_pie_narrow(steps: int = 1):
+    def clock_ring_narrow(steps: int = 1):
         """Decrease spacing between rings"""
         _set_ring_spacing(max(0, _get_ring_spacing() - _SPACING_STEP * steps))
         if _canvas:
