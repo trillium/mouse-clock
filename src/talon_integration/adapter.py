@@ -1,4 +1,3 @@
-_V = "0.0.3"; print(f"[v{_V}] {__name__}")
 """
 MouseClockTalonAdapter - Talon-specific wrapper around core mouse clock logic.
 

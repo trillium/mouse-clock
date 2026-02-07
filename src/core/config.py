@@ -1,4 +1,3 @@
-_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Settings management for the mouse clock system.
 

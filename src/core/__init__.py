@@ -1,4 +1,3 @@
-_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Core mouse clock logic, independent of Talon.
 

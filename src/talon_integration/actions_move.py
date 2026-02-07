@@ -1,4 +1,3 @@
-_V = "0.0.8"; print(f"[v{_V}] {__name__}")
 """
 Mouse clock movement actions - move, opposite, original, recenter_and_move.
 """

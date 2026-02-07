@@ -1,4 +1,3 @@
-_V = "0.0.1"; print(f"[v{_V}] {__name__}")
 """
 Ring drawing functions for the mouse clock.
 

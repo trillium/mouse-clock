@@ -1,4 +1,3 @@
-_V = "0.0.2"; print(f"[v{_V}] {__name__}")
 """
 Rate limiting utilities for input events.
 

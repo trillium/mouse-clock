@@ -1,4 +1,3 @@
-_V = "0.0.3"; print(f"[v{_V}] {__name__}")
 """
 Parrot sound integration for MouseClock.
 
