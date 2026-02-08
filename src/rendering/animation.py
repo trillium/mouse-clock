@@ -24,6 +24,7 @@ class FadeAnimator:
         self.on_complete_callback = on_complete
         self.alpha = 0
         self._job = None
+        self._delay_job = None
         self._start_time = None
         self._start_alpha = 0
         self._target_alpha = 255
@@ -61,6 +62,7 @@ class FadeAnimator:
 
         def _fade_up():
             """Fade from min to max (quick)."""
+            self._delay_job = None
             if self._pulsing:
                 self._animate(target=self._pulse_max, duration=self._fade_in_duration, on_complete=_at_max)
 
@@ -73,7 +75,7 @@ class FadeAnimator:
             """At min alpha, delay then fade back up."""
             if self._pulsing:
                 if self._pulse_delay > 0:
-                    cron.after(f"{self._pulse_delay}ms", _fade_up)
+                    self._delay_job = cron.after(f"{self._pulse_delay}ms", _fade_up)
                 else:
                     _fade_up()
 
@@ -130,6 +132,9 @@ class FadeAnimator:
 
     def _cancel(self):
         """Cancel any running animation."""
+        if self._delay_job:
+            cron.cancel(self._delay_job)
+            self._delay_job = None
         if self._job:
             cron.cancel(self._job)
             self._job = None
