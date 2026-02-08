@@ -12,16 +12,18 @@ from typing import Callable, Optional
 class FadeAnimator:
     """Handles fade in/out animations for a canvas."""
 
-    def __init__(self, on_update: Callable[[int], None], on_complete: Optional[Callable[[], None]] = None):
+    def __init__(self, on_update: Callable[[int], None], on_complete: Optional[Callable[[], None]] = None, frame_interval_ms: int = 16):
         """
         Initialize fade animator.
 
         Args:
             on_update: Callback called with current alpha (0-255) each frame
             on_complete: Optional callback when animation completes
+            frame_interval_ms: Milliseconds between frames (default 16 ≈ 60fps)
         """
         self.on_update = on_update
         self.on_complete_callback = on_complete
+        self.frame_interval_ms = frame_interval_ms
         self.alpha = 0
         self._job = None
         self._start_time = None
@@ -70,9 +72,10 @@ class FadeAnimator:
                 self._animate(target=self._pulse_min, duration=self._fade_out_duration, on_complete=_at_min)
 
         def _at_min():
-            """At min alpha, delay then fade back up."""
+            """At min alpha, delay then fade back up. Keep ticking on_update so canvas tracks mouse."""
             if self._pulsing:
                 if self._pulse_delay > 0:
+                    self._job = cron.interval(f"{self.frame_interval_ms}ms", lambda: self.on_update(self.alpha))
                     cron.after(f"{self._pulse_delay}ms", _fade_up)
                 else:
                     _fade_up()
@@ -107,7 +110,7 @@ class FadeAnimator:
         self._on_complete = on_complete
 
         # Start animation loop
-        self._job = cron.interval("16ms", self._tick)
+        self._job = cron.interval(f"{self.frame_interval_ms}ms", self._tick)
 
     def _tick(self):
         """Animation frame update."""
