@@ -6,8 +6,8 @@ logic for patterned lines.
 """
 
 import math
-from typing import Tuple, Dict, Literal, List, Union, Callable
-from talon.skia import Paint, Rect
+from typing import Tuple, Dict, Literal
+from talon.skia import Paint
 
 
 # =============================================================================
@@ -33,16 +33,6 @@ SIMPLE_PATTERNS: Dict[str, Tuple[float, float]] = {
     "blip": (1, 8),       # tiny dots
     "long": (20, 6),      # longer dashes
 }
-
-# Morse pattern: dash dash dot (multi-segment)
-MORSE_PATTERN: List[Tuple[float, float]] = [
-    (12, 4),  # dash
-    (12, 4),  # dash
-    (2, 10),  # dot + extra gap before repeat
-]
-
-# Legacy aliases for backwards compatibility
-LINE_STYLE_PATTERNS = SIMPLE_PATTERNS
 
 
 # =============================================================================
@@ -92,25 +82,6 @@ def _draw_simple_pattern(
         seg_end = (x1 + dx * seg_end_pos, y1 + dy * seg_end_pos)
         canvas.draw_line(seg_start[0], seg_start[1], seg_end[0], seg_end[1])
         pos += total_len
-
-
-def _draw_morse(canvas, start: Tuple[float, float], end: Tuple[float, float]):
-    """Draw morse pattern: dash dash dot."""
-    x1, y1 = start
-    dx, dy, length, _, _ = _get_line_geometry(start, end)
-    if length == 0:
-        return
-
-    pos = 0.0
-    pattern_idx = 0
-    while pos < length:
-        dash_len, gap_len = MORSE_PATTERN[pattern_idx]
-        seg_start = (x1 + dx * pos, y1 + dy * pos)
-        seg_end_pos = min(pos + dash_len, length)
-        seg_end = (x1 + dx * seg_end_pos, y1 + dy * seg_end_pos)
-        canvas.draw_line(seg_start[0], seg_start[1], seg_end[0], seg_end[1])
-        pos += dash_len + gap_len
-        pattern_idx = (pattern_idx + 1) % len(MORSE_PATTERN)
 
 
 # =============================================================================

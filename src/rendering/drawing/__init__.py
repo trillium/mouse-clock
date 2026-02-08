@@ -16,7 +16,6 @@ _LAZY_IMPORTS = {
     'draw_cross': '.primitives',
     'draw_text': '.primitives',
     'LineStyle': '.primitives',
-    'LINE_STYLE_PATTERNS': '.primitives',
 }
 
 def __getattr__(name):

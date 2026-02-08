@@ -11,7 +11,6 @@ from talon.skia import Paint
 # Re-export line infrastructure from dedicated module
 from .lines import (
     LineStyle,
-    LINE_STYLE_PATTERNS,
     draw_line,
     draw_dotted_line,
     draw_dashed_line,
