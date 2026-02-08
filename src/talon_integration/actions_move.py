@@ -4,7 +4,7 @@ Mouse clock movement actions - move, opposite, original, recenter_and_move.
 
 from typing import List
 
-from talon import Module, ctrl
+from talon import Module
 from .actions_core import set_mouse_clock_tags
 from .instance import get_mouse_clock_instance
 from ..core.voice_parsing import flip_letter_to_opposite, parse_voice_inputs
@@ -58,7 +58,7 @@ class MoveActions:
             avg_x = sum(p[0] for p in points) / len(points)
             avg_y = sum(p[1] for p in points) / len(points)
 
-            ctrl.mouse_move(avg_x, avg_y)
+            mouse_clock.move_mouse(avg_x, avg_y)
             dir_str = f" {' '.join(directions)}" if directions else ""
             if len(points) == 1:
                 log_info(f"[clock_letters] Moved to {letters[0]} {colors[0]}{dir_str} -> ({avg_x:.0f}, {avg_y:.0f})")

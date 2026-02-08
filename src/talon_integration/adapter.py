@@ -46,7 +46,8 @@ class MouseClockTalonAdapter:
         self._alpha = 255  # Current overlay alpha (0-255)
         self._fade_animator = FadeAnimator(
             on_update=self._on_fade_update,
-            on_complete=None
+            on_complete=None,
+            frame_interval_ms=int(get_setting("poll_interval_ms", 16))
         )
 
     def get_display_mode(self) -> str:
@@ -182,16 +183,19 @@ class MouseClockTalonAdapter:
         draw_dispatch(self, canvas_obj)
 
     def move_mouse(self, x: float, y: float):
-        """Move the mouse to the specified position and add to history."""
+        """Move the mouse to the specified position, saving previous position for undo."""
+        current = ctrl.mouse_pos()
+        self.core.add_to_history(current[0], current[1])
         ctrl.mouse_move(x, y)
-        self.core.add_to_history(x, y)
 
     def go_back(self):
-        """Revert to the previous mouse position."""
+        """Revert to the previous mouse position and recenter clock."""
         position = self.core.pop_from_history()
         if position:
             x, y = position
             ctrl.mouse_move(x, y)
+            self.core.update_center(x, y)
+            self.refresh_canvases()
 
     def widen_radius(self):
         """Increase the radius of the circle."""
