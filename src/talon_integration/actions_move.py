@@ -58,6 +58,7 @@ class MoveActions:
             avg_x = sum(p[0] for p in points) / len(points)
             avg_y = sum(p[1] for p in points) / len(points)
 
+            mouse_clock.core.original_command = (letters, colors)
             mouse_clock.move_mouse(avg_x, avg_y)
             dir_str = f" {' '.join(directions)}" if directions else ""
             if len(points) == 1:
