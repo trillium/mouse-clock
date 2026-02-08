@@ -11,6 +11,7 @@ from talon.canvas import Canvas
 from talon.skia import Path
 from talon.ui import Point2d
 
+from .core.config import get_setting, on_setting_change
 from .rendering.animation import FadeAnimator
 from .rendering.svg_loader import load_svg_paths
 
@@ -18,9 +19,16 @@ mod = Module()
 mod.list("hat_shape", desc="Cursorless hat shape spoken forms")
 mod.tag("clock_ring_showing", desc="Color pie chart is visible")
 
+_POLL_INTERVAL_KEY = "poll_interval_ms"
+_POLL_INTERVAL_DEFAULT = 16
+
 _ctx_tags = Context()
 _canvas = None
 _shape_positions = {}  # {(color_name, shape_spoken_name): (x, y)}
+
+
+def _get_poll_interval():
+    return int(get_setting(_POLL_INTERVAL_KEY, _POLL_INTERVAL_DEFAULT))
 
 
 def _on_fade_update(alpha: int):
@@ -29,8 +37,19 @@ def _on_fade_update(alpha: int):
         _canvas.freeze()
 
 
-_fade = FadeAnimator(on_update=_on_fade_update)
+_fade = FadeAnimator(on_update=_on_fade_update, frame_interval_ms=_get_poll_interval())
 _fade.alpha = 255
+
+
+def _on_poll_interval_change(value):
+    """Restart the fade animator with the new interval if currently showing."""
+    _fade.frame_interval_ms = int(value)
+    if _canvas:
+        _hide()
+        _show()
+
+
+on_setting_change(_POLL_INTERVAL_KEY, _on_poll_interval_change)
 
 SVG_SCALE = 0.75
 _SPACING_STEP = 1

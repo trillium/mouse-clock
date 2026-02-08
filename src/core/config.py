@@ -47,6 +47,20 @@ _DEFAULTS: Dict[str, Any] = {
 # Runtime settings (can be modified)
 _settings: Dict[str, Any] = _DEFAULTS.copy()
 
+# Setting change listeners: {name: [callback, ...]}
+_listeners: Dict[str, list] = {}
+
+
+def on_setting_change(name: str, callback):
+    """Register a callback for when a specific setting changes. callback(new_value)."""
+    _listeners.setdefault(name, []).append(callback)
+
+
+def _notify_listeners(name: str, value: Any):
+    """Notify listeners for a setting change."""
+    for cb in _listeners.get(name, []):
+        cb(value)
+
 
 def get_setting(name: str, default: Any = None) -> Any:
     """
@@ -75,9 +89,12 @@ def set_setting(name: str, value: Any, persist: bool = False):
         value: New value
         persist: If True, save settings to disk after updating
     """
+    old = _settings.get(name)
     _settings[name] = value
     if persist:
         _auto_save()
+    if value != old:
+        _notify_listeners(name, value)
 
 
 def reset_setting(name: str):
