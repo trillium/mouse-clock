@@ -38,6 +38,10 @@ clock it <user.letters_colors>+:
 reverse:
     user.mouse_clock_move_opposite()
 
+# Back command - undo last move, return to previous position
+back:
+    user.mouse_clock_go_back()
+
 # Touch commands
 ^touch <user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
