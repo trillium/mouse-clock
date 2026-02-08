@@ -35,8 +35,6 @@ _DEFAULTS: Dict[str, Any] = {
     "default_radius": DEFAULT_RADIUS,
     "min_radius": MIN_RADIUS,
     "debounce_interval_ms": 150,
-    "spiral_step_size": 10,
-    "spiral_max_radius": 100,
     "line_thickness": DEFAULT_STROKE_WIDTH,
     "dot_radius": DEFAULT_DOT_RADIUS,
     "active_colors": list(ALL_COLORS),
