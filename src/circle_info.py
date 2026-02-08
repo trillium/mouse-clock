@@ -224,7 +224,10 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
         c.scale(learn_sc, learn_sc)
 
         c.paint.style = c.paint.Style.FILL
-        c.paint.color = color_hex
+        if _phase == "shapes":
+            c.paint.color = "ffffffff"
+        else:
+            c.paint.color = color_hex
         c.draw_path(shape_path)
 
         c.paint.style = c.paint.Style.STROKE
@@ -251,9 +254,10 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
         text_y = center_y + shape_h / 2 + 10
         c.paint.textsize = 36
         if _show_prompt:
+            show_c = _phase not in ("colors", "shapes")
             show_s = _phase != "colors"
             _draw_prompt_text(c, center_x, text_y, color_name, shape_name, color_hex,
-                              show_shape=show_s)
+                              show_color=show_c, show_shape=show_s)
 
     # Progress counter below text
     c.paint.style = c.paint.Style.FILL
@@ -697,10 +701,11 @@ class Actions:
     def circle_game_answer(answer: tuple):
         """Handle a circle game answer — color, shape, or both."""
         color, shape = answer
-        if color and shape:
-            actions.user.clock_ring_select(color, shape)
-        elif _mode == "learn" and _canvas and _current_target:
+        if _canvas and _current_target:
+            # Game is active — all answers go to the game
             _select(color, shape)
+        elif color and shape:
+            actions.user.clock_ring_select(color, shape)
         elif color:
             _set_highlight(color=color)
         elif shape:
