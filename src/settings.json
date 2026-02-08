@@ -2,8 +2,6 @@
   "default_radius": 300,
   "min_radius": 20,
   "debounce_interval_ms": 150,
-  "spiral_step_size": 10,
-  "spiral_max_radius": 100,
   "line_thickness": 2,
   "dot_radius": 5,
   "active_colors": [

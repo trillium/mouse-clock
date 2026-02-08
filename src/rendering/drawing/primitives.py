@@ -8,14 +8,29 @@ crosses, and text on Talon canvas objects.
 from typing import Tuple
 from talon.skia import Paint
 
-# Re-export line infrastructure from dedicated module
-from .lines import (
-    LineStyle,
-    LINE_STYLE_PATTERNS,
-    draw_line,
-    draw_dotted_line,
-    draw_dashed_line,
-)
+
+def draw_line(
+    canvas,
+    start: Tuple[float, float],
+    end: Tuple[float, float],
+    color: str,
+    thickness: float = 2,
+):
+    """
+    Draw a solid line segment.
+
+    Args:
+        canvas: Talon canvas object
+        start: Start point (x, y)
+        end: End point (x, y)
+        color: 8-digit RGBA hex color
+        thickness: Line width in pixels
+    """
+    paint = canvas.paint
+    paint.color = color
+    paint.style = Paint.Style.STROKE
+    paint.stroke_width = thickness
+    canvas.draw_line(start[0], start[1], end[0], end[1])
 
 
 def draw_circle(

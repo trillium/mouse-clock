@@ -81,9 +81,7 @@ def execute_action(action: str):
         _execute_toggle_action()
         return
 
-    if is_overlay_active("spiral_nudge"):
-        _execute_spiral_action(action)
-    elif is_overlay_active("mouse_clock"):
+    if is_overlay_active("mouse_clock"):
         _execute_mouse_clock_action(action)
 
 
@@ -91,8 +89,6 @@ def _execute_toggle_action():
     """Toggle the primary overlay visibility."""
     if is_overlay_active("mouse_clock"):
         actions.user.mouse_clock_close()
-    elif is_overlay_active("spiral_nudge"):
-        actions.user.spiral_stop()
     else:
         actions.user.mouse_clock_show()
 
@@ -108,12 +104,3 @@ def _execute_mouse_clock_action(action: str):
         actions.user.mouse_clock_go_back()
 
 
-def _execute_spiral_action(action: str):
-    """Execute spiral nudge specific action."""
-    if action == "click":
-        actions.user.spiral_stop()
-        ctrl.mouse_click()
-    elif action == "recenter":
-        actions.user.spiral_reset()
-    elif action == "go_back":
-        actions.user.spiral_back()

@@ -8,15 +8,11 @@ crosses, and text on Talon canvas objects.
 _LAZY_IMPORTS = {
     # primitives
     'draw_line': '.primitives',
-    'draw_dotted_line': '.primitives',
-    'draw_dashed_line': '.primitives',
     'draw_circle': '.primitives',
     'draw_rect': '.primitives',
     'draw_dot': '.primitives',
     'draw_cross': '.primitives',
     'draw_text': '.primitives',
-    'LineStyle': '.primitives',
-    'LINE_STYLE_PATTERNS': '.primitives',
 }
 
 def __getattr__(name):
