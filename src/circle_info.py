@@ -11,6 +11,7 @@ from talon import Context, Module, actions, app, registry, ui, ctrl, cron
 from talon.canvas import Canvas
 from talon.skia import Path
 
+from .core.config import get_setting
 from .rendering.svg_loader import load_svg_paths
 
 mod = Module()
@@ -70,6 +71,8 @@ _done = False  # user completed the session
 _show_correct = False  # brief green flash on correct answer
 _correct_job = None
 _dismiss_job = None  # auto-dismiss done screen
+_last_answer = ""  # text of last spoken answer
+_last_answer_correct = None  # True/False/None
 
 # Base dimensions matching clock_ring proportions
 _BASE_SC = 0.75
@@ -118,6 +121,17 @@ def _draw_prompt_text(c, center_x, center_y, color_name, shape_name, color_hex,
         c.draw_text(shape_name, center_x - sw / 2, center_y + offset)
 
 
+def _draw_answer_feedback(c, center_x, y):
+    """Draw the last spoken answer as feedback text above the content area."""
+    if not _last_answer or _last_answer_correct is None:
+        return
+    c.paint.style = c.paint.Style.FILL
+    c.paint.textsize = 20
+    c.paint.color = "00ff00cc" if _last_answer_correct else "ff4444cc"
+    tw, _ = c.paint.measure_text(_last_answer)
+    c.draw_text(_last_answer, center_x - tw / 2, y)
+
+
 def _on_draw(c):
     from .rendering.colors import COLOR_REGISTRY, DISPLAY_COLORS
 
@@ -156,64 +170,90 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
     color_name, shape_name = _current_target
     color_hex = dict(colors).get(color_name, "ffffff")
 
-    # Find the SVG path data for the target shape
-    d = None
-    fill_rule = "nonzero"
-    for sname, sdata, srule in svg_paths:
-        if sname == shape_name:
-            d = sdata
-            fill_rule = srule
-            break
-    if not d:
-        return
-
-    # Large shape: scale to ~40% of bg_radius
-    learn_sc = (bg_radius * 0.4) / _BASE_SVG_H
-    shape_w = _BASE_SVG_W * learn_sc
-    shape_h = _BASE_SVG_H * learn_sc
-    shape_x = center_x - shape_w / 2
-    shape_y = center_y - shape_h / 2 - 30  # shift up to make room for text
-
-    shape_path = Path.from_svg(d)
-    if fill_rule == "evenodd":
-        shape_path.fill_type = Path.FillType.EVENODD
-
-    c.save()
-    c.translate(shape_x, shape_y)
-    c.scale(learn_sc, learn_sc)
-
-    c.paint.style = c.paint.Style.FILL
-    c.paint.color = color_hex
-    c.draw_path(shape_path)
-
-    c.paint.style = c.paint.Style.STROKE
-    c.paint.stroke_width = 0.2
-    stroke_base = "ffffff" if color_name in ("black",) else "000000"
-    c.paint.color = stroke_base
-    c.draw_path(shape_path)
-
-    c.restore()
-
-    # Error/correct ring around shape area
-    if _show_error:
+    # Colors phase: just a huge color name, no shape
+    if _phase == "colors":
+        display_color = _get_spoken_color(color_name)
+        c.paint.style = c.paint.Style.FILL
+        c.paint.textsize = 72
+        # Outline for readability
+        cw, _ = c.paint.measure_text(display_color)
         c.paint.style = c.paint.Style.STROKE
-        c.paint.stroke_width = 3
-        c.paint.color = "ff0000ff"
-        c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
-    elif _show_correct:
-        c.paint.style = c.paint.Style.STROKE
-        c.paint.stroke_width = 3
-        c.paint.color = "00ff00ff"
-        c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
+        c.paint.stroke_width = 4
+        c.paint.color = "000000" if color_name not in ("black", "center") else "ffffff"
+        c.draw_text(display_color, center_x - cw / 2, center_y + 20)
+        c.paint.style = c.paint.Style.FILL
+        c.paint.color = color_hex
+        c.draw_text(display_color, center_x - cw / 2, center_y + 20)
+        # Error/correct feedback
+        if _show_error:
+            c.paint.style = c.paint.Style.STROKE
+            c.paint.stroke_width = 3
+            c.paint.color = "ff0000ff"
+            c.draw_circle(center_x, center_y, bg_radius * 0.3)
+        elif _show_correct:
+            c.paint.style = c.paint.Style.STROKE
+            c.paint.stroke_width = 3
+            c.paint.color = "00ff00ff"
+            c.draw_circle(center_x, center_y, bg_radius * 0.3)
+        text_y = center_y + 20
+    else:
+        # Find the SVG path data for the target shape
+        d = None
+        fill_rule = "nonzero"
+        for sname, sdata, srule in svg_paths:
+            if sname == shape_name:
+                d = sdata
+                fill_rule = srule
+                break
+        if not d:
+            return
 
-    # Text below shape
-    text_y = center_y + shape_h / 2 + 10
-    c.paint.textsize = 36
-    if _show_prompt:
-        show_c = _phase != "shapes"
-        show_s = _phase != "colors"
-        _draw_prompt_text(c, center_x, text_y, color_name, shape_name, color_hex,
-                          show_color=show_c, show_shape=show_s)
+        # Large shape: scale to ~40% of bg_radius
+        learn_sc = (bg_radius * 0.4) / _BASE_SVG_H
+        shape_w = _BASE_SVG_W * learn_sc
+        shape_h = _BASE_SVG_H * learn_sc
+        shape_x = center_x - shape_w / 2
+        shape_y = center_y - shape_h / 2 - 30  # shift up to make room for text
+
+        shape_path = Path.from_svg(d)
+        if fill_rule == "evenodd":
+            shape_path.fill_type = Path.FillType.EVENODD
+
+        c.save()
+        c.translate(shape_x, shape_y)
+        c.scale(learn_sc, learn_sc)
+
+        c.paint.style = c.paint.Style.FILL
+        c.paint.color = color_hex
+        c.draw_path(shape_path)
+
+        c.paint.style = c.paint.Style.STROKE
+        c.paint.stroke_width = 0.2
+        stroke_base = "ffffff" if color_name in ("black",) else "000000"
+        c.paint.color = stroke_base
+        c.draw_path(shape_path)
+
+        c.restore()
+
+        # Error/correct ring around shape area
+        if _show_error:
+            c.paint.style = c.paint.Style.STROKE
+            c.paint.stroke_width = 3
+            c.paint.color = "ff0000ff"
+            c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
+        elif _show_correct:
+            c.paint.style = c.paint.Style.STROKE
+            c.paint.stroke_width = 3
+            c.paint.color = "00ff00ff"
+            c.draw_circle(center_x, center_y - 30, max(shape_w, shape_h) * 0.7)
+
+        # Text below shape
+        text_y = center_y + shape_h / 2 + 10
+        c.paint.textsize = 36
+        if _show_prompt:
+            show_s = _phase != "colors"
+            _draw_prompt_text(c, center_x, text_y, color_name, shape_name, color_hex,
+                              show_shape=show_s)
 
     # Progress counter below text
     c.paint.style = c.paint.Style.FILL
@@ -231,6 +271,9 @@ def _draw_learn(c, center_x, center_y, bg_radius, colors, svg_paths):
         progress = f"{label} {done}/{total}"
     pw, _ = c.paint.measure_text(progress)
     c.draw_text(progress, center_x - pw / 2, text_y + 80)
+
+    # Answer feedback at top of circle
+    _draw_answer_feedback(c, center_x, center_y - bg_radius * 0.7)
 
 
 def _draw_done_screen(c, center_x, center_y):
@@ -380,6 +423,9 @@ def _draw_game(c, center_x, center_y, bg_radius, colors, svg_paths):
     pw, _ = c.paint.measure_text(progress)
     c.draw_text(progress, center_x - pw / 2, center_y + bg_radius - 20)
 
+    # Answer feedback at top of circle
+    _draw_answer_feedback(c, center_x, center_y - bg_radius * 0.7)
+
 
 def _poll_mouse():
     if _canvas:
@@ -409,13 +455,15 @@ def _pick_target():
             _show_prompt = True
             return
 
-    # Quiz / game mode: weighted random selection
+    # Quiz / game mode: weighted random selection (never repeat same combo)
     from .rendering.colors import DISPLAY_COLORS
     svg_paths = load_svg_paths(default_first=True)
     if not svg_paths or not DISPLAY_COLORS:
         return
     shape_names = [s[0] for s in svg_paths]
-    combos = [(col, sh) for col in DISPLAY_COLORS for sh in shape_names]
+    prev = _current_target
+    combos = [(col, sh) for col in DISPLAY_COLORS for sh in shape_names
+              if (col, sh) != prev]
     weights = [_weights.get(k, 1.0) for k in combos]
     _current_target = random.choices(combos, weights=weights, k=1)[0]
     _prompt_job = cron.after("3s", _reveal_prompt)
@@ -462,7 +510,7 @@ def _build_phase_queue(phase):
 
 
 def _show(mode="game"):
-    global _canvas, _poll_job, _highlight, _mode, _phase, _learn_queue, _streak, _done
+    global _canvas, _poll_job, _highlight, _mode, _phase, _learn_queue, _streak, _done, _last_answer, _last_answer_correct
     _hide()
     _mode = mode
     _phase = "colors" if mode == "learn" else "game"
@@ -470,12 +518,14 @@ def _show(mode="game"):
     _done = False
     _learn_queue = _build_phase_queue("colors") if mode == "learn" else []
     _highlight = (None, None)
+    _last_answer = ""
+    _last_answer_correct = None
     _pick_target()
     screen = ui.main_screen()
     _canvas = Canvas.from_screen(screen)
     _canvas.register("draw", _on_draw)
     _canvas.freeze()
-    _poll_job = cron.interval("16ms", _poll_mouse)
+    _poll_job = cron.interval(f"{int(get_setting('poll_interval_ms', 16))}ms", _poll_mouse)
     _ctx_tags.tags = ["user.clock_ring_showing"]
 
 
@@ -582,10 +632,18 @@ def _is_correct(color, shape):
 
 def _select(color: str, shape: str):
     """Highlight a color+shape combo, or advance if it matches the target."""
-    global _streak, _done, _learn_queue, _dismiss_job
+    global _streak, _done, _learn_queue, _dismiss_job, _last_answer, _last_answer_correct
     if not _canvas or _done:
         return False
-    if _is_correct(color, shape):
+    # Record what was spoken for feedback display
+    parts = []
+    if color:
+        parts.append(_get_spoken_color(color))
+    if shape:
+        parts.append(shape)
+    _last_answer = " ".join(parts)
+    _last_answer_correct = _is_correct(color, shape)
+    if _last_answer_correct:
         if _show_error:
             _clear_error()  # was in error state — correct answer clears it
         elif not _show_prompt:
