@@ -11,6 +11,9 @@ touch:
     mouse_click(0)
     user.mouse_clock_close()
 
+reverse:
+    user.mouse_clock_move_opposite()
+
 # Back command - undo last move, hide ring, reopen clock at previous position
 back:
     user.clock_ring_hide()
