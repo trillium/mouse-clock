@@ -15,6 +15,28 @@ from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS
 mod = Module()
 
 
+def _check_repeat_and_recenter(mouse_clock, letters, colors, label="mouse_clock",
+                               require_both=False):
+    """Check if (letters, colors) matches the last command; if so, recenter and refresh.
+
+    Returns True if this was a repeat (and recenter was performed), False otherwise.
+
+    Args:
+        require_both: When True, both letters and colors must be non-empty
+                      for a repeat to be detected (used by move_multiple where
+                      colors may legitimately be empty on first invocation).
+    """
+    if require_both and not (letters and colors):
+        return False
+    command = (letters, colors)
+    if mouse_clock.core.last_command == command:
+        log_info(f"[{label}] Repeat detected - recentering")
+        mouse_clock.get_mouse_position()
+        mouse_clock.refresh_canvases()
+        return True
+    return False
+
+
 @mod.action_class
 class MoveActions:
     def mouse_clock_move_multiple(letters_colors: List[str]):
@@ -80,14 +102,8 @@ class MoveActions:
         mouse_clock.core.original_command = (letters, colors)
 
         # Check if this exact command was just executed
-        is_repeat = (mouse_clock.core.last_command == (letters, colors) and
-                     mouse_clock.core.last_command != ([], []) and
-                     letters and colors)
-
-        if is_repeat:
-            # Same command repeated - recenter at current position
-            mouse_clock.get_mouse_position()
-            mouse_clock.refresh_canvases()
+        is_repeat = _check_repeat_and_recenter(mouse_clock, letters, colors,
+                                               require_both=True)
 
         x, y = mouse_clock.calculate_mouse_position(letters, colors, is_repeat=is_repeat)
         mouse_clock.move_mouse(x, y)
@@ -110,13 +126,9 @@ class MoveActions:
         opposite_letters = [flip_letter_to_opposite(letter) for letter in orig_letters]
 
         # Check if we're repeating the reverse command
-        is_repeat_reverse = (mouse_clock.core.last_command == (opposite_letters, orig_colors))
-
-        if is_repeat_reverse:
-            # Repeating reverse - recenter and move away again
-            log_info(f"[opposite] Repeating reverse - recentering and moving away")
-            mouse_clock.get_mouse_position()
-            mouse_clock.refresh_canvases()
+        is_repeat_reverse = _check_repeat_and_recenter(
+            mouse_clock, opposite_letters, orig_colors, label="opposite"
+        )
 
         log_info(f"[opposite] Original letters: {orig_letters} -> Opposite: {opposite_letters}")
         log_info(f"[opposite] Colors: {orig_colors}")
@@ -139,13 +151,9 @@ class MoveActions:
             return
 
         # Check if we're repeating the original direction command
-        is_repeat_original = (mouse_clock.core.last_command == (orig_letters, orig_colors))
-
-        if is_repeat_original:
-            # Repeating original - recenter and move toward again
-            log_info(f"[original] Repeating original direction - recentering and moving toward")
-            mouse_clock.get_mouse_position()
-            mouse_clock.refresh_canvases()
+        is_repeat_original = _check_repeat_and_recenter(
+            mouse_clock, orig_letters, orig_colors, label="original"
+        )
 
         log_info(f"[original] Moving toward original direction: {orig_letters}")
         log_info(f"[original] Colors: {orig_colors}")
