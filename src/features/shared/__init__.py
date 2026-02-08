@@ -12,8 +12,9 @@ _LAZY_IMPORTS = {
     'get_alpha': '.alpha',
     'safe_index': '.utils',
     'safe_index_or_none': '.utils',
-    'DEFAULT_TEXT_COLOR': '.config',
-    'DEFAULT_TEXT_BG_COLOR': '.config',
+    # Re-exported from core; currently unused but available for feature modules
+    'DEFAULT_TEXT_COLOR': '...core.constants',
+    'DEFAULT_TEXT_BG_COLOR': '...core.constants',
 }
 
 def __getattr__(name):
