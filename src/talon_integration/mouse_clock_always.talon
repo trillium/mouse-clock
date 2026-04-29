@@ -6,6 +6,12 @@ tag: user.use_mouse_clock
     sleep(50ms)
     user.mouse_clock_activate()
 
+^mouse dense$:
+    user.mouse_clock_close()
+    sleep(50ms)
+    user.mouse_clock_activate()
+    user.mouse_clock_mode_dense_grid()
+
 key(cmd-ctrl-alt-shift-q):
     user.mouse_clock_toggle()
 

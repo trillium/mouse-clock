@@ -20,9 +20,7 @@ clock it <user.letters_colors>+:
     user.mouse_clock_recenter_and_move(letters_colors)
 
 ^<user.letters_colors>+$:
-    user.mouse_clock_move_multiple(letters_colors)
-    user.mouse_clock_close()
-    user.clock_ring_show()
+    user.mouse_clock_move_and_advance(letters_colors)
 
 ^clock <user.letters_colors>+$:
     user.mouse_clock_move_multiple(letters_colors)
@@ -110,8 +108,13 @@ right drag | righty drag:
 # Display mode switching (only when clock is showing)
 clock circles: user.mouse_clock_mode_circles()
 clock letters: user.mouse_clock_mode_clock_letters()
+clock dense: user.mouse_clock_mode_dense_grid()
 key(cmd-ctrl-alt-shift-e):
     user.mouse_clock_mode_clock_letters()
+
+clock columns full: user.mouse_clock_column_preset("full")
+clock columns reference: user.mouse_clock_column_preset("reference")
+clock columns next: user.mouse_clock_column_preset_cycle()
 
 clock display next: user.mouse_clock_cycle_mode()
 clock display (previous | last): user.mouse_clock_cycle_mode_previous()
