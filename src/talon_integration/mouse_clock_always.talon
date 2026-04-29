@@ -41,13 +41,17 @@ clock position:
 clock mark <user.text>:
     user.mouse_clock_log_marker(text)
 
-# Activate clock and move in one command (when clock is currently off)
-# Note: Excludes "mouse clock" which is handled above
+# One-shot jump commands (no overlay activation)
 ^clock <user.letters_colors>+$:
-    user.mouse_clock_move_and_activate(letters_colors)
+    user.mouse_clock_jump("clock_letters", letters_colors)
 
-^<user.letters_colors> <user.letters_colors>+ clock$:
-    user.mouse_clock_move_and_activate(letters_colors)
+^dense <user.letters_colors>+$:
+    user.mouse_clock_jump("dense_grid", letters_colors)
+
+# Activate clock with optional targeting (when clock is currently off)
+# Supports full (letter+color), partial (letter-only or color-only), or no targeting
+^<user.letters_colors>+ clock$:
+    user.mouse_clock_activate_with_pending(letters_colors)
 
 # mouse update screenshot:
 #     user.centroid_update_screenshot()

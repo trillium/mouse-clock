@@ -12,7 +12,7 @@ from ..core.logger import log_info, log_warning
 from ..features.clock_letters.targeting import get_clock_letters_target
 from ..features.dense_grid.targeting import get_dense_grid_target
 from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_DENSE_GRID
-from ..core.pipeline import get_next_stage
+from ..core.pipeline import get_next_stage, get_start_mode
 
 mod = Module()
 
@@ -222,6 +222,41 @@ class MoveActions:
         mouse_clock.clear_state()
         set_mouse_clock_tags(["user.mouse_clock_showing"])
         mouse_clock.core.original_command = (letters, colors)
+
+    def mouse_clock_activate_with_pending(letters_colors: List[str]):
+        """Activate clock, optionally with partial targeting. Supports letter-only or color-only."""
+        mouse_clock = get_mouse_clock_instance()
+
+        typed_expressions = parse_voice_inputs(letters_colors)
+        letters = typed_expressions['letters']
+        colors = typed_expressions['colors']
+
+        if letters and colors:
+            # Full targeting: delegate to existing move_and_activate
+            actions.user.mouse_clock_move_and_activate(letters_colors)
+            return
+
+        # Activate clock at current mouse position
+        mouse_clock.setup()
+        mouse_clock.show()
+        mouse_clock.clear_state()
+        start_mode = get_start_mode()
+        mouse_clock.set_mode(start_mode, set_mouse_clock_tags)
+
+        # Store partial input as pending
+        if letters:
+            mouse_clock.core.pending_letter = letters
+            mouse_clock.core.last_move_was_partial = True
+            log_info(f"[activate_with_pending] Stored pending letter: {letters}")
+        elif colors:
+            mouse_clock.core.pending_color = colors
+            mouse_clock.core.last_move_was_partial = True
+            log_info(f"[activate_with_pending] Stored pending color: {colors}")
+        else:
+            log_info("[activate_with_pending] No targeting input, plain activate")
+
+        # Refresh to show visual highlights for pending input
+        mouse_clock.refresh_canvases()
 
     def mouse_clock_move_and_advance(letters_colors: List[str]):
         """Move mouse, then advance to next view in the pipeline."""

@@ -1,0 +1,9 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_server_host": "mini2",
+  "dolt_server_port": 3307,
+  "dolt_database": "beads_mouse_clock",
+  "project_id": "9d80624e-5ba0-4b5a-9210-a5de6f4a1cc8"
+}
