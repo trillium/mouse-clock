@@ -54,12 +54,14 @@
   "view_pipeline": null,
   "dense_grid_spacing_x": 18,
   "dense_grid_spacing_y": 14,
-  "display_mode": "dense_grid",
+  "display_mode": "clock_letters",
   "clock_ring_ring_spacing": 18.0,
   "clock_ring_fade_out_ms": 4000,
   "clock_ring_fade_in_ms": 1000,
   "clock_ring_fade_delay_ms": 2000,
   "clock_ring_fade_bg_max": 0.7,
   "clock_ring_fade_bg_min": 0.1,
-  "clock_ring_fade_icon_min": 0.3
+  "clock_ring_fade_icon_min": 0.3,
+  "clock_letters_column_preset": "reference",
+  "clock_letters_column_types": null
 }
