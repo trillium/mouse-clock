@@ -8,6 +8,7 @@ instead of manipulating ctx_tags directly.
 
 from talon import Context, Module, actions
 from .instance import get_mouse_clock_instance
+from ..core.pipeline import get_start_mode
 
 mod = Module()
 
@@ -40,9 +41,9 @@ class CoreActions:
             mouse_clock.setup()
         mouse_clock.show()
         mouse_clock.clear_state()
-        # Use unified mode system - sets both display mode and tags
-        current_mode = mouse_clock.get_display_mode()
-        mouse_clock.set_mode(current_mode, set_mouse_clock_tags)
+        # Start at the beginning of the view pipeline
+        start_mode = get_start_mode()
+        mouse_clock.set_mode(start_mode, set_mouse_clock_tags)
 
     def mouse_clock_show():
         """Alias for mouse_clock_activate"""
@@ -52,6 +53,7 @@ class CoreActions:
         """Close the mouse clock, clock ring, and hats info panel"""
         clear_mouse_clock_tags()
         mouse_clock = get_mouse_clock_instance()
+        mouse_clock.clear_state()
         mouse_clock.close()
         actions.user.clock_ring_hide()
         actions.user.hats_info_hide()
@@ -95,5 +97,6 @@ class CoreActions:
     def mouse_clock_recenter():
         """Recenter the clock at the current mouse position"""
         mouse_clock = get_mouse_clock_instance()
+        mouse_clock.core.clear_state()
         mouse_clock.recenter()
 

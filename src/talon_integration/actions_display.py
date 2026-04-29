@@ -5,7 +5,7 @@ Mouse clock display mode actions.
 from talon import Module
 from .actions_core import set_mouse_clock_tags, ctx_tags
 from .instance import get_mouse_clock_instance
-from ..core.constants import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODES
+from ..core.constants import DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_DENSE_GRID, DISPLAY_MODES
 
 mod = Module()
 
@@ -33,6 +33,27 @@ class DisplayActions:
     def mouse_clock_mode_clock_letters():
         """Switch to clock letters display mode (letters in colors)."""
         _set_mode_and_refresh(DISPLAY_MODE_CLOCK_LETTERS)
+
+    def mouse_clock_mode_dense_grid():
+        """Switch to dense grid display mode (dense colored letter matrix)."""
+        _set_mode_and_refresh(DISPLAY_MODE_DENSE_GRID)
+
+    def mouse_clock_column_preset(preset: str):
+        """Set column layout to a named preset and refresh."""
+        from ..features.clock_letters.config import set_column_preset
+        set_column_preset(preset)
+        mouse_clock = get_mouse_clock_instance()
+        if mouse_clock.active:
+            mouse_clock.refresh_canvases()
+
+    def mouse_clock_column_preset_cycle():
+        """Cycle through column layout presets and refresh."""
+        from ..features.clock_letters.config import cycle_column_preset
+        new_preset = cycle_column_preset()
+        print(f"Column preset: {new_preset}")
+        mouse_clock = get_mouse_clock_instance()
+        if mouse_clock.active:
+            mouse_clock.refresh_canvases()
 
     def mouse_clock_get_mode() -> str:
         """Get current display mode."""
