@@ -64,7 +64,12 @@ DEFAULT_DOT_RADIUS = 5
 # Display modes
 DISPLAY_MODE_CIRCLES = "circles"
 DISPLAY_MODE_CLOCK_LETTERS = "clock_letters"
-DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS]
+DISPLAY_MODE_DENSE_GRID = "dense_grid"
+DISPLAY_MODES = [DISPLAY_MODE_CIRCLES, DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_DENSE_GRID]
+
+# Default view pipeline: after targeting in one view, advance to the next.
+# The last entry means "close and show clock_ring" (the final refinement step).
+DEFAULT_VIEW_PIPELINE = [DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_DENSE_GRID]
 
 # Cursorless hat shapes: SVG filename stem -> one-syllable spoken form
 HAT_NAMES = {

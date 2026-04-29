@@ -40,6 +40,9 @@ _DEFAULTS: Dict[str, Any] = {
     "active_colors": list(ALL_COLORS),
     "active_styles": list(ALL_LINE_STYLES),
     "active_letters": list(ALL_LETTERS),
+    "view_pipeline": None,  # None = use DEFAULT_VIEW_PIPELINE from constants
+    "dense_grid_spacing_x": 14,
+    "dense_grid_spacing_y": 14,
 }
 
 # Runtime settings (can be modified)
