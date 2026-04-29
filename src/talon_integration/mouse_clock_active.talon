@@ -34,7 +34,7 @@ clock it <user.letters_colors>+:
 
 # Reverse command - moves opposite direction of last command
 reverse:
-    user.mouse_clock_move_opposite()
+    user.mouse_clock_move_reverse_last_direction()
 
 # Back command - undo last move, return to previous position
 back:
