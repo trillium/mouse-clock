@@ -1,5 +1,5 @@
 """
-Mouse clock movement actions - move, opposite, original, recenter_and_move.
+Mouse clock movement actions - move, reverse_last_direction, repeat_last_direction, recenter_and_move.
 """
 
 from typing import List
@@ -139,45 +139,56 @@ class MoveActions:
         x, y = mouse_clock.calculate_mouse_position(letters, colors, is_repeat=is_repeat)
         mouse_clock.move_mouse(x, y)
 
-    def mouse_clock_move_opposite():
+    def mouse_clock_move_reverse_last_direction():
         """Move the mouse in the opposite direction of the original command."""
         mouse_clock = get_mouse_clock_instance()
 
         if mouse_clock.get_display_mode() == DISPLAY_MODE_DENSE_GRID:
             dx, dy = mouse_clock.core.last_dense_grid_delta
             if dx == 0.0 and dy == 0.0:
-                log_warning("[opposite] No dense grid delta to reverse")
+                log_warning("[reverse_last_direction] No dense grid delta to reverse")
                 return
             cur_x, cur_y = ctrl.mouse_pos()
             new_x, new_y = cur_x - dx, cur_y - dy
             mouse_clock.move_mouse(new_x, new_y)
-            log_info(f"[opposite] Dense grid reverse delta ({-dx:.0f}, {-dy:.0f}) -> ({new_x:.0f}, {new_y:.0f})")
+            log_info(f"[reverse_last_direction] Dense grid reverse delta ({-dx:.0f}, {-dy:.0f}) -> ({new_x:.0f}, {new_y:.0f})")
             return
 
         orig = mouse_clock.core.original_command
         if not orig or orig == ([], []) or not orig[0]:
-            log_warning("[opposite] No original command to reverse")
+            log_warning("[reverse_last_direction] No original command to reverse")
             return
         orig_letters, orig_colors = orig
         opposite_letters = [flip_letter_to_opposite(letter) for letter in orig_letters]
         is_repeat_reverse = _check_repeat_and_recenter(
-            mouse_clock, opposite_letters, orig_colors, label="opposite")
-        log_info(f"[opposite] {orig_letters} -> {opposite_letters}, colors: {orig_colors}")
+            mouse_clock, opposite_letters, orig_colors, label="reverse_last_direction")
+        log_info(f"[reverse_last_direction] {orig_letters} -> {opposite_letters}, colors: {orig_colors}")
         x, y = mouse_clock.calculate_mouse_position(opposite_letters, orig_colors, is_repeat=is_repeat_reverse)
         mouse_clock.move_mouse(x, y)
 
-    def mouse_clock_move_original():
-        """Move the mouse in the original direction (opposite of reverse)."""
+    def mouse_clock_move_repeat_last_direction():
+        """Move the mouse in the original direction (repeat of last move)."""
         mouse_clock = get_mouse_clock_instance()
+
+        if mouse_clock.get_display_mode() == DISPLAY_MODE_DENSE_GRID:
+            dx, dy = mouse_clock.core.last_dense_grid_delta
+            if dx == 0.0 and dy == 0.0:
+                log_warning("[repeat_last_direction] No dense grid delta to repeat")
+                return
+            cur_x, cur_y = ctrl.mouse_pos()
+            new_x, new_y = cur_x + dx, cur_y + dy
+            mouse_clock.move_mouse(new_x, new_y)
+            log_info(f"[repeat_last_direction] Dense grid repeat delta ({dx:.0f}, {dy:.0f}) -> ({new_x:.0f}, {new_y:.0f})")
+            return
 
         orig = mouse_clock.core.original_command
         if not orig or orig == ([], []) or not orig[0]:
-            log_warning("[original] No original command to move toward")
+            log_warning("[repeat_last_direction] No original command to move toward")
             return
         orig_letters, orig_colors = orig
         is_repeat_original = _check_repeat_and_recenter(
-            mouse_clock, orig_letters, orig_colors, label="original")
-        log_info(f"[original] {orig_letters}, colors: {orig_colors}")
+            mouse_clock, orig_letters, orig_colors, label="repeat_last_direction")
+        log_info(f"[repeat_last_direction] {orig_letters}, colors: {orig_colors}")
         x, y = mouse_clock.calculate_mouse_position(orig_letters, orig_colors, is_repeat=is_repeat_original)
         mouse_clock.move_mouse(x, y)
 

@@ -30,7 +30,12 @@ def draw_dispatch(adapter, canvas_obj):
     if adapter._display_mode == DISPLAY_MODE_CLOCK_LETTERS:
         rect = canvas_obj.rect
         screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
-        draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=adapter._alpha)
+        draw_clock_letters_overlay(
+            canvas_obj, screen_rect,
+            alpha=adapter._alpha,
+            pending_letter=adapter.core.pending_letter,
+            pending_color=adapter.core.pending_color,
+        )
     elif adapter._display_mode == DISPLAY_MODE_DENSE_GRID:
         mx, my = ctrl.mouse_pos()
         draw_dense_grid_overlay(

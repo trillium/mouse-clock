@@ -6,7 +6,7 @@ Each letter appears once per color, horizontally distributed.
 Columns can be "letters" (letter grid) or "line" (vertical colored line).
 """
 
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from ...rendering.colors import get_color
 from ...rendering.drawing import draw_text, draw_rect, draw_line
@@ -52,10 +52,44 @@ def _draw_line_column(canvas, x, screen_top, screen_bottom, color, alpha):
     draw_line(canvas, (x, screen_top), (x, screen_bottom), line_color, LINE_COLUMN_WIDTH)
 
 
+def _draw_guide_lines(
+    canvas, left, top, right, bottom,
+    row_positions, col_positions,
+    letters, colors,
+    pending_letter: Optional[List[str]],
+    pending_color: Optional[List[str]],
+):
+    """Draw guide lines for pending partial inputs.
+
+    Letter pending -> horizontal line at that letter's row.
+    Color pending -> vertical line at that color's column.
+    """
+    guide_color = apply_alpha("00ffffcc", "clock_letters")
+    thickness = 2
+
+    if pending_letter:
+        for ltr in pending_letter:
+            ltr_lower = ltr.lower()
+            if ltr_lower in letters:
+                idx = letters.index(ltr_lower)
+                y = row_positions[idx]
+                draw_line(canvas, (left, y), (right, y), guide_color, thickness)
+
+    if pending_color:
+        for clr in pending_color:
+            clr_lower = clr.lower()
+            if clr_lower in colors:
+                idx = colors.index(clr_lower)
+                x = col_positions[idx]
+                draw_line(canvas, (x, top), (x, bottom), guide_color, thickness)
+
+
 def draw_clock_letters_overlay(
     canvas,
     screen_rect: Tuple[float, float, float, float],
-    alpha: int = 255
+    alpha: int = 255,
+    pending_letter: Optional[List[str]] = None,
+    pending_color: Optional[List[str]] = None,
 ):
     """
     Draw the clock letters overlay with pluggable column renderers.
@@ -154,3 +188,11 @@ def draw_clock_letters_overlay(
                 font_size=18,
                 anchor="center"
             )
+
+    # Draw guide lines for any pending partial input
+    _draw_guide_lines(
+        canvas, left, top, right, bottom,
+        row_positions, col_positions,
+        letters, colors,
+        pending_letter, pending_color,
+    )
