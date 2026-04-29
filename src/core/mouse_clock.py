@@ -45,6 +45,12 @@ class MouseClockCore:
         self.last_letters: List[str] = []
         self.last_colors: List[str] = []
         self.original_command: Tuple[List[str], List[str]] = ([], [])
+        self.last_dense_grid_delta: Tuple[float, float] = (0.0, 0.0)
+
+        # Partial input state (for split letter/color commands)
+        self.pending_letter: Optional[List[str]] = None
+        self.pending_color: Optional[List[str]] = None
+        self.last_move_was_partial: bool = False
 
     def update_center(self, x: float, y: float):
         """Update the center position of the clock."""
@@ -52,16 +58,7 @@ class MouseClockCore:
         self.center_y = y
 
     def calculate_edge_distance(self, angle_degrees: float, screen_rect: Tuple[float, float, float, float]) -> float:
-        """
-        Calculate distance from center to screen edge in given direction.
-
-        Args:
-            angle_degrees: Angle in degrees (clock-style, 0=12 o'clock)
-            screen_rect: Tuple of (left, top, right, bottom) screen bounds
-
-        Returns:
-            Distance in pixels from center to screen edge in that direction
-        """
+        """Calculate distance from center to screen edge in given direction."""
         screen_left, screen_top, screen_right, screen_bottom = screen_rect
 
         # Convert clock angle to standard math angle (radians)
@@ -94,19 +91,7 @@ class MouseClockCore:
         screen_rect: Optional[Tuple[float, float, float, float]] = None,
         clock_active: bool = True
     ) -> Tuple[float, float]:
-        """
-        Calculate the averaged (x, y) position for the mouse based on letters and colors.
-
-        Args:
-            letter_list: List of letter inputs (a-l)
-            color_list: List of color inputs
-            is_repeat: If True, skip the incremental merging logic
-            screen_rect: Optional tuple of (left, top, right, bottom) for edge calculations
-            clock_active: Whether the clock visualization is currently active
-
-        Returns:
-            Tuple of (x, y) coordinates for the new mouse position
-        """
+        """Calculate averaged (x, y) position for mouse based on letters and colors."""
         self.last_command = (letter_list, color_list)
         prev_letters = self.last_letters
         prev_colors = self.last_colors
@@ -248,3 +233,7 @@ class MouseClockCore:
         self.last_command = ([], [])
         self.last_letters = []
         self.last_colors = []
+        self.last_dense_grid_delta = (0.0, 0.0)
+        self.pending_letter = None
+        self.pending_color = None
+        self.last_move_was_partial = False
