@@ -5,14 +5,15 @@ Routes canvas draw calls to the correct mode renderer.
 No Talon registrations — pure utility.
 """
 
-from talon import cron
+from talon import cron, ctrl
 
 from ..core import config
 from ..core.config import get_mode_config
 from ..rendering.colors import get_color
 from ..rendering.canvas import draw_mouse_clock
 from ..features.clock_letters import draw_clock_letters_overlay
-from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS
+from ..features.dense_grid import draw_dense_grid_overlay
+from ..core.constants import DISPLAY_MODE_CLOCK_LETTERS, DISPLAY_MODE_DENSE_GRID
 
 
 def draw_dispatch(adapter, canvas_obj):
@@ -30,6 +31,14 @@ def draw_dispatch(adapter, canvas_obj):
         rect = canvas_obj.rect
         screen_rect = (rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
         draw_clock_letters_overlay(canvas_obj, screen_rect, alpha=adapter._alpha)
+    elif adapter._display_mode == DISPLAY_MODE_DENSE_GRID:
+        mx, my = ctrl.mouse_pos()
+        draw_dense_grid_overlay(
+            canvas_obj,
+            mx,
+            my,
+            alpha=adapter._alpha
+        )
     else:
         # Default: circles
         draw_mouse_clock(
